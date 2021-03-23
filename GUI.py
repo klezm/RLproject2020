@@ -6,12 +6,12 @@ from Tile import Tile
 class GUI:
     def __init__(self, process):
         self.process = process
-        #self.process.iconbitmap(".blank.ico")
         self.gwp = None
         self.X = 10  # TODO: read this in from GUI before Init
         self.Y = 8  # TODO: read this in from GUI before Init
         self.window = tk.Toplevel(self.process)
         self.window.title("Gridworld Playground")
+        self.window.iconbitmap("./blank.ico")
         self.gridworldFrame = tk.Frame(self.window)
         self.gridworldFrame.grid(row=0, column=0)
         self.tiles = np.empty((self.X, self.Y), dtype=np.object)
