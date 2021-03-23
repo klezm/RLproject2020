@@ -3,24 +3,32 @@ from itertools import cycle
 
 
 class Tile(tk.Label):
-    # input für colormap
-    tileBlank = {"text": "", "bg": "white"}
-    tileWall = {"text": "", "bg": "black"}
-    tileStart = {"text": "S", "bg": "white"}
-    tileGoal = {"text": "G", "bg": "white"}
+    BLANKCOLOR = "white"
+    WALLCOLOR = "black"
+    STARTLETTER = "S"
+    GOALLETTER = "G"
+    AGENTCOLOR = "blue"
+    tileBlank = {"text": "", "bg": BLANKCOLOR}
+    tileWall = {"text": "", "bg": WALLCOLOR}
+    tileStart = {"text": STARTLETTER, "bg": BLANKCOLOR}
+    tileGoal = {"text": GOALLETTER, "bg": BLANKCOLOR}
     tileTypes = [tileBlank, tileWall, tileStart, tileGoal]
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, interact, *args, **kwargs):
         super().__init__(*args, bd=1, relief=tk.GROOVE, **kwargs)
-        self.cycler = cycle(self.tileTypes)
-        self.toggle()
-        self.bind("<Button-1>", self.toggle)
-        self.bind("<Button-3>", self.toggle)
+        self.holdsAgent = False
+        self.arrivalReward = 0  # TODO: set this in GUI!
+        self.typeID = 0
+        self.cycle_type()
+        if interact:
+            self.bind("<Button-1>", lambda _: self.cycle_type(dir=1))
+            self.bind("<Button-3>", lambda _: self.cycle_type(dir=-1))
 
-    def toggle(self, *args):
-        self.config(**next(self.cycler))
+    def cycle_type(self, dir=0):
+        self.typeID = (self.typeID + dir) % len(self.tileTypes)
+        self.update_appearance()
 
-    def set(self):
-        pass
-
-        #self.env = Gridworld(self.gridworldFrame, X, Y)
+    def update_appearance(self, **kwargs):
+        if not kwargs:
+            kwargs = self.tileTypes[self.typeID]
+        self.config(**kwargs)
