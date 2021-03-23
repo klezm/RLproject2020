@@ -1,5 +1,4 @@
 import tkinter as tk
-import numpy as np
 
 from GUI import GUI
 from GridworldPlayground import GridworldPlayground

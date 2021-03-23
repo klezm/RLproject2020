@@ -1,3 +1,5 @@
+import numpy as np
+
 from Agent import Agent
 from Environment import Environment
 
@@ -17,14 +19,21 @@ class GridworldPlayground:
     def initialize(self, data):
         self.environment = Environment(data)
         self.msDelay = data["msDelay"]
+        self.showEveryNsteps = data["showEveryNsteps"]
         self.agent = Agent(self.environment)
+        self.episodeReturns = np.array([])
         self.agent.ready()
         self.run(timestepsLeft=data["maxTimeSteps"])
 
     def run(self, timestepsLeft):
+        print(timestepsLeft)
         self.visualize_gui()
         if not timestepsLeft:
             # make static plots
             return
-        self.agent.step()
-        self.gui.process.after(self.msDelay, lambda: self.run(timestepsLeft-1))
+        for t in range(self.showEveryNsteps):
+            episodeFinished, return_ = self.agent.step()
+            if episodeFinished:
+                np.append(self.episodeReturns, return_)
+                self.agent.ready(episodeJustEnded=True)
+        self.gui.process.after(self.msDelay, lambda: self.run(timestepsLeft-self.showEveryNsteps))

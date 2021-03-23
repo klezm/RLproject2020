@@ -12,22 +12,29 @@ class Agent:
         self.environment = environment
         self.Qvalues = np.empty((sizeGuess, sizeGuess), dtype=np.object)
         self.state = None
+        self.return_ = 0  # underscore to avoid naming conflict with return keyword
         self.lastAction = self.UP  # variable just for demonstration
         self.lastState = None  # variable just for demonstration
 
-    def ready(self):
-        for x in range(self.Qvalues.shape[0]):
-            for y in range(self.Qvalues.shape[1]):
-                self.Qvalues[x,y] = {action: self.get_initial_actionvalue() for action in self.ACTIONS}
+    def ready(self, episodeJustEnded=False):
+        if not episodeJustEnded:
+            for x in range(self.Qvalues.shape[0]):
+                for y in range(self.Qvalues.shape[1]):
+                    self.Qvalues[x,y] = {action: self.get_initial_actionvalue() for action in self.ACTIONS}
         self.state = self.environment.give_initial_position()
         if self.state is None:
             print("No Starting Point found")  # TODO: exception
 
     def step(self):
         action = self.choose_action()
-        reward, successorState = self.environment.apply_action(action)
-        print(f"State:{self.state}\tReward:{reward}\tSuccessor State:{successorState}")
+        reward, successorState, episodeFinished = self.environment.apply_action(action)
+        #print(f"State:{self.state}\tReward:{reward}\tSuccessor State:{successorState}")
         self.state = successorState
+        self.return_ += reward
+        returnSoFar = self.return_
+        if episodeFinished:
+            self.return_ = 0
+        return episodeFinished, returnSoFar
 
     def get_initial_actionvalue(self):
         return 0

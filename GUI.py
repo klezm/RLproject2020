@@ -6,16 +6,18 @@ from Tile import Tile
 class GUI:
     def __init__(self, process):
         self.process = process
+        #self.process.iconbitmap(".blank.ico")
         self.gwp = None
         self.X = 10  # TODO: read this in from GUI before Init
-        self.Y = 5  # TODO: read this in from GUI before Init
+        self.Y = 8  # TODO: read this in from GUI before Init
         self.window = tk.Toplevel(self.process)
+        self.window.title("Gridworld Playground")
         self.gridworldFrame = tk.Frame(self.window)
         self.gridworldFrame.grid(row=0, column=0)
         self.tiles = np.empty((self.X, self.Y), dtype=np.object)
         for x in range(self.X):
             for y in range(self.Y):
-                self.tiles[x,y] = Tile(True, self.gridworldFrame, width=5, height=2)
+                self.tiles[x,y] = Tile(True, self.gridworldFrame, width=3, height=1, font="calibri 15 bold")
                 self.tiles[x,y].grid(row=y, column=x)
         self.buttonFrame = tk.Frame(self.window)
         self.buttonFrame.grid(row=1, column=0)
@@ -28,8 +30,9 @@ class GUI:
 
     def initialize_gwp(self):
         globalActionReward = -1  # TODO: read this in from GUI
-        maxTimeSteps = 100000  # TODO: read this in from GUI
+        maxTimeSteps = 1000  # TODO: read this in from GUI
         msDelay = 100  # TODO: read this in from GUI
+        showEveryNsteps = 1  # TODO: read this in from GUI
         environmentData = np.empty_like(self.tiles)
         for x in range(self.X):
             for y in range(self.Y):
@@ -41,7 +44,8 @@ class GUI:
         data = {"environmentData": environmentData,
                 "globalActionReward": globalActionReward,
                 "maxTimeSteps":  maxTimeSteps,
-                "msDelay": msDelay}
+                "msDelay": msDelay,
+                "showEveryNsteps": showEveryNsteps}
         self.gwp.initialize(data)  # GUI gathers data, then calls initialize method of gwp. This should all GUIs do.
 
     def visualize(self, data):
