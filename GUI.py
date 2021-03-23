@@ -28,12 +28,13 @@ class GUI:
 
         #   valueVisualizationFrame:
         colors = ["blue", "red", "green", "orange"]
-        actionIndicatorColors = {action: color for action, color in zip(actionspace, colors)}
+        self.actionIndicatorColors = {action: color for action, color in zip(actionspace, colors)}
+        self.actionIndicatorColors[(0,0)] = "white"
         valueTilemapsFontsize = 8
         self.qValueFrames = {}
         for action in actionspace:
             self.qValueFrames[action] = Tilemap(self.valueVisualizationFrame, X=self.X, Y=self.Y, interact=False,
-                                                fontsize=valueTilemapsFontsize, bd=5, relief=tk.GROOVE, bg=actionIndicatorColors[action])
+                                                fontsize=valueTilemapsFontsize, bd=5, relief=tk.GROOVE, bg=self.actionIndicatorColors[action])
             self.qValueFrames[action].grid(row=action[1]+1, column=action[0]+1)
         self.greedyPolicyFrame = Tilemap(self.valueVisualizationFrame, X=self.X, Y=self.Y, interact=False,
                                          fontsize=valueTilemapsFontsize, bd=3, relief=tk.GROOVE)
@@ -74,3 +75,20 @@ class GUI:
                 self.gridworldFrame.tiles[self.lastAgentPosition].update_appearance()
             self.gridworldFrame.tiles[agentPosition].update_appearance(bg=Tile.AGENTCOLOR)
             self.lastAgentPosition = agentPosition
+        Qvalues = data["Qvalues"]
+        for x in range(self.X):
+            for y in range(self.Y):
+                maxValue = -1.e20
+                maxAction = (0,0)
+                for action, Qvalue in Qvalues[x,y].items():
+                    if self.qValueFrames[action].tiles[x,y].cget("text") != str(Qvalue):
+                        self.qValueFrames[action].tiles[x,y].update_appearance(text=str(Qvalue))
+                    if Qvalue == maxValue:
+                        maxAction = (0,0)
+                    elif Qvalue >= maxValue:
+                        maxValue = Qvalue
+                        maxAction = action
+                newColor = self.actionIndicatorColors[maxAction]
+                if self.greedyPolicyFrame.tiles[x,y].cget("bg") != newColor:
+                    self.greedyPolicyFrame.tiles[x, y].update_appearance(bg=newColor)
+
