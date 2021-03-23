@@ -1,4 +1,5 @@
 import numpy as np
+import random
 
 from Cell import Cell
 
@@ -15,9 +16,9 @@ class Environment:
         self.position = self.give_initial_position()
 
     def give_initial_position(self):
-        candidates = np.array([cell.position for cell in self.grid.flatten() if cell.isStart])
+        candidates = [cell.position for cell in self.grid.flatten() if cell.isStart]
         if candidates:
-            return np.random.choice(candidates)
+            return random.choice(candidates)
         else:
             return None
 
@@ -27,5 +28,5 @@ class Environment:
         yEstimate = self.position[1] + action[1]
         if 0 <= xEstimate < self.X and 0 <= yEstimate < self.Y and not self.grid[xEstimate, yEstimate].isWall:
             self.position = (xEstimate, yEstimate)
-            self.reward += self.grid(self.position).arrivalReward
+            reward += self.grid[self.position].arrivalReward
         return reward, self.position

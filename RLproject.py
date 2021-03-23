@@ -6,15 +6,15 @@ from GridworldPlayground import GridworldPlayground
 
 
 class RLproject:
-    def __init__(self, root):
-        self.gwpg = GridworldPlayground()
-        self.gui = GUI(root)
-        self.gwpg.set_gui(self.gui)
-        self.gui.set_gwpg(self.gwpg)
+    def __init__(self, guiProcess):
+        self.gwp = GridworldPlayground()
+        self.gui = GUI(process=guiProcess)
+        self.gwp.set_gui(self.gui)
+        self.gui.set_gwp(self.gwp)
 
 
 if __name__ == "__main__":
     root = tk.Tk()
     root.withdraw()
-    RLproject(root)
+    RLproject(guiProcess=root)
     root.mainloop()

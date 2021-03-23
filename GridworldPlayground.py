@@ -10,15 +10,21 @@ class GridworldPlayground:
     def set_gui(self, gui):
         self.gui = gui
 
-    def visualize(self):
+    def visualize_gui(self):
         data = {"agentPosition": self.agent.state}
-        self.gui.visualize(data)  # gwpg gathers data, then calls visualize method of gwpg. This method should all GUIs have.
+        self.gui.visualize(data)  # gwp gathers data, then calls visualize method of gwp. This method should all GUIs have.
 
     def initialize(self, data):
         self.environment = Environment(data)
+        self.msDelay = data["msDelay"]
         self.agent = Agent(self.environment)
         self.agent.ready()
-        self.visualize()  # initial visualization
-        for t in range(data["maxTimeSteps"]):
-            self.agent.step()
-            self.visualize()
+        self.run(timestepsLeft=data["maxTimeSteps"])
+
+    def run(self, timestepsLeft):
+        self.visualize_gui()
+        if not timestepsLeft:
+            # make static plots
+            return
+        self.agent.step()
+        self.gui.process.after(self.msDelay, lambda: self.run(timestepsLeft-1))

@@ -4,11 +4,12 @@ from Tile import Tile
 
 
 class GUI:
-    def __init__(self, root):
-        self.gwpg = None
-        self.X = 8
-        self.Y = 5
-        self.window = tk.Toplevel(root)
+    def __init__(self, process):
+        self.process = process
+        self.gwp = None
+        self.X = 10  # TODO: read this in from GUI before Init
+        self.Y = 5  # TODO: read this in from GUI before Init
+        self.window = tk.Toplevel(self.process)
         self.gridworldFrame = tk.Frame(self.window)
         self.gridworldFrame.grid(row=0, column=0)
         self.tiles = np.empty((self.X, self.Y), dtype=np.object)
@@ -18,16 +19,17 @@ class GUI:
                 self.tiles[x,y].grid(row=y, column=x)
         self.buttonFrame = tk.Frame(self.window)
         self.buttonFrame.grid(row=1, column=0)
-        self.startButton = tk.Button(self.buttonFrame, text="Go!", command=self.initialize)
+        self.startButton = tk.Button(self.buttonFrame, text="Go!", command=self.initialize_gwp)
         self.startButton.grid(row=0, column=0)
         self.lastAgentPosition = None
 
-    def set_gwpg(self, gwpg):
-        self.gwpg = gwpg
+    def set_gwp(self, gwp):
+        self.gwp = gwp
 
-    def initialize(self):
+    def initialize_gwp(self):
         globalActionReward = -1  # TODO: read this in from GUI
-        maxTimeSteps = 100  # TODO: read this in from GUI
+        maxTimeSteps = 100000  # TODO: read this in from GUI
+        msDelay = 100  # TODO: read this in from GUI
         environmentData = np.empty_like(self.tiles)
         for x in range(self.X):
             for y in range(self.Y):
@@ -38,8 +40,9 @@ class GUI:
                                         "arrivalReward": self.tiles[x,y].arrivalReward}
         data = {"environmentData": environmentData,
                 "globalActionReward": globalActionReward,
-                "maxTimeSteps":  maxTimeSteps}
-        self.gwpg.initialize(data)  # GUI gathers data, then calls initialize method of gwpg. This should all GUIs do.
+                "maxTimeSteps":  maxTimeSteps,
+                "msDelay": msDelay}
+        self.gwp.initialize(data)  # GUI gathers data, then calls initialize method of gwp. This should all GUIs do.
 
     def visualize(self, data):
         agentPosition = data["agentPosition"]
