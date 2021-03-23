@@ -2,12 +2,13 @@ import tkinter as tk
 
 from GUI import GUI
 from GridworldPlayground import GridworldPlayground
+from Agent import Agent
 
 
 class RLproject:
     def __init__(self, guiProcess):
         self.gwp = GridworldPlayground()
-        self.gui = GUI(process=guiProcess)
+        self.gui = GUI(process=guiProcess, actionspace=Agent.ACTIONS)
         self.gwp.set_gui(self.gui)
         self.gui.set_gwp(self.gwp)
 

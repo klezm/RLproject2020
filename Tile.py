@@ -1,5 +1,4 @@
 import tkinter as tk
-from itertools import cycle
 
 
 class Tile(tk.Label):
@@ -14,9 +13,8 @@ class Tile(tk.Label):
     tileGoal = {"text": GOALLETTER, "bg": BLANKCOLOR}
     tileTypes = [tileBlank, tileWall, tileStart, tileGoal]
 
-    def __init__(self, interact, *args, **kwargs):
-        super().__init__(*args, bd=1, relief=tk.GROOVE, **kwargs)
-        self.holdsAgent = False
+    def __init__(self, mother, interact, **kwargs):
+        super().__init__(mother, bd=1, relief=tk.GROOVE, **kwargs)
         self.arrivalReward = 0  # TODO: set this in GUI!
         self.typeID = 0
         self.cycle_type()
