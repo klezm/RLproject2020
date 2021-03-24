@@ -43,6 +43,7 @@ class GUI:
 
         valueTilemapsFontsize = 12
         worldTilemapFontsize = 43
+        valueTilemapsTilewidth = 4
 
         self.window = tk.Toplevel(self.process)
         self.window.title("Gridworld Playground")
@@ -65,10 +66,12 @@ class GUI:
         self.qValueFrames = {}
         for action in actionspace:
             self.qValueFrames[action] = Tilemap(self.valueVisualizationFrame, X=self.X, Y=self.Y, interact=False,
-                                                fontsize=valueTilemapsFontsize, bd=5, relief=tk.GROOVE, bg=self.actionIndicatorColors[action])
+                                                fontsize=valueTilemapsFontsize, tileWidth=valueTilemapsTilewidth,
+                                                bd=5, relief=tk.GROOVE, bg=self.actionIndicatorColors[action])
             self.qValueFrames[action].grid(row=action[1]+1, column=action[0]+1)
         self.greedyPolicyFrame = Tilemap(self.valueVisualizationFrame, X=self.X, Y=self.Y, interact=False,
-                                         fontsize=valueTilemapsFontsize, bd=3, relief=tk.GROOVE)
+                                         fontsize=valueTilemapsFontsize, tileWidth=valueTilemapsTilewidth,
+                                         bd=3, relief=tk.GROOVE)
         self.greedyPolicyFrame.grid(row=1, column=1)
 
         #   buttonFrame:
@@ -85,9 +88,9 @@ class GUI:
 
     def initialize_gridworldPlayground(self):
         globalActionReward = -1  # TODO: read this in from GUI
-        maxTimeSteps = 1000  # TODO: read this in from GUI
-        msDelay = 100  # TODO: read this in from GUI
-        showEveryNsteps = 1  # TODO: read this in from GUI
+        maxTimeSteps = 100000  # TODO: read this in from GUI
+        msDelay = 1  # TODO: read this in from GUI
+        showEveryNsteps = 100  # TODO: read this in from GUI
         environmentData = np.empty((self.X,self.Y), dtype=object)
         for x in range(self.X):
             for y in range(self.Y):
@@ -117,7 +120,7 @@ class GUI:
                 maxAction = (0,0)
                 for action, Qvalue in Qvalues[x,y].items():
                     if self.qValueFrames[action].tiles[x,y].cget("text") != str(Qvalue):
-                        self.qValueFrames[action].tiles[x,y].update_appearance(text=str(Qvalue))
+                        self.qValueFrames[action].tiles[x,y].update_appearance(text=f"{Qvalue:.2f}")
                     if Qvalue == maxValue:
                         maxAction = (0,0)
                     elif Qvalue >= maxValue:
@@ -126,4 +129,3 @@ class GUI:
                 newColor = self.actionIndicatorColors[maxAction]
                 if self.greedyPolicyFrame.tiles[x,y].cget("bg") != newColor:
                     self.greedyPolicyFrame.tiles[x, y].update_appearance(bg=newColor)
-

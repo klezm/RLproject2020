@@ -18,7 +18,7 @@ class Environment:
     def give_initial_position(self):
         candidates = [cell.position for cell in self.grid.flatten() if cell.isStart]
         if candidates:
-            self.agentPosition = random.choice(candidates)
+            self.agentPosition = random.choice(candidates)  # TODO: use np.random
         else:
             self.agentPosition = None
         return self.agentPosition

@@ -1,6 +1,8 @@
 import numpy as np
 import random
 
+from Memory import Memory
+
 
 class Agent:
     UP = (0,-1)
@@ -9,8 +11,13 @@ class Agent:
     RIGHT = (1,0)
     ACTIONS = [UP, DOWN, LEFT, RIGHT]
 
-    def __init__(self, environment, sizeGuess=100):
+    def __init__(self, environment):
         self.environment = environment
+        self.onPolicy = True
+        self.stepSize = None
+        self.discount = None
+        self.epsilon = None
+        self.memory = Memory()
         self.Qvalues = np.empty_like(self.environment.grid)  # must be kept over episodes
         for x in range(self.Qvalues.shape[0]):
             for y in range(self.Qvalues.shape[1]):
@@ -30,23 +37,31 @@ class Agent:
             print("No Starting Point found")  # TODO: exception
 
     def step(self):
-        action = self.choose_action()
-        reward, successorState, self.episodeFinished = self.environment.apply_action(action)
-        #print(f"State:{self.state}\tReward:{reward}\tSuccessor State:{successorState}")
-        self.Qvalues[self.state][action] += 1
-        #print(self.Qvalues)
-        self.state = successorState
+        #print(self.return_)
+        behaviourAction = self.behavior_policy()
+        targetAction = behaviourAction if self.onPolicy else self.target_policy()
+        self.update_actionvalues(targetAction)
+        reward, successorState, self.episodeFinished = self.environment.apply_action(behaviourAction)
         self.return_ += reward
+        self.memory.append_state_action_reward((self.state, behaviourAction, reward))
+        self.state = successorState
+        # TODO: handle last update when episode finished
         if self.episodeFinished:
             self.episodeReturns = np.append(self.episodeReturns, self.return_)
             #print(self.episodeReturns)
 
+    def update_actionvalues(self, reward, successorState):
+        self.Qvalues[self.state][self.behaviourAction] += 1
+
+    def target_policy(self):
+        pass
+
     def get_initial_actionvalue(self):
         return 0
 
-    def choose_action(self):
+    def behavior_policy(self):
         if self.state == self.lastState:
-            chosenAction = random.choice(self.ACTIONS)
+            chosenAction = random.choice(self.ACTIONS)  # TODO: use np.random
         else:
             chosenAction = self.lastAction
         self.lastAction = chosenAction

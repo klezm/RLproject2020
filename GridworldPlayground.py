@@ -1,6 +1,7 @@
 import numpy as np
 
 from Agent import Agent
+from SarsaAgent import SarsaAgent
 from Environment import Environment
 
 
@@ -24,7 +25,7 @@ class GridworldPlayground:
         self.msDelay = data["msDelay"]
         self.showEveryNsteps = data["showEveryNsteps"]
         self.environment = Environment(data)
-        self.agent = Agent(self.environment)
+        self.agent = SarsaAgent(self.environment, stepSize=0.1, discount=1, epsilon=0.1)
         self.run(timestepsLeft=data["maxTimeSteps"])
 
     def run(self, timestepsLeft):
