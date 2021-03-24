@@ -7,10 +7,10 @@ from Agent import Agent
 
 class RLproject:
     def __init__(self, guiProcess):
-        self.gwp = GridworldPlayground()
+        self.gridworldPlayground = GridworldPlayground()
         self.gui = GUI(process=guiProcess, actionspace=Agent.ACTIONS)
-        self.gwp.set_gui(self.gui)
-        self.gui.set_gwp(self.gwp)
+        self.gridworldPlayground.set_gui(self.gui)
+        self.gui.set_gridworldPlayground(self.gridworldPlayground)
 
 
 if __name__ == "__main__":

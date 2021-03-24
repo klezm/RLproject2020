@@ -34,7 +34,7 @@ class Agent:
         reward, successorState, self.episodeFinished = self.environment.apply_action(action)
         #print(f"State:{self.state}\tReward:{reward}\tSuccessor State:{successorState}")
         self.Qvalues[self.state][action] += 1
-        print(self.Qvalues)
+        #print(self.Qvalues)
         self.state = successorState
         self.return_ += reward
         if self.episodeFinished:

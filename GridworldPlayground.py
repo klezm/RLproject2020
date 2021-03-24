@@ -18,7 +18,7 @@ class GridworldPlayground:
     def visualize_gui(self):
         data = {"agentPosition": self.agent.state,
                 "Qvalues": self.agent.Qvalues}
-        self.gui.visualize(data)  # gwp gathers data, then calls visualize method of gwp. This method should all GUIs have.
+        self.gui.visualize(data)  # gridworldPlayground gathers data, then calls visualize method of gridworldPlayground. This method should all GUIs have.
 
     def initialize(self, data):
         self.msDelay = data["msDelay"]
