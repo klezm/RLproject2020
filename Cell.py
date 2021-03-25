@@ -11,3 +11,6 @@ class Cell:
 
     def get_arrival_reward(self):
         return self.arrivalReward
+
+    def is_suitable_start(self):
+        return not any([self.isWall, self.isGoal])

@@ -79,9 +79,9 @@ class GUI:
 
         self.startButton.grid(row=0, column=0)
 
-        #center(self.window)
-
         self.lastAgentPosition = None
+
+        #center(self.window)
 
     def set_gridworldPlayground(self, gridworldPlayground):
         self.gridworldPlayground = gridworldPlayground
@@ -107,6 +107,8 @@ class GUI:
         self.gridworldPlayground.initialize(data)  # GUI gathers data, then calls initialize method of gridworldPlayground. This should all GUIs do.
 
     def visualize(self, data):
+        # TODO: Blink on exploratory move
+        # TODO: Qlearning doesnt update some tiles after a while. THATS THE POINT! Because its off-policy. This shows that it works! Great for presentation! Example with no walls and Start/Goal in the edges.
         agentPosition = data["agentPosition"]
         if agentPosition != self.lastAgentPosition:
             if self.lastAgentPosition is not None:

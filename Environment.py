@@ -16,11 +16,11 @@ class Environment:
         self.agentPosition = None
 
     def give_initial_position(self):
-        candidates = [cell.get_position() for cell in self.grid.flatten() if cell.isStart]
-        if candidates:
-            self.agentPosition = random.choice(candidates)  # TODO: use np.random
-        else:
-            self.agentPosition = None
+        cellArray = self.grid.flatten()
+        candidates = [cell.get_position() for cell in cellArray if cell.isStart]
+        if not candidates:  # random start is none is defined
+            candidates = [cell.get_position() for cell in cellArray if cell.is_suitable_start()]
+        self.agentPosition = random.choice(candidates)  # TODO: use np.random
         return self.agentPosition
 
     def apply_action(self, action):

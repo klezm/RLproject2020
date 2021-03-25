@@ -1,7 +1,4 @@
-import numpy as np
-
 from Agent import Agent
-from SarsaAgent import SarsaAgent
 from Environment import Environment
 
 
@@ -25,7 +22,7 @@ class GridworldPlayground:
         self.msDelay = data["msDelay"]
         self.showEveryNchanges = data["showEveryNchanges"]
         self.environment = Environment(data)
-        self.agent = SarsaAgent(self.environment, stepSize=0.3, discount=1, epsilon=0.05)#, actionPlan=[(0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1)])  # TODO: remove plan arg
+        self.agent = Agent(self.environment, stepSize=0.3, discount=1, epsilon=0.05, lambda_=1, onPolicy=False)
         self.run(timestepsLeft=data["maxTimeSteps"])
 
     def run(self, timestepsLeft):
@@ -46,4 +43,4 @@ class GridworldPlayground:
         self.gui.process.after(self.msDelay, lambda: self.run(timestepsLeft - timestepsPassed))
 
     def plot(self):
-        print(self.agent.episodeReturns)
+        print(self.agent.get_episode_returns())
