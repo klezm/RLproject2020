@@ -1,3 +1,26 @@
+# TODO: Whole frame in gui to toggle all still hardcoded parameters
+# TODO: Heatmap background for actionvalues, arrows for greedy policy
+#   TODO -> Action-Class, so that for example DOWN = Action(direction: (int, int), color: string, arrow: char)
+# TODO: epsilon decrease over time, function as argument
+# TODO: finish n-step (MC included)
+# TODO: set agent params by algorithm keyword
+# TODO: Plots after run, inspired from the book
+# TODO: Entry for some reward number, mousewheel-click on some tile applies that number as arrival rewar for that tile
+#   TODO -> remove global arrival reward hardcode
+#   TODO -> Find a way to display that i.e. cliff brings back to start AND has a reward of -N (Maybe all "Start Teleporters" in one specific color
+# TODO: Torus World (can be toggled)
+# TODO: Blink on exploratory move
+# TODO: Flags for debug stuff and prints, own print function
+# TODO: Implement planning (Dyna-Q, Dyna-Q+)
+# TODO: Implement Double Learning
+# TODO: Implement Expectation-using algorithms
+# TODO: King-Moves (can be toggled)
+# TODO: (Stochastic) Windy Gridworld (from x & y): Action (0,0) as possible action? show actionvalues in the middle (where greedy policy is now) and greedy policy in some edge
+# TODO: Teleporters
+# TODO: Ice Floor (can be toggled) -> Hard to solve for human, but no extra challenge for RL Agent!
+# TODO: Implement Policy Evaluation, Policy Improvement, Policy Iteration, Value Iteration, Value-Based TD
+
+
 import tkinter as tk
 import numpy as np
 
@@ -107,7 +130,6 @@ class GUI:
         self.gridworldPlayground.initialize(data)  # GUI gathers data, then calls initialize method of gridworldPlayground. This should all GUIs do.
 
     def visualize(self, data):
-        # TODO: Blink on exploratory move
         # TODO: Qlearning doesnt update some tiles after a while. THATS THE POINT! Because its off-policy. This shows that it works! Great for presentation! Example with no walls and Start/Goal in the edges.
         agentPosition = data["agentPosition"]
         if agentPosition != self.lastAgentPosition:

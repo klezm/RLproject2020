@@ -12,7 +12,7 @@ class Agent:
     ACTIONS = [UP, DOWN, LEFT, RIGHT]
 
     def __init__(self, environment, stepSize=0.1, discount=1, epsilon=0.1, lambda_=1, onPolicy=True, initialActionvalueMean=0, initialActionvalueSigma=0, predefinedAlgorithm=None, actionPlan=[]):
-        # TODO: epsilon decrease over time, function as argument
+
         self.environment = environment
         if predefinedAlgorithm:
             # TODO: set missing params accordingly
@@ -29,7 +29,7 @@ class Agent:
         self.episodicTask = None  # Todo: This variable is not used so far. Find out if Reward is still a thing in non episodic task, and if, is it defined with or without discount?
         self.episodeFinished = True
         self.state = None
-        self.return_ = None  # underscore to avoid naming conflict with return keyword  # TODO: "None" es still written to episodeReturns rigth at the beginning
+        self.return_ = None  # underscore to avoid naming conflict with return keyword
         self.episodeReturns = np.array([])  # must be kept over episodes
         self.memory = Memory()
         # Debug variables:
@@ -70,14 +70,15 @@ class Agent:
         targetActionvalue = self.Q(S=self.state, A=targetAction)
         self.update_actionvalues(targetActionvalue)
         reward, successorState, self.episodeFinished = self.environment.apply_action(behaviorAction)
-        # self.actionHistory.append(behaviorAction)  # TODO: global debug flag/integer for such stuff and prints
+        # self.actionHistory.append(behaviorAction)  TODO: Dont forget debug stuff here
         #print(self.actionHistory)
-        self.return_ += reward
         self.memory.memorize_state_action_reward((self.state, behaviorAction, reward))
         self.state = successorState
+        self.return_ += reward
+        if self.episodeFinished:
+            self.episodeReturns = np.append(self.episodeReturns, self.return_)
 
     def process_remaining_memory(self):
-        self.episodeReturns = np.append(self.episodeReturns, self.return_)
         while self.memory.get_size():  # TODO: This is doubled (once here, once in function), but a boolean return value for the function instead doesnt feel nice
             self.update_actionvalues(targetActionvalue=0)
 
