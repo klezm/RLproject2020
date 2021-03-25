@@ -100,7 +100,7 @@ class Agent:
     def behavior_policy(self):
         if self.actionPlan:
             return self.actionPlan.pop(0)
-        if np.random.rand() < self.epsilon:  # TODO: use np.random
+        if np.random.rand() < self.epsilon:
             return self.sample_random_action()
         else:
             return self.get_greedy_action()
@@ -109,9 +109,9 @@ class Agent:
         maxActionValue = max(self.Qvalues[self.state].values())
         actionCandidates = [action for action, value in self.Qvalues[self.state].items() if value == maxActionValue]
         if len(actionCandidates) > 1:
-            return random.choice(actionCandidates)  # TODO: use np.random
+            return actionCandidates[np.random.randint(len(actionCandidates))]
         else:  # TODO: dunno if random.choice is optimized so that it doesnt use a rng if container size is 1
             return actionCandidates[0]
 
     def sample_random_action(self):
-        return random.choice(self.ACTIONS)  # TODO: use np.random
+        return self.ACTIONS[np.random.randint(len(self.ACTIONS))]
