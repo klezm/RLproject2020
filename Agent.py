@@ -12,7 +12,6 @@ class Agent:
     ACTIONS = [UP, DOWN, LEFT, RIGHT]
 
     def __init__(self, environment, stepSize=0.1, discount=1, epsilon=0.1, lambda_=1, onPolicy=True, initialActionvalueMean=0, initialActionvalueSigma=0, predefinedAlgorithm=None, actionPlan=[]):
-
         self.environment = environment
         if predefinedAlgorithm:
             # TODO: set missing params accordingly
@@ -100,7 +99,7 @@ class Agent:
     def behavior_policy(self):
         if self.actionPlan:
             return self.actionPlan.pop(0)
-        if np.random.rand() < self.epsilon:  # TODO: use np.random
+        if np.random.rand() < self.epsilon:
             return self.sample_random_action()
         else:
             return self.get_greedy_action()
