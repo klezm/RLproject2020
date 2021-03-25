@@ -57,7 +57,7 @@ class Agent:
         self.return_ = 0
         self.state = self.environment.give_initial_position()
         if self.state is None:
-            print("No Starting Point found")  # TODO: exception. Can still occur if no Tile is suitable for starting
+            raise RuntimeError("No Starting Point found")
 
     def step(self):
         #print(self.return_)
@@ -108,9 +108,9 @@ class Agent:
         maxActionValue = max(self.Qvalues[self.state].values())
         actionCandidates = [action for action, value in self.Qvalues[self.state].items() if value == maxActionValue]
         if len(actionCandidates) > 1:
-            return random.choice(actionCandidates)  # TODO: use np.random
+            return actionCandidates[np.random.randint(len(actionCandidates))]
         else:  # TODO: dunno if random.choice is optimized so that it doesnt use a rng if container size is 1
             return actionCandidates[0]
 
     def sample_random_action(self):
-        return random.choice(self.ACTIONS)  # TODO: use np.random
+        return self.ACTIONS[np.random.randint(len(self.ACTIONS))]
