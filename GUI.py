@@ -27,8 +27,8 @@ class GUI:
         configWindow = tk.Toplevel(self.process)
         configWindow.title("Config")
         configWindow.iconbitmap("./blank.ico")
-        xStringVar = tk.StringVar(value="8")
-        yStringVar = tk.StringVar(value="8")
+        xStringVar = tk.StringVar(value=9)
+        yStringVar = tk.StringVar(value=9)
         font = "calibri 15 bold"
         tk.Label(configWindow, text="Gridworld Size:", font=font).grid(row=0, column=0, columnspan=2)
         tk.Label(configWindow, text="Width:", font=font).grid(row=1, column=0)
@@ -88,9 +88,9 @@ class GUI:
 
     def initialize_gridworldPlayground(self):
         globalActionReward = -1  # TODO: read this in from GUI
-        maxTimeSteps = 100000  # TODO: read this in from GUI
-        msDelay = 50  # TODO: read this in from GUI
-        showEveryNsteps = 1  # TODO: read this in from GUI
+        maxTimeSteps = 1000000  # TODO: read this in from GUI
+        msDelay = 1  # TODO: read this in from GUI
+        showEveryNchanges = 1000  # TODO: read this in from GUI
         environmentData = np.empty((self.X,self.Y), dtype=object)
         for x in range(self.X):
             for y in range(self.Y):
@@ -103,7 +103,7 @@ class GUI:
                 "globalActionReward": globalActionReward,
                 "maxTimeSteps": maxTimeSteps,
                 "msDelay": msDelay,
-                "showEveryNsteps": showEveryNsteps}
+                "showEveryNchanges": showEveryNchanges}
         self.gridworldPlayground.initialize(data)  # GUI gathers data, then calls initialize method of gridworldPlayground. This should all GUIs do.
 
     def visualize(self, data):

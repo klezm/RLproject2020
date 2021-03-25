@@ -11,7 +11,7 @@ class GridworldPlayground:
         self.environment = None
         self.agent = None
         self.msDelay = None
-        self.showEveryNsteps = None
+        self.showEveryNchanges = None
 
     def set_gui(self, gui):
         self.gui = gui
@@ -23,23 +23,27 @@ class GridworldPlayground:
 
     def initialize(self, data):
         self.msDelay = data["msDelay"]
-        self.showEveryNsteps = data["showEveryNsteps"]
+        self.showEveryNchanges = data["showEveryNchanges"]
         self.environment = Environment(data)
-        self.agent = SarsaAgent(self.environment, stepSize=0.1, discount=1, epsilon=0.1)
+        self.agent = SarsaAgent(self.environment, stepSize=0.3, discount=1, epsilon=0.05)#, actionPlan=[(0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1)])  # TODO: remove plan arg
         self.run(timestepsLeft=data["maxTimeSteps"])
 
     def run(self, timestepsLeft):
         #print(timestepsLeft)
-        self.visualize_gui()
-        if not timestepsLeft:
+        if timestepsLeft <= 0:
             self.plot()
             del self.agent
             return
-        for t in range(self.showEveryNsteps):
+        timestepsPassed = 0
+        for i in range(self.showEveryNchanges):
             if self.agent.episodeFinished:
+                self.agent.process_remaining_memory()
                 self.agent.start_episode()
-            self.agent.step()
-        self.gui.process.after(self.msDelay, lambda: self.run(timestepsLeft - self.showEveryNsteps))
+            else:
+                self.agent.step()
+                timestepsPassed += 1
+        self.visualize_gui()
+        self.gui.process.after(self.msDelay, lambda: self.run(timestepsLeft - timestepsPassed))
 
     def plot(self):
-        pass
+        print(self.agent.episodeReturns)

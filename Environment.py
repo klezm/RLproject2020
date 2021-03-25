@@ -30,6 +30,6 @@ class Environment:
         yEstimate = self.agentPosition[1] + action[1]
         if 0 <= xEstimate < self.X and 0 <= yEstimate < self.Y and not self.grid[xEstimate, yEstimate].isWall:
             self.agentPosition = (xEstimate, yEstimate)
-            reward += self.grid[self.agentPosition].get_arrival_reward()
             episodeFinished = self.grid[self.agentPosition].isGoal
+        reward += self.grid[self.agentPosition].get_arrival_reward()
         return reward, self.agentPosition, episodeFinished

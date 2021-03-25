@@ -11,7 +11,7 @@ class Agent:
     RIGHT = (1,0)
     ACTIONS = [UP, DOWN, LEFT, RIGHT]
 
-    def __init__(self, environment):
+    def __init__(self, environment, actionPlan=[]):
         self.environment = environment
         self.onPolicy = True
         self.stepSize = None
@@ -29,12 +29,22 @@ class Agent:
         self.episodeReturns = np.array([])  # must be kept over episodes
         self.lastAction = self.UP  # variable just for demonstration
         self.lastState = None  # variable just for demonstration
+        self.actionPlan = actionPlan
+        self.actionHistory = []
 
     def get_state(self):
         return self.state
 
     def get_Qvalues(self):
         return self.Qvalues
+
+    def Q(self, S, A):
+        return self.Qvalues[S][A]
+
+    #def get_action_value_from_policy(self, policy):
+    #    action = policy()
+    #    actionValue = self.Q(self.state, action)
+    #    return action, actionValue
 
     def start_episode(self):
         self.episodeFinished = False
@@ -45,19 +55,28 @@ class Agent:
 
     def step(self):
         #print(self.return_)
-        behaviourAction = self.behavior_policy()
-        targetAction = behaviourAction if self.onPolicy else self.target_policy()
-        self.update_actionvalues(targetAction)
-        reward, successorState, self.episodeFinished = self.environment.apply_action(behaviourAction)
+        behaviorAction = self.behavior_policy()
+        if self.onPolicy:
+            targetAction = behaviorAction
+        else:
+            targetAction = self.target_policy()
+        targetActionValue = self.Q(S=self.state, A=targetAction)
+        self.update_actionvalues(targetActionValue)
+        reward, successorState, self.episodeFinished = self.environment.apply_action(behaviorAction)
+        self.actionHistory.append(behaviorAction)
+        #print(self.actionHistory)
         self.return_ += reward
-        self.memory.append_state_action_reward((self.state, behaviourAction, reward))
+        self.memory.memorize_state_action_reward((self.state, behaviorAction, reward))
         self.state = successorState
-        # TODO: handle last update when episode finished
-        if self.episodeFinished:
-            self.episodeReturns = np.append(self.episodeReturns, self.return_)
-            #print(self.episodeReturns)
+
+    def process_remaining_memory(self):
+        self.episodeReturns = np.append(self.episodeReturns, self.return_)
+        while self.memory.get_size():
+            self.update_actionvalues(targetActionValue=0)
+
 
     def update_actionvalues(self, reward, successorState):
+        # Just some dummy non-RL update rule
         self.Qvalues[self.state][self.behaviourAction] += 1
 
     def target_policy(self):
@@ -67,6 +86,7 @@ class Agent:
         return 0
 
     def behavior_policy(self):
+        # Just some dummy non-RL policy
         if self.state == self.lastState:
             chosenAction = random.choice(self.ACTIONS)  # TODO: use np.random
         else:
