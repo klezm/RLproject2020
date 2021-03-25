@@ -22,7 +22,7 @@ class GridworldPlayground:
         self.msDelay = data["msDelay"]
         self.showEveryNchanges = data["showEveryNchanges"]
         self.environment = Environment(data)
-        self.agent = Agent(self.environment, stepSize=0.3, discount=1, epsilon=0.05, lambda_=1, onPolicy=False)
+        self.agent = Agent(self.environment, stepSize=0.3, discount=1, epsilon=0.05, lambda_=1, onPolicy=0)
         self.run(timestepsLeft=data["maxTimeSteps"])
 
     def run(self, timestepsLeft):
@@ -32,7 +32,7 @@ class GridworldPlayground:
             del self.agent
             return
         timestepsPassed = 0
-        for i in range(self.showEveryNchanges):
+        for _ in range(self.showEveryNchanges):
             if self.agent.episodeFinished:
                 self.agent.process_remaining_memory()
                 self.agent.start_episode()

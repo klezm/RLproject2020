@@ -23,9 +23,9 @@ class Agent:
         self.onPolicy = onPolicy
         self.initialActionvalueMean = initialActionvalueMean
         self.initialActionvalueSigma = initialActionvalueSigma
-        self.Qvalues = np.empty_like(self.environment.grid)  # must be kept over episodes
+        self.Qvalues = np.empty_like(self.environment.grid)  # must be kept over episodes  # TODO: getter
         self.initialize_actionvalues()
-        self.episodicTask = None  # Todo: This variable is not used so far. Find out if Reward is still a thing in non episodic task, and if, is it defined with or without discount?
+        self.episodicTask = None  # Todo: This variable is not used so far. Find out if Return is still a thing in non episodic task, and if, is it defined with or without discount?
         self.episodeFinished = True
         self.state = None
         self.return_ = None  # underscore to avoid naming conflict with return keyword
@@ -67,7 +67,7 @@ class Agent:
         else:
             targetAction = self.target_policy()
         targetActionvalue = self.Q(S=self.state, A=targetAction)
-        self.update_actionvalues(targetActionvalue)
+        self.update_actionvalues(targetActionvalue)  # TODO: If below apply action, would I just have to remind last reward?
         reward, successorState, self.episodeFinished = self.environment.apply_action(behaviorAction)
         # self.actionHistory.append(behaviorAction)  TODO: Dont forget debug stuff here
         #print(self.actionHistory)
@@ -97,7 +97,7 @@ class Agent:
         return self.get_greedy_action()
 
     def behavior_policy(self):
-        if self.actionPlan:
+        if self.actionPlan:  # debug
             return self.actionPlan.pop(0)
         if np.random.rand() < self.epsilon:
             return self.sample_random_action()
@@ -109,7 +109,7 @@ class Agent:
         actionCandidates = [action for action, value in self.Qvalues[self.state].items() if value == maxActionValue]
         if len(actionCandidates) > 1:
             return actionCandidates[np.random.randint(len(actionCandidates))]
-        else:  # TODO: dunno if random.choice is optimized so that it doesnt use a rng if container size is 1
+        else:  # to save computation time if result is deterministic anyway
             return actionCandidates[0]
 
     def sample_random_action(self):

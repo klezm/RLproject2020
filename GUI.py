@@ -1,30 +1,3 @@
-# TODO: Whole frame in gui to toggle all still hardcoded parameters
-# TODO: Dynamically change showEveryNsteps and msDelay
-# TODO: Dynamically change tilesizes w.r.t. grid dimensions on initialize
-# TODO: Heatmap background for actionvalues, arrows for greedy policy
-#   TODO -> Action-Class, so that for example DOWN = Action(direction: (int, int), color: string, arrow: char)
-# TODO: Epsilon decrease over time, function as argument
-# TODO: Finish n-step (MC included)
-# TODO: Set agent params by algorithm keyword
-# TODO: Plots after run, inspired from the book
-# TODO: Entry for some reward number, mousewheel-click on some tile applies that number as arrival rewar for that tile
-#   TODO -> Remove global arrival reward hardcode
-#   TODO -> Find a way to display that i.e. cliff brings back to start AND has a reward of -N (Maybe all "Start Teleporters" in one specific color)
-# TODO: Torus World (can be toggled)
-# TODO: Blink on exploratory move
-# TODO: Flags for debug stuff and prints, own print function
-# TODO: Implement planning (Dyna-Q, Dyna-Q+)
-# TODO: Implement Double Learning
-# TODO: Implement Expectation-using algorithms
-# TODO: King-Moves (can be toggled)
-# TODO: (Stochastic) Windy Gridworld (from x & y)
-#   TODO -> Action (0,0) as possible action? Show actionvalues in the middle (where greedy policy is now) and greedy policy in some edge
-# TODO: Dynamically change Gridworld cells
-# TODO: Teleporters
-# TODO: Ice Floor (can be toggled) -> Hard to solve for human, but no extra challenge for RL Agent!
-# TODO: Implement Policy Evaluation, Policy Improvement, Policy Iteration, Value Iteration, Value-Based TD
-
-
 import tkinter as tk
 import numpy as np
 
