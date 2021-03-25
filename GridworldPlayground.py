@@ -17,8 +17,8 @@ class GridworldPlayground:
         self.gui = gui
 
     def visualize_gui(self):
-        data = {"agentPosition": self.agent.state,
-                "Qvalues": self.agent.Qvalues}
+        data = {"agentPosition": self.agent.get_state(),
+                "Qvalues": self.agent.get_Qvalues()}
         self.gui.visualize(data)  # gridworldPlayground gathers data, then calls visualize method of gridworldPlayground. This method should all GUIs have.
 
     def initialize(self, data):
@@ -39,7 +39,7 @@ class GridworldPlayground:
             if self.agent.episodeFinished:
                 self.agent.start_episode()
             self.agent.step()
-        self.gui.process.after(self.msDelay, lambda: self.run(timestepsLeft-self.showEveryNsteps))
+        self.gui.process.after(self.msDelay, lambda: self.run(timestepsLeft - self.showEveryNsteps))
 
     def plot(self):
         pass

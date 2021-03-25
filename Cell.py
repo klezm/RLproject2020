@@ -5,3 +5,9 @@ class Cell:
         self.isStart = isStart
         self.isGoal = isGoal
         self.arrivalReward = arrivalReward
+
+    def get_position(self):
+        return self.position
+
+    def get_arrival_reward(self):
+        return self.arrivalReward

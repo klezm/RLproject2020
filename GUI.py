@@ -27,23 +27,23 @@ class GUI:
         configWindow = tk.Toplevel(self.process)
         configWindow.title("Config")
         configWindow.iconbitmap("./blank.ico")
-        xStringvar = tk.StringVar(value="8")
-        yStringvar = tk.StringVar(value="8")
+        xStringVar = tk.StringVar(value="8")
+        yStringVar = tk.StringVar(value="8")
         font = "calibri 15 bold"
         tk.Label(configWindow, text="Gridworld Size:", font=font).grid(row=0, column=0, columnspan=2)
         tk.Label(configWindow, text="Width:", font=font).grid(row=1, column=0)
         tk.Label(configWindow, text="Height:", font=font).grid(row=2, column=0)
-        tk.Entry(configWindow, textvariable=xStringvar, width=3, font=font).grid(row=1, column=1)
-        tk.Entry(configWindow, textvariable=yStringvar, width=3, font=font).grid(row=2, column=1)
+        tk.Entry(configWindow, textvariable=xStringVar, width=3, font=font).grid(row=1, column=1)
+        tk.Entry(configWindow, textvariable=yStringVar, width=3, font=font).grid(row=2, column=1)
         tk.Button(configWindow, text="Ok", font=font, command=configWindow.destroy).grid(row=3, column=0, columnspan=2)
         center(configWindow)
         self.process.wait_window(configWindow)
-        self.X = int(xStringvar.get())
-        self.Y = int(yStringvar.get())
+        self.X = int(xStringVar.get())
+        self.Y = int(yStringVar.get())
 
         valueTilemapsFontsize = 12
-        worldTilemapFontsize = 43
         valueTilemapsTilewidth = 4
+        worldTilemapFontsize = 43
 
         self.window = tk.Toplevel(self.process)
         self.window.title("Gridworld Playground")
@@ -68,7 +68,7 @@ class GUI:
             self.qValueFrames[action] = Tilemap(self.valueVisualizationFrame, X=self.X, Y=self.Y, interact=False,
                                                 fontsize=valueTilemapsFontsize, tileWidth=valueTilemapsTilewidth,
                                                 bd=5, relief=tk.GROOVE, bg=self.actionIndicatorColors[action])
-            self.qValueFrames[action].grid(row=action[1]+1, column=action[0]+1)
+            self.qValueFrames[action].grid(row=action[1]+1, column=action[0]+1)  # maps the Tilemaps corresponing to the actions (which are actually 2D "vectors")  to coordinates inside the valueVisualizationFrame
         self.greedyPolicyFrame = Tilemap(self.valueVisualizationFrame, X=self.X, Y=self.Y, interact=False,
                                          fontsize=valueTilemapsFontsize, tileWidth=valueTilemapsTilewidth,
                                          bd=3, relief=tk.GROOVE)
@@ -89,16 +89,16 @@ class GUI:
     def initialize_gridworldPlayground(self):
         globalActionReward = -1  # TODO: read this in from GUI
         maxTimeSteps = 100000  # TODO: read this in from GUI
-        msDelay = 1  # TODO: read this in from GUI
-        showEveryNsteps = 100  # TODO: read this in from GUI
+        msDelay = 50  # TODO: read this in from GUI
+        showEveryNsteps = 1  # TODO: read this in from GUI
         environmentData = np.empty((self.X,self.Y), dtype=object)
         for x in range(self.X):
             for y in range(self.Y):
                 environmentData[x,y] = {"position": (x,y),
-                                        "isWall": self.gridworldFrame.tiles[x,y].cget("bg") == Tile.WALLCOLOR,
-                                        "isStart": self.gridworldFrame.tiles[x,y].cget("text") == Tile.STARTLETTER,
-                                        "isGoal": self.gridworldFrame.tiles[x,y].cget("text") == Tile.GOALLETTER,
-                                        "arrivalReward": self.gridworldFrame.tiles[x,y].arrivalReward}
+                                        "isWall": self.gridworldFrame.get_tile_background_color(x, y) == Tile.WALLCOLOR,
+                                        "isStart": self.gridworldFrame.get_tile_text(x, y) == Tile.STARTLETTER,
+                                        "isGoal": self.gridworldFrame.get_tile_text(x, y) == Tile.GOALLETTER,
+                                        "arrivalReward": self.gridworldFrame.get_tile_arrival_reward(x, y)}
         data = {"environmentData": environmentData,
                 "globalActionReward": globalActionReward,
                 "maxTimeSteps": maxTimeSteps,
@@ -110,8 +110,8 @@ class GUI:
         agentPosition = data["agentPosition"]
         if agentPosition != self.lastAgentPosition:
             if self.lastAgentPosition is not None:
-                self.gridworldFrame.tiles[self.lastAgentPosition].update_appearance()
-            self.gridworldFrame.tiles[agentPosition].update_appearance(bg=Tile.AGENTCOLOR)
+                self.gridworldFrame.update_tile_appearance(*self.lastAgentPosition)
+            self.gridworldFrame.update_tile_appearance(*agentPosition, bg=Tile.AGENTCOLOR)
             self.lastAgentPosition = agentPosition
         Qvalues = data["Qvalues"]
         for x in range(self.X):
@@ -119,13 +119,13 @@ class GUI:
                 maxValue = -1.e20
                 maxAction = (0,0)
                 for action, Qvalue in Qvalues[x,y].items():
-                    if self.qValueFrames[action].tiles[x,y].cget("text") != str(Qvalue):
-                        self.qValueFrames[action].tiles[x,y].update_appearance(text=f"{Qvalue:.2f}")
+                    if self.qValueFrames[action].get_tile_text(x, y) != str(Qvalue):
+                        self.qValueFrames[action].update_tile_appearance(x, y, text=f"{Qvalue:.2f}")
                     if Qvalue == maxValue:
                         maxAction = (0,0)
                     elif Qvalue >= maxValue:
                         maxValue = Qvalue
                         maxAction = action
                 newColor = self.actionIndicatorColors[maxAction]
-                if self.greedyPolicyFrame.tiles[x,y].cget("bg") != newColor:
-                    self.greedyPolicyFrame.tiles[x, y].update_appearance(bg=newColor)
+                if self.greedyPolicyFrame.get_tile_text(x, y) != newColor:
+                    self.greedyPolicyFrame.update_tile_appearance(x, y, bg=newColor)

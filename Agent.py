@@ -22,12 +22,19 @@ class Agent:
         for x in range(self.Qvalues.shape[0]):
             for y in range(self.Qvalues.shape[1]):
                 self.Qvalues[x, y] = {action: self.get_initial_actionvalue() for action in self.ACTIONS}
+        self.episodicTask = None  # Todo: This variable is not used so far. Find out if Reward is still a thing in non episodic task, and if, is it defined with or without discount?
         self.episodeFinished = True
         self.state = None
         self.return_ = None
         self.episodeReturns = np.array([])  # must be kept over episodes
         self.lastAction = self.UP  # variable just for demonstration
         self.lastState = None  # variable just for demonstration
+
+    def get_state(self):
+        return self.state
+
+    def get_Qvalues(self):
+        return self.Qvalues
 
     def start_episode(self):
         self.episodeFinished = False

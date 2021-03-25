@@ -19,11 +19,14 @@ class Tile(tk.Label):
         self.typeID = 0
         self.cycle_type()
         if interact:
-            self.bind("<Button-1>", lambda _: self.cycle_type(dir=1))
-            self.bind("<Button-3>", lambda _: self.cycle_type(dir=-1))
+            self.bind("<Button-1>", lambda _: self.cycle_type(direction=1))
+            self.bind("<Button-3>", lambda _: self.cycle_type(direction=-1))
 
-    def cycle_type(self, dir=0):
-        self.typeID = (self.typeID + dir) % len(self.tileTypes)
+    def get_arrival_reward(self):
+        return self.arrivalReward
+
+    def cycle_type(self, direction=0):
+        self.typeID = (self.typeID + direction) % len(self.tileTypes)
         self.update_appearance()
 
     def update_appearance(self, **kwargs):
