@@ -58,7 +58,7 @@ class Agent:
         self.return_ = 0
         self.state = self.environment.give_initial_position()
         if self.state is None:
-            print("No Starting Point found")  # TODO: exception. Can still occur if no Tile is suitable for starting
+            raise RuntimeError("No Starting Point found")
 
     def step(self):
         #print(self.return_)
