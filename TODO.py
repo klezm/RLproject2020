@@ -1,10 +1,7 @@
 # TODO: Plots after run, inspired from the book -> Rewards vs Episode, ... -> mit tkinter aufrufen   A
-# TODO: Whole frame in gui to toggle all still hardcoded parameters  L
-# TODO: Dynamically change showEveryNsteps and msDelay   L
 # TODO: Pause Button   L
 # TODO: Heatmap background for actionvalues (In action-color!)  L
 # TODO: Improve step function  L
-# TODO: Epsilon decrease over time, function as argument   A
 # TODO: Blink on exploratory move  L
 # TODO: Walls + Goals in Qvalue / policy maps  L
 # TODO: Torus World (can be toggled for x or y or both)  L

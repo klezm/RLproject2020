@@ -64,7 +64,9 @@ class GUI:
 
         #   valueVisualizationFrame:
         colors = ["blue", "red", "green", "orange"]
+        arrows = []
         self.actionIndicatorColors = {action: color for action, color in zip(actionspace, colors)}
+        #self.actionIndicatorArrows = {action: color for action, color in zip(actionspace, colors)}
         self.actionIndicatorColors[(0,0)] = "white"
 
         self.qValueFrames = {}
@@ -86,7 +88,7 @@ class GUI:
         self.algorithmSettingsFrame.grid(row=1, column=0)
 
         #       visualizationSettingsFrame
-        self.startStopFrame = tk.Frame(self.visualizationSettingsFrame)
+        self.startPauseFrame = tk.Frame(self.visualizationSettingsFrame)
         self.maxTimeStepsFrame = EntryFrame(self.visualizationSettingsFrame, "Max Time Steps:", 10000)
         self.refreshDelayFrame = EntryFrame(self.visualizationSettingsFrame, "Refresh Delay [ms] >", 1)
         self.showEveryNchangesFrame = EntryFrame(self.visualizationSettingsFrame, "Show Every N Changes:", 1)
@@ -98,21 +100,21 @@ class GUI:
         row += 1
         self.showEveryNchangesFrame.grid(row=row, column=0, sticky=tk.W+tk.E)
         row += 1
-        self.startStopFrame.grid(row=row, column=0)
+        self.startPauseFrame.grid(row=row, column=0)
         row += 1
 
         #           startStopFrame:
-        self.startButton = tk.Button(self.startStopFrame, text="Go!", font=font, bd=5, command=self.initialize_gridworldPlayground)
-        self.stopButton = tk.Button(self.startStopFrame, text="Pause", font=font, bd=5, command=lambda: None)
+        self.startButton = tk.Button(self.startPauseFrame, text="Go!", font=font, bd=5, command=self.initialize_gridworldPlayground)
+        self.pauseButton = tk.Button(self.startPauseFrame, text="Pause", font=font, bd=5, command=lambda: None, fg="red")
 
         self.startButton.grid(row=0, column=0)
-        self.stopButton.grid(row=0, column=1)
+        self.pauseButton.grid(row=0, column=1)
 
         #       algorithmSettingsFrame
         self.globalActionRewardFrame = EntryFrame(self.algorithmSettingsFrame, "Global Action Reward:", -1)
         self.discountFrame = EntryFrame(self.algorithmSettingsFrame, "Discount \u03B3:", 1)  # gamma
         self.stepsizeFrame = EntryFrame(self.algorithmSettingsFrame, "Stepsize \u03B1:", 0.1)  # alpha
-        self.lambdaFrame = EntryFrame(self.algorithmSettingsFrame, "n-Step \u03BB:", 1)  # lambda
+        self.lambdaFrame = EntryFrame(self.algorithmSettingsFrame, "n-Step \u03BB:", 1, textColor="red")  # lambda
         self.onPolicyFrame = CheckbuttonFrame(self.algorithmSettingsFrame, "On-Policy:", True)
         self.epsilonFrame = EntryFrame(self.algorithmSettingsFrame, "Exploration Rate \u03B5:", 0.05)  # epsilon
         self.epsilonDecayFrame = EntryFrame(self.algorithmSettingsFrame, "\u03B5-Decay Rate:", 0.99)
@@ -141,10 +143,14 @@ class GUI:
         self.gridworldPlayground = gridworldPlayground
 
     def initialize_gridworldPlayground(self):
-        globalActionReward = -1  # TODO: read this in from GUI
+
         environmentData = np.empty((self.X,self.Y), dtype=object)
         for x in range(self.X):
             for y in range(self.Y):
+                self.greedyPolicyFrame.update_tile_appearance(x, y, text=self.gridworldFrame.get_tile_text(x, y),
+                                             bg=self.gridworldFrame.get_tile_background_color(x, y))
+                for frame in self.qValueFrames.values():
+                    frame.update_tile_appearance(x, y, text=self.gridworldFrame.get_tile_text(x, y), bg=self.gridworldFrame.get_tile_background_color(x, y))
                 environmentData[x,y] = {"position": (x,y),
                                         "isWall": self.gridworldFrame.get_tile_background_color(x, y) == Tile.WALLCOLOR,
                                         "isStart": self.gridworldFrame.get_tile_text(x, y) == Tile.STARTLETTER,
@@ -177,7 +183,10 @@ class GUI:
                 maxValue = -1.e20
                 maxAction = (0,0)
                 for action, Qvalue in Qvalues[x,y].items():
-                    if self.qValueFrames[action].get_tile_text(x, y) != str(Qvalue):
+                    tileText = self.qValueFrames[action].get_tile_text(x, y)
+                    if tileText == Tile.GOALLETTER:
+                        continue
+                    if tileText != str(Qvalue):
                         self.qValueFrames[action].update_tile_appearance(x, y, text=f"{Qvalue:.2f}")
                     if Qvalue == maxValue:
                         maxAction = (0,0)
@@ -185,5 +194,5 @@ class GUI:
                         maxValue = Qvalue
                         maxAction = action
                 newColor = self.actionIndicatorColors[maxAction]
-                if self.greedyPolicyFrame.get_tile_text(x, y) != newColor:
+                if self.greedyPolicyFrame.get_tile_background_color(x, y) not in [Tile.WALLCOLOR, newColor]:
                     self.greedyPolicyFrame.update_tile_appearance(x, y, bg=newColor)
