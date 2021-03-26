@@ -1,6 +1,5 @@
 from Agent import Agent
 from Environment import Environment
-import matplotlib
 import matplotlib.pyplot as plt
 
 
@@ -26,7 +25,7 @@ class GridworldPlayground:
         self.showEveryNchanges = data["showEveryNchanges"]
         self.environment = Environment(data)
         self.timestepsLeft = data["maxTimeSteps"]
-        self.agent = Agent(self.environment, stepSize=data["stepsize"], discount=data["discount"], epsilon=data["epsilon"], epsilonDecayRate=data["epsilonDecayRate"], lambda_=data["lambda_"], onPolicy=data["onPolicy"])
+        self.agent = Agent(self.environment, learningRate=data["learningRate"], discount=data["discount"], epsilon=data["epsilon"], epsilonDecayRate=data["epsilonDecayRate"], lambda_=data["lambda_"], onPolicy=data["onPolicy"])
         self.run()
 
     def run(self):

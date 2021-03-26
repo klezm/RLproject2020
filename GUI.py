@@ -113,7 +113,7 @@ class GUI:
         #       algorithmSettingsFrame
         self.globalActionRewardFrame = EntryFrame(self.algorithmSettingsFrame, "Global Action Reward:", -1)
         self.discountFrame = EntryFrame(self.algorithmSettingsFrame, "Discount \u03B3:", 1)  # gamma
-        self.stepsizeFrame = EntryFrame(self.algorithmSettingsFrame, "Stepsize \u03B1:", 0.1)  # alpha
+        self.learningRateFrame = EntryFrame(self.algorithmSettingsFrame, "Learning Rate \u03B1:", 0.1)  # alpha
         self.lambdaFrame = EntryFrame(self.algorithmSettingsFrame, "n-Step \u03BB:", 1, textColor="red")  # lambda
         self.onPolicyFrame = CheckbuttonFrame(self.algorithmSettingsFrame, "On-Policy:", True)
         self.epsilonFrame = EntryFrame(self.algorithmSettingsFrame, "Exploration Rate \u03B5:", 0.05)  # epsilon
@@ -124,7 +124,7 @@ class GUI:
         row += 1
         self.discountFrame.grid(row=row, column=0, sticky=tk.W+tk.E)
         row += 1
-        self.stepsizeFrame.grid(row=row, column=0, sticky=tk.W+tk.E)
+        self.learningRateFrame.grid(row=row, column=0, sticky=tk.W+tk.E)
         row += 1
         self.lambdaFrame.grid(row=row, column=0, sticky=tk.W+tk.E)
         row += 1
@@ -162,7 +162,7 @@ class GUI:
                 "showEveryNchanges": self.showEveryNchangesFrame.get_var(),
                 "globalActionReward": self.globalActionRewardFrame.get_var(),
                 "discount": self.discountFrame.get_var(),
-                "stepsize": self.stepsizeFrame.get_var(),
+                "learningRate": self.learningRateFrame.get_var(),
                 "lambda_": self.lambdaFrame.get_var(),
                 "onPolicy": self.onPolicyFrame.get_var(),
                 "epsilon": self.epsilonFrame.get_var(),

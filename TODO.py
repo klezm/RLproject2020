@@ -3,7 +3,6 @@
 # TODO: Heatmap background for actionvalues (In action-color!)  L
 # TODO: Improve step function  L
 # TODO: Blink on exploratory move  L
-# TODO: Walls + Goals in Qvalue / policy maps  L
 # TODO: Torus World (can be toggled for x or y or both)  L
 # TODO: Presentation: Mainly just running the program and explaining, program structure, outlook slides in the end. Convergence comparison Qlearning and constant-epsilon-Sarsa. On the fly created plots.
 
@@ -21,7 +20,8 @@
 # TODO: Flags for debug stuff and prints, own print function  A
 
 # TODO: Implement planning (Dyna-Q, Dyna-Q+)
-# TODO: Dynamically change Gridworld cells
+#   TODO -> Dynamically change Gridworld cells
+#   TODO -> check and rework wall/start/goal appearances in visualization maps once dynamic environment changing is gonna be implemented
 # TODO: Implement Double Learning
 # TODO: Implement Expectation-using algorithms
 # TODO: King-Moves (can be toggled)
@@ -32,7 +32,7 @@
 # TODO: Value-Based TD
 # TODO: Implement Policy Evaluation, Policy Improvement, Policy Iteration, Value Iteration
 # TODO: Bind kill process to x-button of main window
-# TODO: wrapper für tkVar getter damit man nicht mehr casten muss
+# TODO: wrapper für tkVar getter damit man nicht mehr casten muss -> setter überschrieben für nachkommastellen
 # TODO: fonts not hardcoded
 # TODO: independent epsilons for behaviour and target policy
 # TODO: initial actionvalue mean and sigma in gui
