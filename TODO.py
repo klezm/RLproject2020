@@ -14,7 +14,6 @@
 # TODO: Set agent params by algorithm keyword
 
 # TODO: Entry for some reward number, mousewheel-click on some tile applies that number as arrival reward for that tile
-#   TODO -> Remove global arrival reward hardcode
 #   TODO -> Find a way to display that i.e. cliff brings back to start AND has a reward of -N (Maybe all "Start Teleporters" in one specific color)
 
 # TODO: Flags for debug stuff and prints, own print function  A

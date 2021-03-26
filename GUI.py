@@ -89,7 +89,7 @@ class GUI:
 
         #       visualizationSettingsFrame
         self.startPauseFrame = tk.Frame(self.visualizationSettingsFrame)
-        self.maxTimeStepsFrame = EntryFrame(self.visualizationSettingsFrame, "Max Time Steps:", 10000)
+        self.maxTimeStepsFrame = EntryFrame(self.visualizationSettingsFrame, "Time Steps Left:", 10000)  # TODO: var name anpassen
         self.refreshDelayFrame = EntryFrame(self.visualizationSettingsFrame, "Refresh Delay [ms] >", 1)
         self.showEveryNchangesFrame = EntryFrame(self.visualizationSettingsFrame, "Show Every N Changes:", 1)
 
