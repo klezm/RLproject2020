@@ -11,16 +11,15 @@ class Agent:
     RIGHT = (1,0)
     ACTIONS = [UP, DOWN, LEFT, RIGHT]
 
-    def __init__(self, environment, stepSize, discount, lambda_, epsilon=0.1, onPolicy=True, initialActionvalueMean=0, initialActionvalueSigma=0, predefinedAlgorithm=None,  epsilonDecay=False, epsilonDecayRate=0.5, actionPlan=[]):
+    def __init__(self, environment, stepSize, discount, lambda_, epsilon, epsilonDecayRate, onPolicy, initialActionvalueMean=0, initialActionvalueSigma=0, predefinedAlgorithm=None, actionPlan=[]):
         self.environment = environment
         if predefinedAlgorithm:
             # TODO: set missing params accordingly
             pass
         self.stepSize = stepSize
         self.discount = discount
-        self.initial_epsilon = epsilon
+        self.initial_epsilon = float(epsilon.get())
         self.current_epsilon = epsilon
-        self.epsilonDecay = epsilonDecay
         self.epsilonDecayRate = epsilonDecayRate
         self.lambda_ = lambda_
         self.onPolicy = onPolicy
@@ -65,7 +64,7 @@ class Agent:
     def step(self):
         #print(self.return_)
         behaviorAction = self.behavior_policy()
-        if self.onPolicy:
+        if self.onPolicy.get():
             targetAction = behaviorAction
         else:
             targetAction = self.target_policy()
@@ -77,6 +76,9 @@ class Agent:
         self.memory.memorize_state_action_reward((self.state, behaviorAction, reward))
         self.state = successorState
         self.return_ += reward
+        # Epsilon Decay
+        if float(self.epsilonDecayRate.get()) != 1:  # save computation time instead of multiplying by 1
+            self.current_epsilon.set(float(self.current_epsilon.get()) * float(self.epsilonDecayRate.get()))
         if self.episodeFinished:
             self.episodeReturns = np.append(self.episodeReturns, self.return_)
 
@@ -100,15 +102,9 @@ class Agent:
         return self.get_greedy_action()
 
     def behavior_policy(self):
-        # Epsilon Decay
-        if self.epsilonDecay:
-            self.current_epsilon = self.current_epsilon * self.epsilonDecayRate
-        else:
-            self.current_epsilon = self.initial_epsilon
-
         if self.actionPlan:  # debug
             return self.actionPlan.pop(0)
-        if np.random.rand() < self.current_epsilon:
+        if np.random.rand() < float(self.current_epsilon.get()):
             return self.sample_random_action()
         else:
             return self.get_greedy_action()

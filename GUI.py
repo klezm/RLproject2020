@@ -4,6 +4,7 @@ import numpy as np
 from Tile import Tile
 from Tilemap import Tilemap
 from EntryFrame import EntryFrame
+from CheckbuttonFrame import CheckbuttonFrame
 
 def center(window):
     # Centers a tkinter window. Function taken from stackoverflow.
@@ -88,7 +89,7 @@ class GUI:
         self.startStopFrame = tk.Frame(self.visualizationSettingsFrame)
         self.maxTimeStepsFrame = EntryFrame(self.visualizationSettingsFrame, "Max Time Steps:", 10000)
         self.refreshDelayFrame = EntryFrame(self.visualizationSettingsFrame, "Refresh Delay [ms] >", 1)
-        self.showEveryNchangesFrame = EntryFrame(self.visualizationSettingsFrame, "Show Every N Changes", 1)
+        self.showEveryNchangesFrame = EntryFrame(self.visualizationSettingsFrame, "Show Every N Changes:", 1)
 
         row = 0
         self.maxTimeStepsFrame.grid(row=row, column=0, sticky=tk.W+tk.E)
@@ -108,18 +109,24 @@ class GUI:
         self.stopButton.grid(row=0, column=1)
 
         #       algorithmSettingsFrame
-        self.discountFrame = EntryFrame(self.algorithmSettingsFrame, "Discount \u03B3", 1)  # gamma
-        self.stepsizeFrame = EntryFrame(self.algorithmSettingsFrame, "Stepsize \u03B1", 0.1)  # alpha
-        self.lambdaFrame = EntryFrame(self.algorithmSettingsFrame, "n-Step \u03BB", 1)  # lambda
-        self.epsilonFrame = EntryFrame(self.algorithmSettingsFrame, "Exploration Rate \u03B5", 0.05)  # epsilon
-        self.epsilonDecayFrame = EntryFrame(self.algorithmSettingsFrame, "\u03B5-Decay Rate", 1)
+        self.globalActionRewardFrame = EntryFrame(self.algorithmSettingsFrame, "Global Action Reward:", -1)
+        self.discountFrame = EntryFrame(self.algorithmSettingsFrame, "Discount \u03B3:", 1)  # gamma
+        self.stepsizeFrame = EntryFrame(self.algorithmSettingsFrame, "Stepsize \u03B1:", 0.1)  # alpha
+        self.lambdaFrame = EntryFrame(self.algorithmSettingsFrame, "n-Step \u03BB:", 1)  # lambda
+        self.onPolicyFrame = CheckbuttonFrame(self.algorithmSettingsFrame, "On-Policy:", True)
+        self.epsilonFrame = EntryFrame(self.algorithmSettingsFrame, "Exploration Rate \u03B5:", 0.05)  # epsilon
+        self.epsilonDecayFrame = EntryFrame(self.algorithmSettingsFrame, "\u03B5-Decay Rate:", 0.99)
 
         row = 0
+        self.globalActionRewardFrame.grid(row=row, column=0, sticky=tk.W+tk.E)
+        row += 1
         self.discountFrame.grid(row=row, column=0, sticky=tk.W+tk.E)
         row += 1
         self.stepsizeFrame.grid(row=row, column=0, sticky=tk.W+tk.E)
         row += 1
         self.lambdaFrame.grid(row=row, column=0, sticky=tk.W+tk.E)
+        row += 1
+        self.onPolicyFrame.grid(row=row, column=0, sticky=tk.W+tk.E)
         row += 1
         self.epsilonFrame.grid(row=row, column=0, sticky=tk.W+tk.E)
         row += 1
@@ -135,12 +142,6 @@ class GUI:
 
     def initialize_gridworldPlayground(self):
         globalActionReward = -1  # TODO: read this in from GUI
-        maxTimeSteps = self.maxTimeStepsFrame.get_var()
-        msDelay = self.refreshDelayFrame.get_var()
-        showEveryNchanges = self.showEveryNchangesFrame.get_var()
-        discount = self.discountFrame.get_var()
-        stepsize = self.stepsizeFrame.get_var()
-        lambda_ = self.lambdaFrame.get_var()
         environmentData = np.empty((self.X,self.Y), dtype=object)
         for x in range(self.X):
             for y in range(self.Y):
@@ -150,13 +151,16 @@ class GUI:
                                         "isGoal": self.gridworldFrame.get_tile_text(x, y) == Tile.GOALLETTER,
                                         "arrivalReward": self.gridworldFrame.get_tile_arrival_reward(x, y)}
         data = {"environmentData": environmentData,
-                "globalActionReward": globalActionReward,
-                "maxTimeSteps": maxTimeSteps,
-                "msDelay": msDelay,
-                "showEveryNchanges": showEveryNchanges,
-                "discount": discount,
-                "stepsize": stepsize,
-                "lambda_": lambda_}
+                "maxTimeSteps": self.maxTimeStepsFrame.get_var(),
+                "msDelay": self.refreshDelayFrame.get_var(),
+                "showEveryNchanges": self.showEveryNchangesFrame.get_var(),
+                "globalActionReward": self.globalActionRewardFrame.get_var(),
+                "discount": self.discountFrame.get_var(),
+                "stepsize": self.stepsizeFrame.get_var(),
+                "lambda_": self.lambdaFrame.get_var(),
+                "onPolicy": self.onPolicyFrame.get_var(),
+                "epsilon": self.epsilonFrame.get_var(),
+                "epsilonDecayRate": self.epsilonDecayFrame.get_var()}
         self.gridworldPlayground.initialize(data)  # GUI gathers data, then calls initialize method of gridworldPlayground. This should all GUIs do.
 
     def visualize(self, data):

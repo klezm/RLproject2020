@@ -37,3 +37,5 @@
 # TODO: Bind kill process to x-button of main window
 # TODO: wrapper für tkVar getter damit man nicht mehr casten muss
 # TODO: fonts not hardcoded
+# TODO: independent epsilons for behaviour and target policy
+# TODO: initial actionvalue mean and sigma in gui

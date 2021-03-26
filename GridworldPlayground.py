@@ -26,7 +26,7 @@ class GridworldPlayground:
         self.showEveryNchanges = data["showEveryNchanges"]
         self.environment = Environment(data)
         self.timestepsLeft = data["maxTimeSteps"]
-        self.agent = Agent(self.environment, stepSize=data["stepsize"], discount=data["discount"], epsilon=0.05, lambda_=data["lambda_"], onPolicy=0, epsilonDecay=True)
+        self.agent = Agent(self.environment, stepSize=data["stepsize"], discount=data["discount"], epsilon=data["epsilon"], epsilonDecayRate=data["epsilonDecayRate"], lambda_=data["lambda_"], onPolicy=data["onPolicy"])
         self.run()
 
     def run(self):
@@ -47,6 +47,7 @@ class GridworldPlayground:
         self.gui.process.after(int(self.msDelay.get()), self.run)
 
     def plot(self):
+        print(self.agent.get_episode_returns())
         fig, ax = plt.subplots()
         ax.plot([episode_nr for episode_nr in range(len(self.agent.get_episode_returns()))], self.agent.get_episode_returns())
 
