@@ -28,6 +28,7 @@ class GUI:
         configWindow = tk.Toplevel(self.process)
         configWindow.title("Config")
         configWindow.iconbitmap("./blank.ico")
+        #configWindow.protocol("WM_DELETE_WINDOW", self.process.quit)
         xStringVar = tk.StringVar(value=9)
         yStringVar = tk.StringVar(value=9)
         font = "calibri 15 bold"
@@ -107,11 +108,11 @@ class GUI:
         self.stopButton.grid(row=0, column=1)
 
         #       algorithmSettingsFrame
-        self.discountFrame = EntryFrame(self.algorithmSettingsFrame, "Discount Gamma", 1)
-        self.stepsizeFrame = EntryFrame(self.algorithmSettingsFrame, "Stepsize Alpha", 0.1)
-        self.lambdaFrame = EntryFrame(self.algorithmSettingsFrame, "n-step Lambda", 1)
-        self.epsilonFrame = EntryFrame(self.algorithmSettingsFrame, "Exploration Prob Epsilon", 0.05)
-        self.epsilonDecayFrame = EntryFrame(self.algorithmSettingsFrame, "Epsilon Decay Rate", 1)
+        self.discountFrame = EntryFrame(self.algorithmSettingsFrame, "Discount \u03B3", 1)  # gamma
+        self.stepsizeFrame = EntryFrame(self.algorithmSettingsFrame, "Stepsize \u03B1", 0.1)  # alpha
+        self.lambdaFrame = EntryFrame(self.algorithmSettingsFrame, "n-Step \u03BB", 1)  # lambda
+        self.epsilonFrame = EntryFrame(self.algorithmSettingsFrame, "Exploration Rate \u03B5", 0.05)  # epsilon
+        self.epsilonDecayFrame = EntryFrame(self.algorithmSettingsFrame, "\u03B5-Decay Rate", 1)
 
         row = 0
         self.discountFrame.grid(row=row, column=0, sticky=tk.W+tk.E)
