@@ -26,7 +26,7 @@ class GridworldPlayground:
         self.showEveryNchanges = data["showEveryNchanges"]
         self.environment = Environment(data)
         self.timestepsLeft = data["maxTimeSteps"]
-        self.agent = Agent(self.environment, stepSize=data["stepsize"], discount=data["discount"], epsilon=0.05, lambda_=data["lambda_"], onPolicy=0)
+        self.agent = Agent(self.environment, stepSize=data["stepsize"], discount=data["discount"], epsilon=0.05, lambda_=data["lambda_"], onPolicy=0, epsilonDecay=True)
         self.run()
 
     def run(self):
