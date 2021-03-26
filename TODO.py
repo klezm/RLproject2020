@@ -2,14 +2,17 @@
 # TODO: Whole frame in gui to toggle all still hardcoded parameters  L
 # TODO: Dynamically change showEveryNsteps and msDelay   L
 # TODO: Pause Button   L
+# TODO: Heatmap background for actionvalues (In action-color!)  L
+# TODO: Improve step function  L
 # TODO: Epsilon decrease over time, function as argument   A
 # TODO: Blink on exploratory move  L
-# TODO: Walls in Qvalue / policy maps  L
-# TODO: Torus World (can be toggled)  L
+# TODO: Walls + Goals in Qvalue / policy maps  L
+# TODO: Torus World (can be toggled for x or y or both)  L
+# TODO: Presentation: Mainly just running the program and explaining, program structure, outlook slides in the end. Convergence comparison Qlearning and constant-epsilon-Sarsa. On the fly created plots.
 
 # TODO: Finish n-step (MC included)
 # TODO: Dynamically change tilesizes w.r.t. grid dimensions on initialize
-# TODO: Heatmap background for actionvalues, arrows for greedy policy
+# TODO: arrows for greedy policy
 #   TODO -> Action-Class, so that for example DOWN = Action(direction: (int, int), color: string, arrow: char)
 
 # TODO: Set agent params by algorithm keyword
@@ -31,3 +34,6 @@
 # TODO: Ice Floor (can be toggled) -> Hard to solve for human, but no extra challenge for RL Agent!
 # TODO: Value-Based TD
 # TODO: Implement Policy Evaluation, Policy Improvement, Policy Iteration, Value Iteration
+# TODO: Bind kill process to x-button of main window
+# TODO: wrapper für tkVar getter damit man nicht mehr casten muss
+# TODO: fonts not hardcoded

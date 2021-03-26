@@ -9,6 +9,7 @@ class GridworldPlayground:
         self.agent = None
         self.msDelay = None
         self.showEveryNchanges = None
+        self.timestepsLeft = None
 
     def set_gui(self, gui):
         self.gui = gui
@@ -22,25 +23,26 @@ class GridworldPlayground:
         self.msDelay = data["msDelay"]
         self.showEveryNchanges = data["showEveryNchanges"]
         self.environment = Environment(data)
-        self.agent = Agent(self.environment, stepSize=0.3, discount=1, epsilon=0.05, lambda_=1, onPolicy=0)
-        self.run(timestepsLeft=data["maxTimeSteps"])
+        self.timestepsLeft = data["maxTimeSteps"]
+        self.agent = Agent(self.environment, stepSize=data["stepsize"], discount=data["discount"], epsilon=0.05, lambda_=data["lambda_"], onPolicy=0)
+        self.run()
 
-    def run(self, timestepsLeft):
+    def run(self):
         #print(timestepsLeft)
-        if timestepsLeft <= 0:
+        if int(self.timestepsLeft.get()) <= 0:
             self.plot()
             del self.agent
             return
         timestepsPassed = 0
-        for _ in range(self.showEveryNchanges):
+        for _ in range(int(self.showEveryNchanges.get())):
             if self.agent.episodeFinished:
                 self.agent.process_remaining_memory()
                 self.agent.start_episode()
             else:
                 self.agent.step()
-                timestepsPassed += 1
+                self.timestepsLeft.set(int(self.timestepsLeft.get()) - 1)
         self.visualize_gui()
-        self.gui.process.after(self.msDelay, lambda: self.run(timestepsLeft - timestepsPassed))
+        self.gui.process.after(int(self.msDelay.get()), self.run)
 
     def plot(self):
         print(self.agent.get_episode_returns())
