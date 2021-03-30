@@ -1,6 +1,5 @@
 from Agent import Agent
 from Environment import Environment
-import matplotlib
 import matplotlib.pyplot as plt
 
 

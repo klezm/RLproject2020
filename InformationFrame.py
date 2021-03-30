@@ -1,10 +1,10 @@
 import tkinter as tk
 
 class InformationFrame(tk.Frame):
-    def __init__(self, mother, name, defaultValue, fontsize=14, **kwargs):
+    def __init__(self, mother, name, defaultValue, fontsize=14, textColor="black", **kwargs):
         super().__init__(mother, **kwargs)
         self.font = f"calibri {fontsize} bold"
-        self.nameLabel = tk.Label(self, text=name, width=20, anchor=tk.W, font=self.font)
+        self.nameLabel = tk.Label(self, text=name, fg=textColor, width=20, anchor=tk.W, font=self.font)
         self.nameLabel.grid(row=0, column=0)
         self.tkVar = None
         self.defaultValue = defaultValue

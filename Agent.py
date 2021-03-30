@@ -11,12 +11,12 @@ class Agent:
     RIGHT = (1,0)
     ACTIONS = [UP, DOWN, LEFT, RIGHT]
 
-    def __init__(self, environment, stepSize, discount, lambda_, epsilon, epsilonDecayRate, onPolicy, initialActionvalueMean=0, initialActionvalueSigma=0, predefinedAlgorithm=None, actionPlan=[], **kwargs):
+    def __init__(self, environment, learningRate, discount, lambda_, epsilon, epsilonDecayRate, onPolicy, initialActionvalueMean=0, initialActionvalueSigma=0, predefinedAlgorithm=None, actionPlan=[], **kwargs):
         self.environment = environment
         if predefinedAlgorithm:
             # TODO: set missing params accordingly
             pass
-        self.stepSize = stepSize
+        self.learningRate = learningRate
         self.discount = discount
         self.initial_epsilon = float(epsilon.get())
         self.current_epsilon = epsilon
@@ -93,7 +93,7 @@ class Agent:
             correspondingReward = self.memory.get_reward(depth=int(self.lambda_.get()))  # Below: part after += in extra line
             Qbefore = self.Q(S=correspondingState, A=actionToUpdate)
             error = correspondingReward + float(self.discount.get()) * targetActionvalue - Qbefore
-            update = float(self.stepSize.get()) * error
+            update = float(self.learningRate.get()) * error
             Qafter = Qbefore + update
             self.Qvalues[correspondingState][actionToUpdate] = Qafter
             self.memory.forget_state_action_reward(depth=1)

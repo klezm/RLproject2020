@@ -82,8 +82,8 @@ class GUI:
         self.algorithmSettingsFrame.grid(row=1, column=0)
 
         #       visualizationSettingsFrame
-        self.startStopFrame = tk.Frame(self.visualizationSettingsFrame)
-        self.maxTimeStepsFrame = EntryFrame(self.visualizationSettingsFrame, "Max Time Steps:", 10000)
+        self.startPauseFrame = tk.Frame(self.visualizationSettingsFrame)
+        self.maxTimeStepsFrame = EntryFrame(self.visualizationSettingsFrame, "Time Steps Left:", 10000)  # TODO: var name anpassen
         self.refreshDelayFrame = EntryFrame(self.visualizationSettingsFrame, "Refresh Delay [ms] >", 1)
         self.showEveryNchangesFrame = EntryFrame(self.visualizationSettingsFrame, "Show Every N Changes:", 1)
 
@@ -94,21 +94,21 @@ class GUI:
         row += 1
         self.showEveryNchangesFrame.grid(row=row, column=0, sticky=tk.W+tk.E)
         row += 1
-        self.startStopFrame.grid(row=row, column=0)
+        self.startPauseFrame.grid(row=row, column=0)
         row += 1
 
         #           startStopFrame:
-        self.startButton = tk.Button(self.startStopFrame, text="Go!", font=font, bd=5, command=self.initialize_gridworldPlayground)
-        self.stopButton = tk.Button(self.startStopFrame, text="Pause", font=font, bd=5, command=lambda: None)
+        self.startButton = tk.Button(self.startPauseFrame, text="Go!", font=font, bd=5, command=self.initialize_gridworldPlayground)
+        self.pauseButton = tk.Button(self.startPauseFrame, text="Pause", font=font, bd=5, command=lambda: None, fg="red")
 
         self.startButton.grid(row=0, column=0)
-        self.stopButton.grid(row=0, column=1)
+        self.pauseButton.grid(row=0, column=1)
 
         #       algorithmSettingsFrame
         self.globalActionRewardFrame = EntryFrame(self.algorithmSettingsFrame, "Global Action Reward:", -1)
         self.discountFrame = EntryFrame(self.algorithmSettingsFrame, "Discount \u03B3:", 1)  # gamma
-        self.stepSizeFrame = EntryFrame(self.algorithmSettingsFrame, "Stepsize \u03B1:", 0.1)  # alpha
-        self.lambdaFrame = EntryFrame(self.algorithmSettingsFrame, "n-Step \u03BB:", 1)  # lambda
+        self.learningRateFrame = EntryFrame(self.algorithmSettingsFrame, "Learning Rate \u03B1:", 0.1)  # alpha
+        self.lambdaFrame = EntryFrame(self.algorithmSettingsFrame, "n-Step \u03BB:", 1, textColor="red")  # lambda
         self.onPolicyFrame = CheckbuttonFrame(self.algorithmSettingsFrame, "On-Policy:", True)
         self.epsilonFrame = EntryFrame(self.algorithmSettingsFrame, "Exploration Rate \u03B5:", 0.05)  # epsilon
         self.epsilonDecayFrame = EntryFrame(self.algorithmSettingsFrame, "\u03B5-Decay Rate:", 0.99)  # epsilon
@@ -118,7 +118,7 @@ class GUI:
         row += 1
         self.discountFrame.grid(row=row, column=0, sticky=tk.W+tk.E)
         row += 1
-        self.stepSizeFrame.grid(row=row, column=0, sticky=tk.W+tk.E)
+        self.learningRateFrame.grid(row=row, column=0, sticky=tk.W+tk.E)
         row += 1
         self.lambdaFrame.grid(row=row, column=0, sticky=tk.W+tk.E)
         row += 1
@@ -137,7 +137,6 @@ class GUI:
         self.gridworldPlayground = gridworldPlayground
 
     def initialize_gridworldPlayground(self):
-        globalActionReward = -1  # TODO: read this in from GUI
         self.initialize_value_visualization_frames()
         environmentData = np.empty((self.X,self.Y), dtype=object)
         for x in range(self.X):
@@ -153,7 +152,7 @@ class GUI:
                 "showEveryNchanges": self.showEveryNchangesFrame.get_var(),
                 "globalActionReward": self.globalActionRewardFrame.get_var(),
                 "discount": self.discountFrame.get_var(),
-                "stepSize": self.stepSizeFrame.get_var(),
+                "learningRate": self.learningRateFrame.get_var(),
                 "lambda_": self.lambdaFrame.get_var(),
                 "onPolicy": self.onPolicyFrame.get_var(),
                 "epsilon": self.epsilonFrame.get_var(),
