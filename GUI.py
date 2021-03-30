@@ -107,7 +107,7 @@ class GUI:
         #       algorithmSettingsFrame
         self.globalActionRewardFrame = EntryFrame(self.algorithmSettingsFrame, "Global Action Reward:", -1)
         self.discountFrame = EntryFrame(self.algorithmSettingsFrame, "Discount \u03B3:", 1)  # gamma
-        self.stepsizeFrame = EntryFrame(self.algorithmSettingsFrame, "Stepsize \u03B1:", 0.1)  # alpha
+        self.stepSizeFrame = EntryFrame(self.algorithmSettingsFrame, "Stepsize \u03B1:", 0.1)  # alpha
         self.lambdaFrame = EntryFrame(self.algorithmSettingsFrame, "n-Step \u03BB:", 1)  # lambda
         self.onPolicyFrame = CheckbuttonFrame(self.algorithmSettingsFrame, "On-Policy:", True)
         self.epsilonFrame = EntryFrame(self.algorithmSettingsFrame, "Exploration Rate \u03B5:", 0.05)  # epsilon
@@ -118,7 +118,7 @@ class GUI:
         row += 1
         self.discountFrame.grid(row=row, column=0, sticky=tk.W+tk.E)
         row += 1
-        self.stepsizeFrame.grid(row=row, column=0, sticky=tk.W+tk.E)
+        self.stepSizeFrame.grid(row=row, column=0, sticky=tk.W+tk.E)
         row += 1
         self.lambdaFrame.grid(row=row, column=0, sticky=tk.W+tk.E)
         row += 1
@@ -153,7 +153,7 @@ class GUI:
                 "showEveryNchanges": self.showEveryNchangesFrame.get_var(),
                 "globalActionReward": self.globalActionRewardFrame.get_var(),
                 "discount": self.discountFrame.get_var(),
-                "stepsize": self.stepsizeFrame.get_var(),
+                "stepSize": self.stepSizeFrame.get_var(),
                 "lambda_": self.lambdaFrame.get_var(),
                 "onPolicy": self.onPolicyFrame.get_var(),
                 "epsilon": self.epsilonFrame.get_var(),
@@ -176,7 +176,6 @@ class GUI:
                 self.gridworldFrame.update_tile_appearance(*self.lastAgentPosition)
             self.gridworldFrame.update_tile_appearance(*agentPosition, bg=Tile.AGENTCOLOR_DEFAULT)
             self.lastAgentPosition = agentPosition
-        Qvalues = data["Qvalues"]
         for x in range(self.X):
             for y in range(self.Y):
                 if self.gridworldFrame.get_tile_type(x, y) in [Tile.tileWall, Tile.tileGoal]:
