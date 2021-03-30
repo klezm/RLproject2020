@@ -1,4 +1,5 @@
 # TODO: Plots after run, inspired from the book -> Rewards vs Episode, ... -> mit tkinter aufrufen   A
+# TODO: Plot Reward vs Timestep for non-episodic Tasks!
 # TODO: Whole frame in gui to toggle all still hardcoded parameters  L
 # TODO: Dynamically change showEveryNsteps and msDelay   L
 # TODO: Pause Button   L
@@ -39,3 +40,5 @@
 # TODO: fonts not hardcoded
 # TODO: independent epsilons for behaviour and target policy
 # TODO: initial actionvalue mean and sigma in gui
+# TODO: Load/Save maps from/in file
+# TODO: Change empty Entryfields to 0/1

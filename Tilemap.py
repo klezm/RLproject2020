@@ -13,6 +13,9 @@ class Tilemap(tk.Frame):
                 self.tiles[x,y] = Tile(self, interact=interact, width=tileWidth, height=1, font=f"calibri {fontsize} bold")
                 self.tiles[x,y].grid(row=y, column=x)
 
+    def get_tile_type(self, x, y):
+        return self.tiles[x,y].get_tile_type()
+
     def get_tile_background_color(self, x, y):
         return self.tiles[x,y].cget("bg")
 
@@ -22,5 +25,7 @@ class Tilemap(tk.Frame):
     def get_tile_arrival_reward(self, x, y):
         return self.tiles[x,y].get_arrival_reward()
 
-    def update_tile_appearance(self, x, y, **kwargs):
-        self.tiles[x,y].update_appearance(**kwargs)
+    def update_tile_appearance(self, x, y, tileType=None, **kwargs):
+        self.tiles[x,y].update_appearance(tileType, **kwargs)
+
+# TODO: Heatmapscale: minVal: 0, maxval: W*H

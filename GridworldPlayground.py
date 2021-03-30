@@ -26,6 +26,7 @@ class GridworldPlayground:
         self.showEveryNchanges = data["showEveryNchanges"]
         self.environment = Environment(data)
         self.timestepsLeft = data["maxTimeSteps"]
+        # TODO: Do following with kwargs:
         self.agent = Agent(self.environment, stepSize=data["stepsize"], discount=data["discount"], epsilon=data["epsilon"], epsilonDecayRate=data["epsilonDecayRate"], lambda_=data["lambda_"], onPolicy=data["onPolicy"])
         self.run()
 
@@ -35,7 +36,6 @@ class GridworldPlayground:
             self.plot()
             del self.agent
             return
-        timestepsPassed = 0
         for _ in range(int(self.showEveryNchanges.get())):
             if self.agent.episodeFinished:
                 self.agent.process_remaining_memory()

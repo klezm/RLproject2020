@@ -13,8 +13,12 @@ class RLproject:
         self.gui.set_gridworldPlayground(self.gridworldPlayground)
 
 
-if __name__ == "__main__":
+def main():
     root = tk.Tk()
     root.withdraw()
     RLproject(guiProcess=root)
     root.mainloop()
+
+
+if __name__ == "__main__":
+    main()

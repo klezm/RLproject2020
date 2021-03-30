@@ -63,15 +63,11 @@ class GUI:
         self.settingsFrame.grid(row=0, column=2)
 
         #   valueVisualizationFrame:
-        colors = ["blue", "red", "green", "orange"]
-        self.actionIndicatorColors = {action: color for action, color in zip(actionspace, colors)}
-        self.actionIndicatorColors[(0,0)] = "white"
-
         self.qValueFrames = {}
         for action in actionspace:
             self.qValueFrames[action] = Tilemap(self.valueVisualizationFrame, X=self.X, Y=self.Y, interact=False,
                                                 fontsize=valueTilemapsFontsize, tileWidth=valueTilemapsTilewidth,
-                                                bd=5, relief=tk.GROOVE, bg=self.actionIndicatorColors[action])
+                                                bd=5, relief=tk.GROOVE, bg=Tile.POLICY_COLORS[action])
             self.qValueFrames[action].grid(row=action[1]+1, column=action[0]+1)  # maps the Tilemaps corresponing to the actions (which are actually 2D "vectors")  to coordinates inside the valueVisualizationFrame
         self.greedyPolicyFrame = Tilemap(self.valueVisualizationFrame, X=self.X, Y=self.Y, interact=False,
                                          fontsize=valueTilemapsFontsize, tileWidth=valueTilemapsTilewidth,
@@ -115,7 +111,7 @@ class GUI:
         self.lambdaFrame = EntryFrame(self.algorithmSettingsFrame, "n-Step \u03BB:", 1)  # lambda
         self.onPolicyFrame = CheckbuttonFrame(self.algorithmSettingsFrame, "On-Policy:", True)
         self.epsilonFrame = EntryFrame(self.algorithmSettingsFrame, "Exploration Rate \u03B5:", 0.05)  # epsilon
-        self.epsilonDecayFrame = EntryFrame(self.algorithmSettingsFrame, "\u03B5-Decay Rate:", 0.99)
+        self.epsilonDecayFrame = EntryFrame(self.algorithmSettingsFrame, "\u03B5-Decay Rate:", 0.99)  # epsilon
 
         row = 0
         self.globalActionRewardFrame.grid(row=row, column=0, sticky=tk.W+tk.E)
@@ -142,13 +138,14 @@ class GUI:
 
     def initialize_gridworldPlayground(self):
         globalActionReward = -1  # TODO: read this in from GUI
+        self.initialize_value_visualization_frames()
         environmentData = np.empty((self.X,self.Y), dtype=object)
         for x in range(self.X):
             for y in range(self.Y):
                 environmentData[x,y] = {"position": (x,y),
-                                        "isWall": self.gridworldFrame.get_tile_background_color(x, y) == Tile.WALLCOLOR,
-                                        "isStart": self.gridworldFrame.get_tile_text(x, y) == Tile.STARTLETTER,
-                                        "isGoal": self.gridworldFrame.get_tile_text(x, y) == Tile.GOALLETTER,
+                                        "isWall": self.gridworldFrame.get_tile_type(x, y) == Tile.tileWall,
+                                        "isStart": self.gridworldFrame.get_tile_type(x, y) == Tile.tileStart,
+                                        "isGoal": self.gridworldFrame.get_tile_type(x, y) == Tile.tileGoal,
                                         "arrivalReward": self.gridworldFrame.get_tile_arrival_reward(x, y)}
         data = {"environmentData": environmentData,
                 "maxTimeSteps": self.maxTimeStepsFrame.get_var(),
@@ -163,27 +160,37 @@ class GUI:
                 "epsilonDecayRate": self.epsilonDecayFrame.get_var()}
         self.gridworldPlayground.initialize(data)  # GUI gathers data, then calls initialize method of gridworldPlayground. This should all GUIs do.
 
+    def initialize_value_visualization_frames(self):
+        for x in range(self.X):
+            for y in range(self.Y):
+                tileType = self.gridworldFrame.get_tile_type(x, y)
+                if tileType in [Tile.tileWall, Tile.tileGoal]:
+                    for frame in [*self.qValueFrames.values(), self.greedyPolicyFrame]:
+                        frame.update_tile_appearance(x, y, tileType=tileType)
+
     def visualize(self, data):
         # TODO: Qlearning doesnt update some tiles after a while. THATS THE POINT! Because its off-policy. This shows that it works! Great for presentation! Example with no walls and Start/Goal in the edges.
         agentPosition = data["agentPosition"]
         if agentPosition != self.lastAgentPosition:
-            if self.lastAgentPosition is not None:
+            if self.lastAgentPosition is not None:  # reset tile of last position, if any
                 self.gridworldFrame.update_tile_appearance(*self.lastAgentPosition)
-            self.gridworldFrame.update_tile_appearance(*agentPosition, bg=Tile.AGENTCOLOR)
+            self.gridworldFrame.update_tile_appearance(*agentPosition, bg=Tile.AGENTCOLOR_DEFAULT)
             self.lastAgentPosition = agentPosition
         Qvalues = data["Qvalues"]
         for x in range(self.X):
             for y in range(self.Y):
+                if self.gridworldFrame.get_tile_type(x, y) in [Tile.tileWall, Tile.tileGoal]:
+                    continue
                 maxValue = -1.e20
-                maxAction = (0,0)
-                for action, Qvalue in Qvalues[x,y].items():
+                maxAction = None
+                for action, Qvalue in data["Qvalues"][x,y].items():
                     if self.qValueFrames[action].get_tile_text(x, y) != str(Qvalue):
                         self.qValueFrames[action].update_tile_appearance(x, y, text=f"{Qvalue:.2f}")
                     if Qvalue == maxValue:
-                        maxAction = (0,0)
+                        maxAction = None
                     elif Qvalue >= maxValue:
                         maxValue = Qvalue
                         maxAction = action
-                newColor = self.actionIndicatorColors[maxAction]
-                if self.greedyPolicyFrame.get_tile_text(x, y) != newColor:
-                    self.greedyPolicyFrame.update_tile_appearance(x, y, bg=newColor)
+                newTileType = Tile.tilePolicyTypes[maxAction]
+                if self.greedyPolicyFrame.get_tile_type(x, y) != newTileType:
+                    self.greedyPolicyFrame.update_tile_appearance(x, y, tileType=newTileType, )
