@@ -1,18 +1,14 @@
 # TODO: Plots after run, inspired from the book -> Rewards vs Episode, ... -> mit tkinter aufrufen   A
 # TODO: Plot Reward vs Timestep for non-episodic Tasks!
-# TODO: Whole frame in gui to toggle all still hardcoded parameters  L
-# TODO: Dynamically change showEveryNsteps and msDelay   L
 # TODO: Pause Button   L
-# TODO: Heatmap background for actionvalues (In action-color!)  L
-# TODO: Improve step function  L
-# TODO: Blink on exploratory move  L
+# TODO: Heatmap background for actionvalues (In action-color!)  L Not helpful...
+# TODO: Improve step function  L  Nothing to improve.
 # TODO: Torus World (can be toggled for x or y or both)  L
 # TODO: Presentation: Mainly just running the program and explaining, program structure, outlook slides in the end. Convergence comparison Qlearning and constant-epsilon-Sarsa. On the fly created plots.
 
+
 # TODO: Finish n-step (MC included)
 # TODO: Dynamically change tilesizes w.r.t. grid dimensions on initialize
-# TODO: arrows for greedy policy
-#   TODO -> Action-Class, so that for example DOWN = Action(direction: (int, int), color: string, arrow: char)
 
 # TODO: Set agent params by algorithm keyword
 
@@ -33,10 +29,10 @@
 # TODO: Ice Floor (can be toggled) -> Hard to solve for human, but no extra challenge for RL Agent!
 # TODO: Value-Based TD
 # TODO: Implement Policy Evaluation, Policy Improvement, Policy Iteration, Value Iteration
-# TODO: Bind kill process to x-button of main window
 # TODO: wrapper für tkVar getter damit man nicht mehr casten muss -> setter überschrieben für nachkommastellen
 # TODO: fonts not hardcoded
 # TODO: independent epsilons for behaviour and target policy
 # TODO: initial actionvalue mean and sigma in gui
 # TODO: Load/Save maps from/in file
 # TODO: Change empty Entryfields to 0/1
+# TODO: Handle n-step off-policy by either disabliing off-policy if n>1 or by introducing that rho factor

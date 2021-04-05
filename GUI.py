@@ -5,6 +5,7 @@ from Tile import Tile
 from Tilemap import Tilemap
 from EntryFrame import EntryFrame
 from CheckbuttonFrame import CheckbuttonFrame
+from TypedStringVar import TypedStringVar
 
 def center(window):
     # Centers a tkinter window. Function taken from stackoverflow.
@@ -30,19 +31,19 @@ class GUI:
         configWindow.title("Config")
         configWindow.iconbitmap("./blank.ico")
         #configWindow.protocol("WM_DELETE_WINDOW", self.process.quit)
-        xStringVar = tk.StringVar(value=9)
-        yStringVar = tk.StringVar(value=9)
+        dim1StringVar = TypedStringVar(int, value=9)
+        dim2StringVar = TypedStringVar(int, value=9)
         font = "calibri 15 bold"
         tk.Label(configWindow, text="Gridworld Size:", font=font).grid(row=0, column=0, columnspan=2)
-        tk.Label(configWindow, text="Width:", font=font).grid(row=1, column=0)
-        tk.Label(configWindow, text="Height:", font=font).grid(row=2, column=0)
-        tk.Entry(configWindow, textvariable=xStringVar, width=3, font=font).grid(row=1, column=1)
-        tk.Entry(configWindow, textvariable=yStringVar, width=3, font=font).grid(row=2, column=1)
+        tk.Label(configWindow, text="Dim 1:", font=font).grid(row=1, column=0)
+        tk.Label(configWindow, text="Dim 2:", font=font).grid(row=2, column=0)
+        tk.Entry(configWindow, textvariable=dim1StringVar, width=3, font=font).grid(row=1, column=1)
+        tk.Entry(configWindow, textvariable=dim2StringVar, width=3, font=font).grid(row=2, column=1)
         tk.Button(configWindow, text="Ok", font=font, command=configWindow.destroy).grid(row=3, column=0, columnspan=2)
         center(configWindow)
         self.process.wait_window(configWindow)
-        self.X = int(xStringVar.get())
-        self.Y = int(yStringVar.get())
+        self.X = min(dim1StringVar.get(), dim2StringVar.get())
+        self.Y = max(dim1StringVar.get(), dim2StringVar.get())
 
         valueTilemapsFontsize = 12
         valueTilemapsTilewidth = 4
@@ -83,12 +84,12 @@ class GUI:
 
         #       visualizationSettingsFrame
         self.startPauseFrame = tk.Frame(self.visualizationSettingsFrame)
-        self.maxTimeStepsFrame = EntryFrame(self.visualizationSettingsFrame, "Time Steps Left:", 10000)  # TODO: var name anpassen
-        self.refreshDelayFrame = EntryFrame(self.visualizationSettingsFrame, "Refresh Delay [ms] >", 1)
-        self.showEveryNchangesFrame = EntryFrame(self.visualizationSettingsFrame, "Show Every N Changes:", 1)
+        self.timestepsLeftFrame = EntryFrame(self.visualizationSettingsFrame, "Time Steps Left:", 10000, int)
+        self.refreshDelayFrame = EntryFrame(self.visualizationSettingsFrame, "Refresh Delay [ms] >", 1, int)
+        self.showEveryNchangesFrame = EntryFrame(self.visualizationSettingsFrame, "Show Every N Changes:", 1, int)
 
         row = 0
-        self.maxTimeStepsFrame.grid(row=row, column=0, sticky=tk.W+tk.E)
+        self.timestepsLeftFrame.grid(row=row, column=0, sticky=tk.W+tk.E)
         row += 1
         self.refreshDelayFrame.grid(row=row, column=0, sticky=tk.W+tk.E)
         row += 1
@@ -105,13 +106,13 @@ class GUI:
         self.pauseButton.grid(row=0, column=1)
 
         #       algorithmSettingsFrame
-        self.globalActionRewardFrame = EntryFrame(self.algorithmSettingsFrame, "Global Action Reward:", -1)
-        self.discountFrame = EntryFrame(self.algorithmSettingsFrame, "Discount \u03B3:", 1)  # gamma
-        self.learningRateFrame = EntryFrame(self.algorithmSettingsFrame, "Learning Rate \u03B1:", 0.1)  # alpha
-        self.lambdaFrame = EntryFrame(self.algorithmSettingsFrame, "n-Step \u03BB:", 1, textColor="red")  # lambda
+        self.globalActionRewardFrame = EntryFrame(self.algorithmSettingsFrame, "Global Action Reward:", -1, float)
+        self.discountFrame = EntryFrame(self.algorithmSettingsFrame, "Discount \u03B3:", 1, float)  # gamma
+        self.learningRateFrame = EntryFrame(self.algorithmSettingsFrame, "Learning Rate \u03B1:", 0.1, float)  # alpha
+        self.nStepFrame = EntryFrame(self.algorithmSettingsFrame, "n-Step n:", 1, int, textColor="red")
         self.onPolicyFrame = CheckbuttonFrame(self.algorithmSettingsFrame, "On-Policy:", True)
-        self.epsilonFrame = EntryFrame(self.algorithmSettingsFrame, "Exploration Rate \u03B5:", 0.05)  # epsilon
-        self.epsilonDecayFrame = EntryFrame(self.algorithmSettingsFrame, "\u03B5-Decay Rate:", 0.99)  # epsilon
+        self.epsilonFrame = EntryFrame(self.algorithmSettingsFrame, "Exploration Rate \u03B5:", 0.05, float)  # epsilon
+        self.epsilonDecayFrame = EntryFrame(self.algorithmSettingsFrame, "\u03B5-Decay Rate:", 0.9999, float)  # epsilon
 
         row = 0
         self.globalActionRewardFrame.grid(row=row, column=0, sticky=tk.W+tk.E)
@@ -120,7 +121,7 @@ class GUI:
         row += 1
         self.learningRateFrame.grid(row=row, column=0, sticky=tk.W+tk.E)
         row += 1
-        self.lambdaFrame.grid(row=row, column=0, sticky=tk.W+tk.E)
+        self.nStepFrame.grid(row=row, column=0, sticky=tk.W+tk.E)
         row += 1
         self.onPolicyFrame.grid(row=row, column=0, sticky=tk.W+tk.E)
         row += 1
@@ -147,13 +148,13 @@ class GUI:
                                         "isGoal": self.gridworldFrame.get_tile_type(x, y) == Tile.tileGoal,
                                         "arrivalReward": self.gridworldFrame.get_tile_arrival_reward(x, y)}
         data = {"environmentData": environmentData,
-                "maxTimeSteps": self.maxTimeStepsFrame.get_var(),
+                "timestepsLeft": self.timestepsLeftFrame.get_var(),
                 "msDelay": self.refreshDelayFrame.get_var(),
                 "showEveryNchanges": self.showEveryNchangesFrame.get_var(),
                 "globalActionReward": self.globalActionRewardFrame.get_var(),
                 "discount": self.discountFrame.get_var(),
                 "learningRate": self.learningRateFrame.get_var(),
-                "lambda_": self.lambdaFrame.get_var(),
+                "nStep": self.nStepFrame.get_var(),
                 "onPolicy": self.onPolicyFrame.get_var(),
                 "epsilon": self.epsilonFrame.get_var(),
                 "epsilonDecayRate": self.epsilonDecayFrame.get_var()}
@@ -173,7 +174,8 @@ class GUI:
         if agentPosition != self.lastAgentPosition:
             if self.lastAgentPosition is not None:  # reset tile of last position, if any
                 self.gridworldFrame.update_tile_appearance(*self.lastAgentPosition)
-            self.gridworldFrame.update_tile_appearance(*agentPosition, bg=Tile.AGENTCOLOR_DEFAULT)
+            agentColor = Tile.AGENTCOLOR_EXPLORATORY if data["madeExploratoryMove"] else Tile.AGENTCOLOR_DEFAULT
+            self.gridworldFrame.update_tile_appearance(*agentPosition, bg=agentColor)
             self.lastAgentPosition = agentPosition
         for x in range(self.X):
             for y in range(self.Y):

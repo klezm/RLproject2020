@@ -11,17 +11,17 @@ class Agent:
     RIGHT = (1,0)
     ACTIONS = [UP, DOWN, LEFT, RIGHT]
 
-    def __init__(self, environment, learningRate, discount, lambda_, epsilon, epsilonDecayRate, onPolicy, initialActionvalueMean=0, initialActionvalueSigma=0, predefinedAlgorithm=None, actionPlan=[], **kwargs):
+    def __init__(self, environment, learningRate, discount, nStep, epsilon, epsilonDecayRate, onPolicy, initialActionvalueMean=0, initialActionvalueSigma=0, predefinedAlgorithm=None, actionPlan=[], **kwargs):
         self.environment = environment
         if predefinedAlgorithm:
             # TODO: set missing params accordingly
             pass
         self.learningRate = learningRate
         self.discount = discount
-        self.initial_epsilon = float(epsilon.get())
+        self.initial_epsilon = epsilon.get()
         self.current_epsilon = epsilon
         self.epsilonDecayRate = epsilonDecayRate
-        self.lambda_ = lambda_
+        self.nStep = nStep
         self.onPolicy = onPolicy
         self.initialActionvalueMean = initialActionvalueMean
         self.initialActionvalueSigma = initialActionvalueSigma
@@ -33,6 +33,7 @@ class Agent:
         self.return_ = None  # underscore to avoid naming conflict with return keyword
         self.episodeReturns = np.array([])  # must be kept over episodes
         self.memory = Memory()
+        self.madeExploratoryMove = None
         # Debug variables:
         self.actionPlan = actionPlan
         self.actionHistory = []
@@ -56,6 +57,7 @@ class Agent:
 
     def start_episode(self):
         self.episodeFinished = False
+        self.madeExploratoryMove = False
         self.return_ = 0
         self.state = self.environment.give_initial_position()
         if self.state is None:
@@ -63,6 +65,7 @@ class Agent:
 
     def step(self):
         #print(self.return_)
+        self.madeExploratoryMove = False
         behaviorAction = self.behavior_policy()
         if self.onPolicy.get():
             targetAction = behaviorAction
@@ -77,23 +80,23 @@ class Agent:
         self.state = successorState
         self.return_ += reward
         # Epsilon Decay
-        if float(self.epsilonDecayRate.get()) != 1:  # save computation time instead of multiplying by 1
-            self.current_epsilon.set(float(self.current_epsilon.get()) * float(self.epsilonDecayRate.get()))
+        if self.epsilonDecayRate.get() != 1:  # save computation time instead of multiplying by 1
+            self.current_epsilon.set(self.current_epsilon.get() * self.epsilonDecayRate.get())
         if self.episodeFinished:
             self.episodeReturns = np.append(self.episodeReturns, self.return_)
 
-    def process_remaining_memory(self):
+    def process_remaining_memory(self, targetActionvalue=0):
         while self.memory.get_size():  # TODO: This is doubled (once here, once in function), but a boolean return value for the function instead doesnt feel nice
-            self.update_actionvalues(targetActionvalue=0)
+            self.update_actionvalues(targetActionvalue=targetActionvalue)
 
     def update_actionvalues(self, targetActionvalue):
-        if self.memory.get_size() >= int(self.lambda_.get()):
-            actionToUpdate = self.memory.get_action(depth=int(self.lambda_.get()))
-            correspondingState = self.memory.get_state(depth=int(self.lambda_.get()))
-            correspondingReward = self.memory.get_reward(depth=int(self.lambda_.get()))  # Below: part after += in extra line
+        if self.memory.get_size() >= self.nStep.get():
+            actionToUpdate = self.memory.get_action(depth=self.nStep.get())
+            correspondingState = self.memory.get_state(depth=self.nStep.get())
+            correspondingReward = self.memory.get_reward(depth=self.nStep.get())  # Below: part after += in extra line
             Qbefore = self.Q(S=correspondingState, A=actionToUpdate)
-            error = correspondingReward + float(self.discount.get()) * targetActionvalue - Qbefore
-            update = float(self.learningRate.get()) * error
+            error = correspondingReward + self.discount.get() * targetActionvalue - Qbefore
+            update = self.learningRate.get() * error
             Qafter = Qbefore + update
             self.Qvalues[correspondingState][actionToUpdate] = Qafter
             self.memory.forget_state_action_reward(depth=1)
@@ -104,7 +107,8 @@ class Agent:
     def behavior_policy(self):
         if self.actionPlan:  # debug
             return self.actionPlan.pop(0)
-        if np.random.rand() < float(self.current_epsilon.get()):
+        if np.random.rand() < self.current_epsilon.get():
+            self.madeExploratoryMove = True
             return self.sample_random_action()
         else:
             return self.get_greedy_action()

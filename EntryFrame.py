@@ -1,8 +1,12 @@
 import tkinter as tk
-from InformationFrame import InformationFrame
+from ParameterFrame import ParameterFrame
+from TypedStringVar import TypedStringVar
 
 
-class EntryFrame(InformationFrame):
+class EntryFrame(ParameterFrame):
     def make_var_widget(self):
-        self.tkVar = tk.StringVar(value=self.defaultValue)
+        if self.targetType:
+            self.tkVar = TypedStringVar(self.targetType, value=self.defaultValue)
+        else:
+            self.tkVar = tk.StringVar(value=self.defaultValue)
         self.varWidget = tk.Entry(self, textvariable=self.tkVar, width=10)
