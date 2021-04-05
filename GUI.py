@@ -106,6 +106,8 @@ class GUI:
         self.pauseButton.grid(row=0, column=1)
 
         #       algorithmSettingsFrame
+        self.xTorusFrame = CheckbuttonFrame(self.algorithmSettingsFrame, "x-Torus:", False)
+        self.yTorusFrame = CheckbuttonFrame(self.algorithmSettingsFrame, "y-Torus:", False)
         self.globalActionRewardFrame = EntryFrame(self.algorithmSettingsFrame, "Global Action Reward:", -1, float)
         self.discountFrame = EntryFrame(self.algorithmSettingsFrame, "Discount \u03B3:", 1, float)  # gamma
         self.learningRateFrame = EntryFrame(self.algorithmSettingsFrame, "Learning Rate \u03B1:", 0.1, float)  # alpha
@@ -115,6 +117,10 @@ class GUI:
         self.epsilonDecayFrame = EntryFrame(self.algorithmSettingsFrame, "\u03B5-Decay Rate:", 0.9999, float)  # epsilon
 
         row = 0
+        self.xTorusFrame.grid(row=row, column=0, sticky=tk.W+tk.E)
+        row += 1
+        self.yTorusFrame.grid(row=row, column=0, sticky=tk.W+tk.E)
+        row += 1
         self.globalActionRewardFrame.grid(row=row, column=0, sticky=tk.W+tk.E)
         row += 1
         self.discountFrame.grid(row=row, column=0, sticky=tk.W+tk.E)
@@ -139,18 +145,20 @@ class GUI:
 
     def initialize_gridworldPlayground(self):
         self.initialize_value_visualization_frames()
-        environmentData = np.empty((self.X,self.Y), dtype=object)
+        tileData = np.empty((self.X,self.Y), dtype=object)
         for x in range(self.X):
             for y in range(self.Y):
-                environmentData[x,y] = {"position": (x,y),
-                                        "isWall": self.gridworldFrame.get_tile_type(x, y) == Tile.tileWall,
-                                        "isStart": self.gridworldFrame.get_tile_type(x, y) == Tile.tileStart,
-                                        "isGoal": self.gridworldFrame.get_tile_type(x, y) == Tile.tileGoal,
-                                        "arrivalReward": self.gridworldFrame.get_tile_arrival_reward(x, y)}
-        data = {"environmentData": environmentData,
+                tileData[x,y] = {"position": (x,y),
+                                 "isWall": self.gridworldFrame.get_tile_type(x, y) == Tile.tileWall,
+                                 "isStart": self.gridworldFrame.get_tile_type(x, y) == Tile.tileStart,
+                                 "isGoal": self.gridworldFrame.get_tile_type(x, y) == Tile.tileGoal,
+                                 "arrivalReward": self.gridworldFrame.get_tile_arrival_reward(x, y)}
+        data = {"tileData": tileData,
                 "timestepsLeft": self.timestepsLeftFrame.get_var(),
                 "msDelay": self.refreshDelayFrame.get_var(),
                 "showEveryNchanges": self.showEveryNchangesFrame.get_var(),
+                "isXtorus": self.xTorusFrame.get_var(),
+                "isYtorus": self.yTorusFrame.get_var(),
                 "globalActionReward": self.globalActionRewardFrame.get_var(),
                 "discount": self.discountFrame.get_var(),
                 "learningRate": self.learningRateFrame.get_var(),

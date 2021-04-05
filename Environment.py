@@ -6,13 +6,13 @@ from Cell import Cell
 
 class Environment:
     def __init__(self, data):
-        envData = data["environmentData"]
-        self.grid = np.empty_like(envData)
-        self.X, self.Y = self.grid.shape
-        for x in range(self.X):
-            for y in range(self.Y):
-                self.grid[x,y] = Cell(**envData[x,y])
+        tileData = data["tileData"]
+        self.grid = np.empty_like(tileData)
+        for x in range(self.grid.shape[0]):
+            for y in range(self.grid.shape[1]):
+                self.grid[x,y] = Cell(**tileData[x,y])
         self.globalActionReward = data["globalActionReward"]
+        self.isTorus = (data["isXtorus"], data["isYtorus"])
         self.agentPosition = None
 
     def give_initial_position(self):
@@ -24,12 +24,18 @@ class Environment:
         return self.agentPosition
 
     def apply_action(self, action):
-        episodeFinished = False
-        reward = self.globalActionReward.get()
-        xEstimate = self.agentPosition[0] + action[0]
-        yEstimate = self.agentPosition[1] + action[1]
-        if 0 <= xEstimate < self.X and 0 <= yEstimate < self.Y and not self.grid[xEstimate, yEstimate].isWall:
-            self.agentPosition = (xEstimate, yEstimate)
-            episodeFinished = self.grid[self.agentPosition].ends_episode()
-        reward += self.grid[self.agentPosition].get_arrival_reward()
+        destinationEstimate = (self.get_destination_estimate(action, iDim=0),
+                               self.get_destination_estimate(action, iDim=1))
+        if not self.grid[destinationEstimate].isWall:
+            self.agentPosition = destinationEstimate
+        reward = self.globalActionReward.get() + self.grid[self.agentPosition].get_arrival_reward()
+        episodeFinished = self.grid[self.agentPosition].ends_episode()
         return reward, self.agentPosition, episodeFinished
+
+    def get_destination_estimate(self, action, iDim):
+        rawEstimate = self.agentPosition[iDim] + action[iDim]
+        dimSize = self.grid.shape[iDim]
+        if self.isTorus[iDim].get():
+            return rawEstimate % dimSize
+        else:
+            return min(max(rawEstimate, 0), dimSize-1)
