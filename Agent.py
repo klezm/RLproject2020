@@ -26,17 +26,18 @@ class Agent:
         self.onPolicy = onPolicy
         self.initialActionvalueMean = initialActionvalueMean
         self.initialActionvalueSigma = initialActionvalueSigma
-        self.Qvalues = np.empty_like(self.environment.get_grid())  # must be kept over episodes  # TODO: getter
+        self.Qvalues = np.empty_like(self.environment.get_grid())  # must be kept over episodes
         self.initialize_actionvalues()
         self.stateActionPairCounts = np.empty_like(self.environment.get_grid())
         self.initialize_state_action_pair_counts()
-        self.episodicTask = None  # Todo: This variable is not used so far.
+        self.episodicTask = None  # TODO: This variable is not used so far.
         self.episodeFinished = True
         self.state = None
         self.return_ = None  # underscore to avoid naming conflict with return keyword
         self.episodeReturns = np.array([])  # must be kept over episodes
         self.memory = Memory(self)
-        self.madeExploratoryMove = None
+        self.hasChosenExploratoryMove = None
+        self.hasMadeExploratoryMove = None
         self.targetAction = None
         self.updateByExpectation = False
         # Debug variables:
@@ -73,16 +74,15 @@ class Agent:
         self.episodeFinished = False
         self.madeExploratoryMove = False
         self.targetAction = None
-        self.current_epsilon.set(self.initial_epsilon)
         self.return_ = 0
         self.state = self.environment.give_initial_position()
         if self.state is None:
             raise RuntimeError("No Starting Point found")
 
     def step(self):
-        self.madeExploratoryMove = False
         behaviorAction = self.generate_behavior_action(self.state)
         reward, successorState, self.episodeFinished = self.environment.apply_action(behaviorAction)
+        self.hasMadeExploratoryMove = self.hasChosenExploratoryMove  # if hasChosenExploratoryMove would be the only indicator for changing the agent color in the next visualization, then in the on-policy case, if the target was chosen to be an exploratory move in the last step-call, the coloring would happen BEFORE the move was taken, since in this line, the behavior action would already be determined and just copied from that target action with no chance to track if it was exploratory or not.
         self.memory.memorize(self.state, behaviorAction, reward)
         self.return_ += reward
         self.state = successorState
@@ -94,7 +94,7 @@ class Agent:
         if self.memory.get_size() == self.nStep.get():
             self.update_actionvalue(targetActionvalue)
         # self.actionHistory.append(behaviorAction)  TODO: Dont forget debug stuff here
-        #print(self.actionHistory)
+        # print(self.actionHistory)
 
     def update_actionvalue(self, targetActionvalue):
         # step by step, so you can watch exactly whats happening when using a debugger
@@ -142,9 +142,10 @@ class Agent:
         if self.actionPlan:  # debug
             return self.actionPlan.pop(0)
         if np.random.rand() < self.current_epsilon.get():
-            self.madeExploratoryMove = True
+            self.hasChosenExploratoryMove = True
             return self.sample_random_action()
         else:
+            self.hasChosenExploratoryMove = False
             return self.get_greedy_action(state)
 
     def get_greedy_action(self, state):

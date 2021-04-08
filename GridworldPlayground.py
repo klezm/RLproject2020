@@ -18,7 +18,7 @@ class GridworldPlayground:
     def visualize_gui(self):
         data = {"agentPosition": self.agent.get_state(),
                 "Qvalues": self.agent.get_Qvalues(),
-                "madeExploratoryMove": self.agent.madeExploratoryMove}
+                "hasMadeExploratoryMove": self.agent.hasMadeExploratoryMove}
         self.gui.visualize(data)  # gridworldPlayground gathers data, then calls visualize method of gridworldPlayground. This method should all GUIs have.
 
     def initialize(self, data):
@@ -35,6 +35,7 @@ class GridworldPlayground:
         if self.timestepsLeft.get() <= 0:
             self.plot()
             del self.agent
+            self.gui.unfreeze_lifetime_parameters()
             return
         for _ in range(self.showEveryNchanges.get()):
             if self.agent.episodeFinished:
@@ -49,12 +50,10 @@ class GridworldPlayground:
         self.gui.process.after(self.msDelay.get(), self.run)
 
     def plot(self):
-        print(self.agent.get_episodeReturns())
+        #print(self.agent.get_episodeReturns())
         fig, ax = plt.subplots()
-        ax.plot([episode_nr for episode_nr in range(len(self.agent.get_episodeReturns()))], self.agent.get_episodeReturns())
-        # TODO: Why not just plot(self.agent.get_episodeReturns())? Enumeration of x axis should be automatically
-        ax.set(xlabel='episode', ylabel='reward', title='Development of the Reward per Episode')
+        ax.plot(self.agent.get_episodeReturns())
+        ax.set(xlabel='Episode', ylabel='Reward', title='Development of the Reward per Episode')
         ax.grid()
-
         fig.savefig("RewardDevelopement.png")
         plt.show()

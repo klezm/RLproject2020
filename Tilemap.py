@@ -5,8 +5,8 @@ from Tile import Tile
 
 
 class Tilemap(tk.Frame):
-    def __init__(self, mother, X, Y, interact, fontsize, tileWidth=2, **kwargs):
-        super().__init__(mother, **kwargs)
+    def __init__(self, master, X, Y, interact, fontsize, tileWidth=2, **kwargs):
+        super().__init__(master, **kwargs)
         self.tiles = np.empty((X,Y), dtype=np.object)
         for x in range(X):
             for y in range(Y):
@@ -27,5 +27,3 @@ class Tilemap(tk.Frame):
 
     def update_tile_appearance(self, x, y, tileType=None, **kwargs):
         self.tiles[x,y].update_appearance(tileType, **kwargs)
-
-# TODO: Heatmapscale: minVal: 0, maxval: W*H

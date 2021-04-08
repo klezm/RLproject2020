@@ -1,15 +1,14 @@
 import tkinter as tk
 
+
 class ParameterFrame(tk.Frame):
-    def __init__(self, mother, name, defaultValue, targetType=None, formatSpecifier="", fontsize=14, textColor="black", **kwargs):
-        super().__init__(mother, **kwargs)
+    def __init__(self, *args, text="", defaultValue="", fontsize=14, textColor="black", **kwargs):
+        super().__init__(*args, **kwargs)
         self.font = f"calibri {fontsize} bold"
-        self.nameLabel = tk.Label(self, text=name, fg=textColor, width=20, anchor=tk.W, font=self.font)
+        self.nameLabel = tk.Label(self, text=text, fg=textColor, width=20, anchor=tk.W, font=self.font)
         self.nameLabel.grid(row=0, column=0)
         self.tkVar = None
         self.defaultValue = defaultValue
-        self.targetType = targetType
-        self.formatSpecifier = formatSpecifier
         self.varWidget = None
         self.make_var_widget()
         self.varWidget.config(font=self.font)

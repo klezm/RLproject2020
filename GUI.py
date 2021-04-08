@@ -32,8 +32,8 @@ class GUI:
         configWindow.title("Config")
         configWindow.iconbitmap("./blank.ico")
         #configWindow.protocol("WM_DELETE_WINDOW", self.process.quit)
-        dim1StringVar = TypedStringVar(int, value=1)
-        dim2StringVar = TypedStringVar(int, value=4)
+        dim1StringVar = TypedStringVar(int, value=9)
+        dim2StringVar = TypedStringVar(int, value=9)
         font = "calibri 15 bold"
         tk.Label(configWindow, text="Gridworld Size:", font=font).grid(row=0, column=0, columnspan=2)
         tk.Label(configWindow, text="Dim 1:", font=font).grid(row=1, column=0)
@@ -86,9 +86,9 @@ class GUI:
         self.parameterFrames = OrderedDict()
         #       visualizationSettingsFrame
         self.startPauseFrame = tk.Frame(self.visualizationSettingsFrame)
-        self.timestepsLeftFrame = EntryFrame(self.visualizationSettingsFrame, "Time Steps Left:", 10000, int)
-        self.msDeleyFrame = EntryFrame(self.visualizationSettingsFrame, "Refresh Delay [ms] >", 1, int)
-        self.showEveryNchangesFrame = EntryFrame(self.visualizationSettingsFrame, "Show Every N Changes:", 1, int)
+        self.timestepsLeftFrame = EntryFrame(self.visualizationSettingsFrame, text="Time Steps Left:", defaultValue=10000, targetType=int)
+        self.msDeleyFrame = EntryFrame(self.visualizationSettingsFrame, text="Refresh Delay [ms] >", defaultValue=1, targetType=int)
+        self.showEveryNchangesFrame = EntryFrame(self.visualizationSettingsFrame, text="Show Every N Changes:", defaultValue=1, targetType=int)
 
         row = 0
         self.timestepsLeftFrame.grid(row=row, column=0, sticky=tk.W+tk.E)
@@ -109,16 +109,16 @@ class GUI:
 
         #       algorithmSettingsFrame
 
-        self.xTorusFrame = CheckbuttonFrame(self.algorithmSettingsFrame, "x-Torus:", False)
-        self.yTorusFrame = CheckbuttonFrame(self.algorithmSettingsFrame, "y-Torus:", False)
-        self.globalActionRewardFrame = EntryFrame(self.algorithmSettingsFrame, "Global Action Reward:", -1, float)
-        self.discountFrame = EntryFrame(self.algorithmSettingsFrame, "Discount \u03B3:", 1, float)  # gamma
-        self.learningRateFrame = EntryFrame(self.algorithmSettingsFrame, "Learning Rate \u03B1:", 0.1, float)  # alpha
-        self.dynamicAlphaFrame = CheckbuttonFrame(self.algorithmSettingsFrame, "\u03B1 = 1/count((S,A))", False)  # alpha
-        self.nStepFrame = EntryFrame(self.algorithmSettingsFrame, "n-Step n:", 1, int, textColor="red")
-        self.onPolicyFrame = CheckbuttonFrame(self.algorithmSettingsFrame, "On-Policy:", True)
-        self.epsilonFrame = EntryFrame(self.algorithmSettingsFrame, "Exploration Rate \u03B5:", 0.05, float)  # epsilon
-        self.epsilonDecayFrame = EntryFrame(self.algorithmSettingsFrame, "\u03B5-Decay Rate:", 0.9999, float, ".2f")  # epsilon
+        self.xTorusFrame = CheckbuttonFrame(self.algorithmSettingsFrame, text="x-Torus:", defaultValue=False)
+        self.yTorusFrame = CheckbuttonFrame(self.algorithmSettingsFrame, text="y-Torus:", defaultValue=False)
+        self.globalActionRewardFrame = EntryFrame(self.algorithmSettingsFrame, text="Global Action Reward:", defaultValue=-1, targetType=float)
+        self.discountFrame = EntryFrame(self.algorithmSettingsFrame, text="Discount \u03B3:", defaultValue=1, targetType=float)  # gamma
+        self.learningRateFrame = EntryFrame(self.algorithmSettingsFrame, text="Learning Rate \u03B1:", defaultValue=0.1, targetType=float)  # alpha
+        self.dynamicAlphaFrame = CheckbuttonFrame(self.algorithmSettingsFrame, text="\u03B1 = 1/count((S,A))", defaultValue=False)  # alpha
+        self.nStepFrame = EntryFrame(self.algorithmSettingsFrame, text="n-Step n:", defaultValue=1, targetType=int)
+        self.onPolicyFrame = CheckbuttonFrame(self.algorithmSettingsFrame, text="On-Policy:", defaultValue=True)
+        self.epsilonFrame = EntryFrame(self.algorithmSettingsFrame, text="Exploration Rate \u03B5:", defaultValue=0.05, targetType=float)  # epsilon
+        self.epsilonDecayFrame = EntryFrame(self.algorithmSettingsFrame, text="\u03B5-Decay Rate:", defaultValue=0.9999, targetType=float)  # epsilon
 
         row = 0
         self.xTorusFrame.grid(row=row, column=0, sticky=tk.W+tk.E)
@@ -190,9 +190,9 @@ class GUI:
         if agentPosition != self.lastAgentPosition:
             if self.lastAgentPosition is not None:  # reset tile of last position, if any
                 self.gridworldFrame.update_tile_appearance(*self.lastAgentPosition)
-            agentColor = Tile.AGENTCOLOR_EXPLORATORY if data["madeExploratoryMove"] else Tile.AGENTCOLOR_DEFAULT
-            self.gridworldFrame.update_tile_appearance(*agentPosition, bg=agentColor)
-            self.lastAgentPosition = agentPosition
+        agentColor = Tile.AGENTCOLOR_EXPLORATORY if data["hasMadeExploratoryMove"] else Tile.AGENTCOLOR_DEFAULT
+        self.gridworldFrame.update_tile_appearance(*agentPosition, bg=agentColor)
+        self.lastAgentPosition = agentPosition
         for x in range(self.X):
             for y in range(self.Y):
                 if self.gridworldFrame.get_tile_type(x, y) in [Tile.tileWall, Tile.tileGoal]:
@@ -209,9 +209,13 @@ class GUI:
                         maxAction = action
                 newTileType = Tile.tilePolicyTypes[maxAction]
                 if self.greedyPolicyFrame.get_tile_type(x, y) != newTileType:
-                    self.greedyPolicyFrame.update_tile_appearance(x, y, tileType=newTileType, )
+                    self.greedyPolicyFrame.update_tile_appearance(x, y, tileType=newTileType)
 
     def freeze_lifetime_parameters(self):
         self.dynamicAlphaFrame.freeze()
         if self.dynamicAlphaFrame.get_var().get():
             self.learningRateFrame.freeze()
+
+    def unfreeze_lifetime_parameters(self):
+        self.dynamicAlphaFrame.unfreeze()
+        self.learningRateFrame.unfreeze()

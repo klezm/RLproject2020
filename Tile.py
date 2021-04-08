@@ -31,8 +31,8 @@ class Tile(tk.Label):
 
     tileCycleTypes = [tileBlank, tileWall, tileStart, tileGoal]
 
-    def __init__(self, mother, interact, **kwargs):
-        super().__init__(mother, bd=1, relief=tk.GROOVE, **kwargs)
+    def __init__(self, master, interact, **kwargs):
+        super().__init__(master, bd=1, relief=tk.GROOVE, **kwargs)
         self.arrivalReward = 0  # TODO: set this in GUI!
         self.tileType = self.tileBlank
         self.cycleIndex = 0
