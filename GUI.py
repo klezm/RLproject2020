@@ -148,10 +148,11 @@ class GUI:
         tileData = np.empty((self.X,self.Y), dtype=object)
         for x in range(self.X):
             for y in range(self.Y):
+                tileType = self.gridworldFrame.get_tile_type(x,y)
                 tileData[x,y] = {"position": (x,y),
-                                 "isWall": self.gridworldFrame.get_tile_type(x, y) == Tile.tileWall,
-                                 "isStart": self.gridworldFrame.get_tile_type(x, y) == Tile.tileStart,
-                                 "isGoal": self.gridworldFrame.get_tile_type(x, y) == Tile.tileGoal,
+                                 "isWall": tileType == Tile.tileWall,
+                                 "isStart": tileType == Tile.tileStart,
+                                 "isGoal": tileType == Tile.tileGoal,
                                  "arrivalReward": self.gridworldFrame.get_tile_arrival_reward(x, y)}
         data = {"tileData": tileData,
                 "timestepsLeft": self.timestepsLeftFrame.get_var(),

@@ -1,3 +1,7 @@
+# TODO: Blink on exploratory still correct?
+# TODO: epsilon decay per step and per episode
+# TODO: MC Learning Rate 1/count(S,A)
+
 # TODO: Plots after run, inspired from the book -> Rewards vs Episode, ... -> mit tkinter aufrufen   A
 # TODO: Plot Reward vs Timestep for non-episodic Tasks!
 # TODO: Pause Button   L
@@ -34,5 +38,5 @@
 # TODO: independent epsilons for behaviour and target policy
 # TODO: initial actionvalue mean and sigma in gui
 # TODO: Load/Save maps from/in file
-# TODO: Change empty Entryfields to 0/1
+# TODO: Change empty Entryfields to 0/1 (not needed when interaction only possible between episodes)
 # TODO: Handle n-step off-policy by either disabliing off-policy if n>1 or by introducing that rho factor

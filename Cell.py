@@ -12,7 +12,7 @@ class Cell:
     def get_position(self):
         return self.position
 
-    def get_arrival_reward(self):
+    def get_arrivalReward(self):
         return self.arrivalReward
 
     def is_suitable_start(self):

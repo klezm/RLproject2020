@@ -18,7 +18,7 @@ class Environment:
     def give_initial_position(self):
         cellArray = self.grid.flatten()
         candidates = [cell.get_position() for cell in cellArray if cell.isStart]
-        if not candidates:  # random start is none is defined
+        if not candidates:  # random start if none is defined
             candidates = [cell.get_position() for cell in cellArray if cell.is_suitable_start()]
         self.agentPosition = random.choice(candidates)  # TODO: use np.random
         return self.agentPosition
@@ -28,7 +28,7 @@ class Environment:
                                self.get_destination_estimate(action, iDim=1))
         if not self.grid[destinationEstimate].isWall:
             self.agentPosition = destinationEstimate
-        reward = self.globalActionReward.get() + self.grid[self.agentPosition].get_arrival_reward()
+        reward = self.globalActionReward.get() + self.grid[self.agentPosition].get_arrivalReward()
         episodeFinished = self.grid[self.agentPosition].ends_episode()
         return reward, self.agentPosition, episodeFinished
 

@@ -14,7 +14,7 @@ class Tilemap(tk.Frame):
                 self.tiles[x,y].grid(row=y, column=x)
 
     def get_tile_type(self, x, y):
-        return self.tiles[x,y].get_tile_type()
+        return self.tiles[x,y].get_tileType()
 
     def get_tile_background_color(self, x, y):
         return self.tiles[x,y].cget("bg")
@@ -23,7 +23,7 @@ class Tilemap(tk.Frame):
         return self.tiles[x,y].cget("text")
 
     def get_tile_arrival_reward(self, x, y):
-        return self.tiles[x,y].get_arrival_reward()
+        return self.tiles[x,y].get_arrivalReward()
 
     def update_tile_appearance(self, x, y, tileType=None, **kwargs):
         self.tiles[x,y].update_appearance(tileType, **kwargs)

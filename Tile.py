@@ -41,10 +41,10 @@ class Tile(tk.Label):
             self.bind("<Button-3>", lambda _: self.cycle_type(direction=-1))
         self.update_appearance()
 
-    def get_tile_type(self):
+    def get_tileType(self):
         return self.tileType
 
-    def get_arrival_reward(self):
+    def get_arrivalReward(self):
         return self.arrivalReward
 
     def cycle_type(self, direction=0):

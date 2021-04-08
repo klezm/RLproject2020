@@ -46,10 +46,10 @@ class GridworldPlayground:
         self.gui.process.after(self.msDelay.get(), self.run)
 
     def plot(self):
-        print(self.agent.get_episode_returns())
+        print(self.agent.get_episodeReturns())
         fig, ax = plt.subplots()
-        ax.plot([episode_nr for episode_nr in range(len(self.agent.get_episode_returns()))], self.agent.get_episode_returns())
-        # TODO: Why not just plot(self.agent.get_episode_returns())? Enumeration of x axis should be automatically
+        ax.plot([episode_nr for episode_nr in range(len(self.agent.get_episodeReturns()))], self.agent.get_episodeReturns())
+        # TODO: Why not just plot(self.agent.get_episodeReturns())? Enumeration of x axis should be automatically
         ax.set(xlabel='episode', ylabel='reward', title='Development of the Reward per Episode')
         ax.grid()
 
