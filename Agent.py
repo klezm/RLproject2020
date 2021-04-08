@@ -36,28 +36,12 @@ class Agent:
         self.madeExploratoryMove = None
         self.targetAction = None
         self.updateByExpectation = False
-        #self.discountPowN = None   # lookup for discount^N prevents redundant computation in Qvalue updates
-        #self.discountPowNdecremented = None   # lookup for discount^(N-1) prevents redundant computation in Qvalue updates
-        ## Using traces keeps the variable up to date and minimizes the number of re-computations
-        #self.discount.trace_add("write", self.update_discount_powers)
-        #self.nStep.trace_add("write", self.update_discount_powers)
         # Debug variables:
         self.actionPlan = actionPlan
         self.actionHistory = []
         
     def get_discount(self):
         return self.discount.get()
-
-    #def update_discount_powers(self):
-    #    self.discountPowN = np.power(self.discount.get(), self.nStep.get())
-    #    self.discountPowNdecremented = np.power(self.discount.get(), self.nStep.get()-1)  # better than discount^N / discount since discount could be zero
-#
-    #def get_discountPowN(self):
-    #    return self.discountPowN
-#
-    #def get_discountPowNdecremented(self):
-    #    return self.discountPowNdecremented
-
 
     def get_episodeReturns(self):
         return self.episodeReturns
@@ -103,7 +87,7 @@ class Agent:
         #print(self.actionHistory)
 
     def update_actionvalues(self, targetActionvalue):
-        # step by step so you can watch exactly whats happening when using a debugger
+        # step by step, so you can watch exactly whats happening when using a debugger
         discountedRewardSum = self.memory.get_discountedRewardSum()
         correspondingState, actionToUpdate = self.memory.pop_oldest_state_action()
         Qbefore = self.Q(S=correspondingState, A=actionToUpdate)
