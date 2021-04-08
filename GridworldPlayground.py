@@ -27,6 +27,7 @@ class GridworldPlayground:
         self.environment = Environment(data)
         self.timestepsLeft = data["timestepsLeft"]
         self.agent = Agent(self.environment, **data)
+        self.gui.freeze_lifetime_parameters()
         self.run()
 
     def run(self):
@@ -37,8 +38,10 @@ class GridworldPlayground:
             return
         for _ in range(self.showEveryNchanges.get()):
             if self.agent.episodeFinished:
-                self.agent.process_remaining_memory()
-                self.agent.start_episode()
+                if self.agent.has_memory():
+                    self.agent.process_earliest_memory()
+                else:
+                    self.agent.start_episode()
             else:
                 self.agent.step()
                 self.timestepsLeft.set(self.timestepsLeft.get() - 1)

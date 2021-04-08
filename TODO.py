@@ -1,13 +1,12 @@
 # TODO: Blink on exploratory still correct?
 # TODO: epsilon decay per step and per episode
-# TODO: MC Learning Rate 1/count(S,A)
+# TODO: stop/run, label switches. if stopped: show changes options: each x: ...change, goal reached
+# TODO: Policy as class for expectation algorithms
 
 # TODO: Plots after run, inspired from the book -> Rewards vs Episode, ... -> mit tkinter aufrufen   A
 # TODO: Plot Reward vs Timestep for non-episodic Tasks!
-# TODO: Pause Button   L
-# TODO: Heatmap background for actionvalues (In action-color!)  L Not helpful...
-# TODO: Improve step function  L  Nothing to improve.
-# TODO: Torus World (can be toggled for x or y or both)  L
+# TODO: Pause Button
+# TODO: Heatmap background for actionvalues (In action-color!) for changes
 # TODO: Presentation: Mainly just running the program and explaining, program structure, outlook slides in the end. Convergence comparison Qlearning and constant-epsilon-Sarsa. On the fly created plots.
 
 
@@ -19,7 +18,7 @@
 # TODO: Entry for some reward number, mousewheel-click on some tile applies that number as arrival reward for that tile
 #   TODO -> Find a way to display that i.e. cliff brings back to start AND has a reward of -N (Maybe all "Start Teleporters" in one specific color)
 
-# TODO: Flags for debug stuff and prints, own print function  A
+# TODO: Flags for debug stuff and prints, own print function
 
 # TODO: Implement planning (Dyna-Q, Dyna-Q+)
 #   TODO -> Dynamically change Gridworld cells

@@ -11,12 +11,13 @@ class Agent:
     RIGHT = (1,0)
     ACTIONS = [UP, DOWN, LEFT, RIGHT]
 
-    def __init__(self, environment, learningRate, discount, nStep, epsilon, epsilonDecayRate, onPolicy, initialActionvalueMean=0, initialActionvalueSigma=0, predefinedAlgorithm=None, actionPlan=[], **kwargs):
+    def __init__(self, environment, learningRate, dynamicAlpha, discount, nStep, epsilon, epsilonDecayRate, onPolicy, initialActionvalueMean=0, initialActionvalueSigma=0, predefinedAlgorithm=None, actionPlan=[], **kwargs):
         self.environment = environment
         if predefinedAlgorithm:
             # TODO: set missing params accordingly
             pass
         self.learningRate = learningRate
+        self.dynamicAlpha = dynamicAlpha
         self.discount = discount
         self.initial_epsilon = epsilon.get()
         self.current_epsilon = epsilon
@@ -25,9 +26,11 @@ class Agent:
         self.onPolicy = onPolicy
         self.initialActionvalueMean = initialActionvalueMean
         self.initialActionvalueSigma = initialActionvalueSigma
-        self.Qvalues = np.empty_like(self.environment.grid)  # must be kept over episodes  # TODO: getter
+        self.Qvalues = np.empty_like(self.environment.get_grid())  # must be kept over episodes  # TODO: getter
         self.initialize_actionvalues()
-        self.episodicTask = None  # Todo: This variable is not used so far. Find out if Return is still a thing in non episodic task, and if, is it defined with or without discount?
+        self.stateActionPairCounts = np.empty_like(self.environment.get_grid())
+        self.initialize_state_action_pair_counts()
+        self.episodicTask = None  # Todo: This variable is not used so far.
         self.episodeFinished = True
         self.state = None
         self.return_ = None  # underscore to avoid naming conflict with return keyword
@@ -39,7 +42,7 @@ class Agent:
         # Debug variables:
         self.actionPlan = actionPlan
         self.actionHistory = []
-        
+
     def get_discount(self):
         return self.discount.get()
 
@@ -49,7 +52,13 @@ class Agent:
     def initialize_actionvalues(self):
         for x in range(self.Qvalues.shape[0]):
             for y in range(self.Qvalues.shape[1]):
-                self.Qvalues[x, y] = {action: np.random.normal(self.initialActionvalueMean, self.initialActionvalueSigma) for action in self.ACTIONS}
+                self.Qvalues[x, y] = {action: np.random.normal(self.initialActionvalueMean, self.initialActionvalueSigma)
+                                      for action in self.ACTIONS}
+
+    def initialize_state_action_pair_counts(self):
+        for x in range(self.stateActionPairCounts.shape[0]):
+            for y in range(self.stateActionPairCounts.shape[1]):
+                self.stateActionPairCounts[x,y] = {action: 0 for action in self.ACTIONS}
 
     def get_state(self):
         return self.state
@@ -64,6 +73,7 @@ class Agent:
         self.episodeFinished = False
         self.madeExploratoryMove = False
         self.targetAction = None
+        self.current_epsilon.set(self.initial_epsilon)
         self.return_ = 0
         self.state = self.environment.give_initial_position()
         if self.state is None:
@@ -82,25 +92,27 @@ class Agent:
             return
         targetActionvalue = self.generate_target(self.state)
         if self.memory.get_size() == self.nStep.get():
-            self.update_actionvalues(targetActionvalue)
+            self.update_actionvalue(targetActionvalue)
         # self.actionHistory.append(behaviorAction)  TODO: Dont forget debug stuff here
         #print(self.actionHistory)
 
-    def update_actionvalues(self, targetActionvalue):
+    def update_actionvalue(self, targetActionvalue):
         # step by step, so you can watch exactly whats happening when using a debugger
         discountedRewardSum = self.memory.get_discountedRewardSum()
         correspondingState, actionToUpdate = self.memory.pop_oldest_state_action()
         Qbefore = self.Q(S=correspondingState, A=actionToUpdate)
-        discountedTargetActionValue = cached_power(self.discount.get(), self.nStep.get()) * targetActionvalue
+        discountedTargetActionValue = cached_power(self.discount.get(), self.nStep.get()) * targetActionvalue  # in the MC case (N is -1 here) the targetctionvalue is zero anyway, so it doesnt matter what n is.
         returnEstimate = discountedRewardSum + discountedTargetActionValue
         TD_error = returnEstimate - Qbefore
+        if self.dynamicAlpha.get():
+            self.stateActionPairCounts[correspondingState][actionToUpdate] += 1
+            self.learningRate.set(1/self.stateActionPairCounts[correspondingState][actionToUpdate])
         update = self.learningRate.get() * TD_error
         Qafter = Qbefore + update
         self.Qvalues[correspondingState][actionToUpdate] = Qafter
 
-    def process_remaining_memory(self, targetActionvalue=0):
-        while self.memory.get_size():
-            self.update_actionvalues(targetActionvalue=targetActionvalue)
+    def process_earliest_memory(self, targetActionvalue=0):
+        self.update_actionvalue(targetActionvalue=targetActionvalue)
 
     def generate_target(self, state):
         if self.onPolicy.get():
@@ -145,3 +157,6 @@ class Agent:
 
     def decay_epsilon(self, factor):
         self.current_epsilon.set(self.current_epsilon.get() * factor)
+
+    def has_memory(self):
+        return self.memory.get_size()

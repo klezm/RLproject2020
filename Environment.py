@@ -12,7 +12,7 @@ class Environment:
             for y in range(self.grid.shape[1]):
                 self.grid[x,y] = Cell(**tileData[x,y])
         self.globalActionReward = data["globalActionReward"]
-        self.isTorus = (data["isXtorus"], data["isYtorus"])
+        self.isTorus = (data["Xtorus"], data["Ytorus"])
         self.agentPosition = None
 
     def give_initial_position(self):
@@ -39,3 +39,6 @@ class Environment:
             return rawEstimate % dimSize
         else:
             return min(max(rawEstimate, 0), dimSize-1)
+
+    def get_grid(self):
+        return self.grid
