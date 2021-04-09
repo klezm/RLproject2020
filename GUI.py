@@ -193,19 +193,17 @@ class GUI:
         agentColor = Tile.AGENTCOLOR_EXPLORATORY if data["hasMadeExploratoryMove"] else Tile.AGENTCOLOR_DEFAULT
         self.gridworldFrame.update_tile_appearance(*agentPosition, bg=agentColor)
         self.lastAgentPosition = agentPosition
+        greedyActions = data["greedyActions"]
         for x in range(self.X):
             for y in range(self.Y):
                 if self.gridworldFrame.get_tile_type(x, y) in [Tile.tileWall, Tile.tileGoal]:
                     continue
-                maxValue = -1.e20
-                maxAction = None
                 for action, Qvalue in data["Qvalues"][x,y].items():
                     self.qValueFrames[action].update_tile_appearance(x, y, text=f"{Qvalue:.2f}")
-                    if Qvalue == maxValue:
-                        maxAction = None
-                    elif Qvalue >= maxValue:
-                        maxValue = Qvalue
-                        maxAction = action
+                if len(greedyActions[x,y]) == 1:
+                    maxAction = greedyActions[x,y][0]
+                else:
+                    maxAction = None
                 newTileType = Tile.tilePolicyTypes[maxAction]
                 self.greedyPolicyFrame.update_tile_appearance(x, y, tileType=newTileType)
 

@@ -1,4 +1,5 @@
 import numpy as np
+import random
 
 from Memory import Memory
 from myFuncs import cached_power
@@ -27,6 +28,7 @@ class Agent:
         self.initialActionvalueMean = initialActionvalueMean
         self.initialActionvalueSigma = initialActionvalueSigma
         self.Qvalues = np.empty_like(self.environment.get_grid())  # must be kept over episodes
+        self.greedyActions = np.empty_like(self.environment.get_grid())
         self.initialize_actionvalues()
         self.stateActionPairCounts = np.empty_like(self.environment.get_grid())
         self.initialize_state_action_pair_counts()
@@ -53,8 +55,9 @@ class Agent:
     def initialize_actionvalues(self):
         for x in range(self.Qvalues.shape[0]):
             for y in range(self.Qvalues.shape[1]):
-                self.Qvalues[x, y] = {action: np.random.normal(self.initialActionvalueMean, self.initialActionvalueSigma)
+                self.Qvalues[x,y] = {action: np.random.normal(self.initialActionvalueMean, self.initialActionvalueSigma)
                                       for action in self.ACTIONS}
+                self.update_greedy_actions((x,y))
 
     def initialize_state_action_pair_counts(self):
         for x in range(self.stateActionPairCounts.shape[0]):
@@ -67,8 +70,19 @@ class Agent:
     def get_Qvalues(self):
         return self.Qvalues
 
-    def Q(self, S, A):
+    def get_greedyActions(self):
+        return self.greedyActions
+
+    def get_Q(self, S, A):
         return self.Qvalues[S][A]
+
+    def set_Q(self, S, A, value):
+        self.Qvalues[S][A] = value
+        self.update_greedy_actions(state=S)
+
+    def update_greedy_actions(self, state):
+        maxActionValue = max(self.Qvalues[state].values())
+        self.greedyActions[state] = [action for action, value in self.Qvalues[state].items() if value == maxActionValue]
 
     def start_episode(self):
         self.episodeFinished = False
@@ -100,7 +114,7 @@ class Agent:
         # step by step, so you can watch exactly whats happening when using a debugger
         discountedRewardSum = self.memory.get_discountedRewardSum()
         correspondingState, actionToUpdate = self.memory.pop_oldest_state_action()
-        Qbefore = self.Q(S=correspondingState, A=actionToUpdate)
+        Qbefore = self.get_Q(S=correspondingState, A=actionToUpdate)
         discountedTargetActionValue = cached_power(self.discount.get(), self.nStep.get()) * targetActionvalue  # in the MC case (N is -1 here) the targetctionvalue is zero anyway, so it doesnt matter what n is.
         returnEstimate = discountedRewardSum + discountedTargetActionValue
         TD_error = returnEstimate - Qbefore
@@ -109,7 +123,7 @@ class Agent:
             self.learningRate.set(1/self.stateActionPairCounts[correspondingState][actionToUpdate])
         update = self.learningRate.get() * TD_error
         Qafter = Qbefore + update
-        self.Qvalues[correspondingState][actionToUpdate] = Qafter
+        self.set_Q(S=correspondingState, A=actionToUpdate, value=Qafter)
 
     def process_earliest_memory(self, targetActionvalue=0):
         self.update_actionvalue(targetActionvalue=targetActionvalue)
@@ -124,7 +138,7 @@ class Agent:
             pass
         else:
             self.targetAction = policy(state)
-            return self.Q(S=state, A=self.targetAction)
+            return self.get_Q(S=state, A=self.targetAction)
 
     def generate_behavior_action(self, state):
         if self.onPolicy.get() and self.targetAction:
@@ -136,25 +150,26 @@ class Agent:
             return self.behavior_policy(state)
 
     def target_policy(self, state):
-        return self.get_greedy_action(state)
+        return self.give_greedy_action(state)
 
     def behavior_policy(self, state):
         if self.actionPlan:  # debug
             return self.actionPlan.pop(0)
-        if np.random.rand() < self.current_epsilon.get():
+        if random.random() < self.current_epsilon.get():
             self.hasChosenExploratoryMove = True
             return self.sample_random_action()
         else:
             self.hasChosenExploratoryMove = False
-            return self.get_greedy_action(state)
+            return self.give_greedy_action(state)
 
-    def get_greedy_action(self, state):
-        maxActionValue = max(self.Qvalues[state].values())
-        actionCandidates = [action for action, value in self.Qvalues[state].items() if value == maxActionValue]
-        return actionCandidates[np.random.randint(len(actionCandidates))]
+    def give_greedy_action(self, state):
+        if len(self.greedyActions[state]) == 1:
+            return self.greedyActions[state][0]
+        else:
+            return random.choice(self.greedyActions[state])
 
     def sample_random_action(self):
-        return self.ACTIONS[np.random.randint(len(self.ACTIONS))]
+        return random.choice(self.ACTIONS)
 
     def decay_epsilon(self, factor):
         self.current_epsilon.set(self.current_epsilon.get() * factor)

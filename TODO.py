@@ -1,4 +1,3 @@
-# TODO: Track Greedy actions dynamically
 # TODO: epsilon decay per step and per episode
 # TODO: Policy as class for expectation algorithms
 # TODO: Proper flow control

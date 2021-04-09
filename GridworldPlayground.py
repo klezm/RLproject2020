@@ -18,6 +18,7 @@ class GridworldPlayground:
     def visualize_gui(self):
         data = {"agentPosition": self.agent.get_state(),
                 "Qvalues": self.agent.get_Qvalues(),
+                "greedyActions": self.agent.get_greedyActions(),
                 "hasMadeExploratoryMove": self.agent.hasMadeExploratoryMove}
         self.gui.visualize(data)  # gridworldPlayground gathers data, then calls visualize method of gridworldPlayground. This method should all GUIs have.
 

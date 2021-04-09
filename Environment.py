@@ -20,7 +20,7 @@ class Environment:
         candidates = [cell.get_position() for cell in cellArray if cell.isStart]
         if not candidates:  # random start if none is defined
             candidates = [cell.get_position() for cell in cellArray if cell.is_suitable_start()]
-        self.agentPosition = random.choice(candidates)  # TODO: use np.random
+        self.agentPosition = random.choice(candidates)
         return self.agentPosition
 
     def apply_action(self, action):
