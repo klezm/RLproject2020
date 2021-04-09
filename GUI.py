@@ -83,17 +83,17 @@ class GUI:
         self.visualizationSettingsFrame.grid(row=0, column=0)
         self.algorithmSettingsFrame.grid(row=1, column=0)
 
-        self.parameterFrames = OrderedDict()
+        #self.parameterFrames = OrderedDict()
         #       visualizationSettingsFrame
         self.startPauseFrame = tk.Frame(self.visualizationSettingsFrame)
         self.timestepsLeftFrame = EntryFrame(self.visualizationSettingsFrame, text="Time Steps Left:", defaultValue=10000, targetType=int)
-        self.msDeleyFrame = EntryFrame(self.visualizationSettingsFrame, text="Refresh Delay [ms] >", defaultValue=1, targetType=int)
+        self.msDelayFrame = EntryFrame(self.visualizationSettingsFrame, text="Refresh Delay [ms] >", defaultValue=1, targetType=int)
         self.showEveryNchangesFrame = EntryFrame(self.visualizationSettingsFrame, text="Show Every N Changes:", defaultValue=1, targetType=int)
 
         row = 0
         self.timestepsLeftFrame.grid(row=row, column=0, sticky=tk.W+tk.E)
         row += 1
-        self.msDeleyFrame.grid(row=row, column=0, sticky=tk.W+tk.E)
+        self.msDelayFrame.grid(row=row, column=0, sticky=tk.W+tk.E)
         row += 1
         self.showEveryNchangesFrame.grid(row=row, column=0, sticky=tk.W+tk.E)
         row += 1
@@ -162,7 +162,7 @@ class GUI:
                                  "arrivalReward": self.gridworldFrame.get_tile_arrival_reward(x, y)}
         data = {"tileData": tileData,
                 "timestepsLeft": self.timestepsLeftFrame.get_var(),
-                "msDelay": self.msDeleyFrame.get_var(),
+                "msDelay": self.msDelayFrame.get_var(),
                 "showEveryNchanges": self.showEveryNchangesFrame.get_var(),
                 "Xtorus": self.xTorusFrame.get_var(),
                 "Ytorus": self.yTorusFrame.get_var(),
@@ -200,8 +200,9 @@ class GUI:
                 maxValue = -1.e20
                 maxAction = None
                 for action, Qvalue in data["Qvalues"][x,y].items():
-                    if self.qValueFrames[action].get_tile_text(x, y) != str(Qvalue):
-                        self.qValueFrames[action].update_tile_appearance(x, y, text=f"{Qvalue:.2f}")
+                    QvalueString = f"{Qvalue:.2f}"  # check below would always be False if jut the qvalue itself would be compared with the formatted string
+                    if self.qValueFrames[action].get_tile_text(x, y) != QvalueString:
+                        self.qValueFrames[action].update_tile_appearance(x, y, text=QvalueString)
                     if Qvalue == maxValue:
                         maxAction = None
                     elif Qvalue >= maxValue:

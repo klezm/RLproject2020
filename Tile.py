@@ -49,8 +49,7 @@ class Tile(tk.Label):
 
     def cycle_type(self, direction=0):
         self.cycleIndex = (self.cycleIndex + direction) % len(self.tileCycleTypes)
-        self.tileType = self.tileCycleTypes[self.cycleIndex]
-        self.update_appearance()
+        self.update_appearance(tileType=self.tileCycleTypes[self.cycleIndex])
 
     def update_appearance(self, tileType=None, **kwargs):
         if tileType:

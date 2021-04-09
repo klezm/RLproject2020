@@ -10,6 +10,7 @@
 # TODO: Entry for some reward number, mousewheel-click on some tile applies that number as arrival reward for that tile
 #   TODO -> Find a way to display that i.e. cliff brings back to start AND has a reward of -N (Maybe all "Start Teleporters" in one specific color)
 
+# TODO: Capsuling GUI init
 # TODO: Heatmap background for actionvalues (In action-color) for changes
 # TODO: Visualize Agent Trace (The longer a tile was not visited, the more the trace on that tile fades)
 # TODO: (Stochastic) Windy Gridworld (from x & y)
