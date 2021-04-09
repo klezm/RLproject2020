@@ -200,17 +200,14 @@ class GUI:
                 maxValue = -1.e20
                 maxAction = None
                 for action, Qvalue in data["Qvalues"][x,y].items():
-                    QvalueString = f"{Qvalue:.2f}"  # check below would always be False if jut the qvalue itself would be compared with the formatted string
-                    if self.qValueFrames[action].get_tile_text(x, y) != QvalueString:
-                        self.qValueFrames[action].update_tile_appearance(x, y, text=QvalueString)
+                    self.qValueFrames[action].update_tile_appearance(x, y, text=f"{Qvalue:.2f}")
                     if Qvalue == maxValue:
                         maxAction = None
                     elif Qvalue >= maxValue:
                         maxValue = Qvalue
                         maxAction = action
                 newTileType = Tile.tilePolicyTypes[maxAction]
-                if self.greedyPolicyFrame.get_tile_type(x, y) != newTileType:
-                    self.greedyPolicyFrame.update_tile_appearance(x, y, tileType=newTileType)
+                self.greedyPolicyFrame.update_tile_appearance(x, y, tileType=newTileType)
 
     def freeze_lifetime_parameters(self):
         self.dynamicAlphaFrame.freeze()

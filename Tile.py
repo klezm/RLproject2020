@@ -55,7 +55,9 @@ class Tile(tk.Label):
         if tileType:
             self.tileType = tileType
         kwargs = self.tileType | kwargs  # new in python 3.9.0: '|' merges dictionaries
-        self.config(**kwargs)
+        kwargs = {key: value for key, value in kwargs.items() if self.cget(key) != value}
+        if kwargs:
+            self.config(**kwargs)
 
 
 Tile.tilePolicyTypes = {action: {"text": Tile.POLICY_CHARS[action],
