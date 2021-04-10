@@ -23,7 +23,7 @@ class EpsilonGreedyPolicy(Policy):
     def get_expected_actionvalue(self, state):
         # step by step:
         currentStateQvalueDict = self.agent.get_Qvalues()[state]
-        greedyMean = currentStateQvalueDict[self.agent.get_greedyActions(state)[0]]  # technically, for calculating the mean Qvalue of the greedy action choice, we have to average over all values of current greedy actions. But since all greedy actions have by definition the same value (namely the maximum Qvalue of all currently available actions), we can just set the Qvalue of our first listed greedy action as the mean.
+        greedyMean = currentStateQvalueDict[self.agent.get_greedyActions()[state][0]]  # technically, for calculating the mean Qvalue of the greedy action choice, we have to average over all values of current greedy actions. But since all greedy actions have by definition the same value (namely the maximum Qvalue of all currently available actions), we can just set the Qvalue of our first listed greedy action as the mean.
         if self.epsilon.get():
             exploratoryMean = sum(currentStateQvalueDict.values()) / len(currentStateQvalueDict)
             return self.epsilon.get() * exploratoryMean + (1-self.epsilon.get()) * greedyMean

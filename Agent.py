@@ -69,17 +69,11 @@ class Agent:
     def get_state(self):
         return self.state
 
-    def get_Qvalues(self, state=None):
-        if state:
-            return self.Qvalues[state]
-        else:
-            return self.Qvalues
+    def get_Qvalues(self):
+        return self.Qvalues
 
-    def get_greedyActions(self, state=None):
-        if state:
-            return self.greedyActions[state]
-        else:
-            return self.greedyActions
+    def get_greedyActions(self):
+        return self.greedyActions
 
     def get_Q(self, S, A):
         return self.Qvalues[S][A]
