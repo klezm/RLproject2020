@@ -1,6 +1,6 @@
 # TODO: Proper flow control
 # TODO: Flag: "Decay Epsilon Episode-wise"
-# TODO: Plot all parameters vs timestep
+# TODO: Plot all parameters vs timestep -> Give the paramframes names as identifier, then put them into a dict with key equal to name, makes passing stuff from gui to backend easier AND plotting of params in the end
 # TODO: Implement Double Learning
 # TODO: Implement planning (Dyna-Q, Dyna-Q+)
 #   TODO -> Dynamically change Gridworld cells

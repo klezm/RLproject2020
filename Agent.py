@@ -39,7 +39,7 @@ class Agent:
         self.episodeFinished = True
         self.state = None
         self.return_ = None  # underscore to avoid naming conflict with return keyword
-        self.episodeReturns = np.array([])  # must be kept over episodes
+        self.episodeReturns = []
         self.memory = Memory(self)
         self.hasChosenExploratoryMove = None
         self.hasMadeExploratoryMove = None
@@ -102,7 +102,7 @@ class Agent:
         self.return_ += reward  # underscore at the end because "return" is a python keyword
         self.state = successorState
         if self.episodeFinished:
-            self.episodeReturns = np.append(self.episodeReturns, self.return_)
+            self.episodeReturns.append(self.return_)
             return
         targetActionvalue = self.generate_target(self.state)
         if self.memory.get_size() == self.nStep.get():
