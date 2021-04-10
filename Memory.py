@@ -4,7 +4,6 @@ from myFuncs import cached_power
 
 
 class Memory:
-    # TODO: talk about depth convention here
     def __init__(self, agent):
         self.agent = agent
         self.memory = deque()
@@ -17,8 +16,8 @@ class Memory:
 
     def pop_oldest_state_action(self):
         state, action, reward = self.memory.pop()
-        self.discountedRewardSum -= cached_power(self.agent.get_discount(), self.get_size()) * reward  # Because of pop, get_size() is always nStep-1 if memory was full
-        return state, action
+        self.discountedRewardSum -= cached_power(self.agent.get_discount(), self.get_size()) * reward  # Because of pop, get_size() is always nStep-1 if memory was "full"
+        return action, state
 
     def get_discountedRewardSum(self):
         return self.discountedRewardSum

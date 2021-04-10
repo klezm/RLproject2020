@@ -10,7 +10,7 @@ class EntryFrame(ParameterFrame):
 
     def make_var_widget(self):
         if self.targetType:
-            self.tkVar = TypedStringVar(self.targetType, value=self.defaultValue)
+            self.tkVar = TypedStringVar(self.targetType)
         else:
-            self.tkVar = tk.StringVar(value=self.defaultValue)
+            self.tkVar = tk.StringVar()
         self.varWidget = tk.Entry(self, textvariable=self.tkVar, width=10)

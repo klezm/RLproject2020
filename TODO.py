@@ -1,7 +1,6 @@
-# TODO: epsilon decay per step and per episode
-# TODO: Policy as class for expectation algorithms
 # TODO: Proper flow control
-# TODO: Implement Expectation-using algorithms
+# TODO: Flag: "Decay Epsilon Episode-wise"
+# TODO: Plot all parameters vs timestep
 # TODO: Implement Double Learning
 # TODO: Implement planning (Dyna-Q, Dyna-Q+)
 #   TODO -> Dynamically change Gridworld cells

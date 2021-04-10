@@ -63,5 +63,5 @@ class Tile(tk.Label):
 Tile.tilePolicyTypes = {action: {"text": Tile.POLICY_CHARS[action],
                                  "fg": Tile.POLICY_COLORS[action],
                                  "bg": Tile.BLANKCOLOR}
-                        for action in Agent.ACTIONS}
+                        for action in Agent.ACTIONSPACE}
 Tile.tilePolicyTypes[None] = Tile.tileBlank

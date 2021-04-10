@@ -80,8 +80,8 @@ class GUI:
         self.visualizationSettingsFrame = tk.Frame(self.settingsFrame, bd=3, relief=tk.GROOVE)
         self.algorithmSettingsFrame = tk.Frame(self.settingsFrame, bd=3, relief=tk.GROOVE)
 
-        self.visualizationSettingsFrame.grid(row=0, column=0)
-        self.algorithmSettingsFrame.grid(row=1, column=0)
+        self.visualizationSettingsFrame.grid(row=0, column=0, ipadx=3, ipady=3, sticky=tk.W+tk.E)
+        self.algorithmSettingsFrame.grid(row=1, column=0, ipadx=3, ipady=3, sticky=tk.W+tk.E)
 
         #self.parameterFrames = OrderedDict()
         #       visualizationSettingsFrame
@@ -108,17 +108,18 @@ class GUI:
         self.pauseButton.grid(row=0, column=1)
 
         #       algorithmSettingsFrame
-
-        self.xTorusFrame = CheckbuttonFrame(self.algorithmSettingsFrame, text="x-Torus:", defaultValue=False)
-        self.yTorusFrame = CheckbuttonFrame(self.algorithmSettingsFrame, text="y-Torus:", defaultValue=False)
+        self.xTorusFrame = CheckbuttonFrame(self.algorithmSettingsFrame, text="X-Torus:", defaultValue=False)
+        self.yTorusFrame = CheckbuttonFrame(self.algorithmSettingsFrame, text="Y-Torus:", defaultValue=False)
         self.globalActionRewardFrame = EntryFrame(self.algorithmSettingsFrame, text="Global Action Reward:", defaultValue=-1, targetType=float)
         self.discountFrame = EntryFrame(self.algorithmSettingsFrame, text="Discount \u03B3:", defaultValue=1, targetType=float)  # gamma
         self.learningRateFrame = EntryFrame(self.algorithmSettingsFrame, text="Learning Rate \u03B1:", defaultValue=0.1, targetType=float)  # alpha
         self.dynamicAlphaFrame = CheckbuttonFrame(self.algorithmSettingsFrame, text="\u03B1 = 1/count((S,A))", defaultValue=False)  # alpha
         self.nStepFrame = EntryFrame(self.algorithmSettingsFrame, text="n-Step n:", defaultValue=1, targetType=int)
         self.onPolicyFrame = CheckbuttonFrame(self.algorithmSettingsFrame, text="On-Policy:", defaultValue=True)
-        self.epsilonFrame = EntryFrame(self.algorithmSettingsFrame, text="Exploration Rate \u03B5:", defaultValue=0.05, targetType=float)  # epsilon
-        self.epsilonDecayFrame = EntryFrame(self.algorithmSettingsFrame, text="\u03B5-Decay Rate:", defaultValue=0.9999, targetType=float)  # epsilon
+        self.updateByExpectationFrame = CheckbuttonFrame(self.algorithmSettingsFrame, text="Update by Expectation", defaultValue=False)
+        self.behaviorPolicyFrame = tk.LabelFrame(self.algorithmSettingsFrame, text="Behavior Policy", font=font)
+        self.targetPolicyFrame = tk.LabelFrame(self.algorithmSettingsFrame, text="Target Policy", font=font)
+
 
         row = 0
         self.xTorusFrame.grid(row=row, column=0, sticky=tk.W+tk.E)
@@ -137,13 +138,32 @@ class GUI:
         row += 1
         self.onPolicyFrame.grid(row=row, column=0, sticky=tk.W+tk.E)
         row += 1
-        self.epsilonFrame.grid(row=row, column=0, sticky=tk.W+tk.E)
+        self.updateByExpectationFrame.grid(row=row, column=0, sticky=tk.W+tk.E)
         row += 1
-        self.epsilonDecayFrame.grid(row=row, column=0, sticky=tk.W+tk.E)
+        self.behaviorPolicyFrame.grid(row=row, column=0, sticky=tk.W+tk.E, ipadx=3)
         row += 1
+        self.targetPolicyFrame.grid(row=row, column=0, sticky=tk.W+tk.E, ipadx=3)
 
+        #           behaviorPolicyFrame
+        self.behaviorEpsilonFrame = EntryFrame(self.behaviorPolicyFrame, text="Exploration Rate \u03B5:", defaultValue=0.5, targetType=float)  # epsilon
+        self.behaviorEpsilonDecayRateFrame = EntryFrame(self.behaviorPolicyFrame, text="\u03B5-Decay Rate:", defaultValue=0.9999, targetType=float)  # epsilon
+
+        row = 0
+        self.behaviorEpsilonFrame.grid(row=row, column=0, sticky=tk.W + tk.E)
+        row += 1
+        self.behaviorEpsilonDecayRateFrame.grid(row=row, column=0, sticky=tk.W + tk.E)
+
+        #           targetPolicyFrame
+        self.targetEpsilonFrame = EntryFrame(self.targetPolicyFrame, text="Exploration Rate \u03B5:", defaultValue=0, targetType=float)  # epsilon
+        self.targetEpsilonDecayRateFrame = EntryFrame(self.targetPolicyFrame, text="\u03B5-Decay Rate:", defaultValue=1, targetType=float)  # epsilon
+
+        row = 0
+        self.targetEpsilonFrame.grid(row=row, column=0, sticky=tk.W + tk.E)
+        row += 1
+        self.targetEpsilonDecayRateFrame.grid(row=row, column=0, sticky=tk.W + tk.E)
+
+        self.onPolicyFrame.set_and_call_trace(self.toggle_targetPolicyFrame)
         self.lastAgentPosition = None
-
         center(self.window)
 
     def set_gridworldPlayground(self, gridworldPlayground):
@@ -172,8 +192,11 @@ class GUI:
                 "dynamicAlpha": self.dynamicAlphaFrame.get_var(),
                 "nStep": self.nStepFrame.get_var(),
                 "onPolicy": self.onPolicyFrame.get_var(),
-                "epsilon": self.epsilonFrame.get_var(),
-                "epsilonDecayRate": self.epsilonDecayFrame.get_var()}
+                "updateByExpectation": self.updateByExpectationFrame.get_var(),
+                "behaviorEpsilon": self.behaviorEpsilonFrame.get_var(),
+                "behaviorEpsilonDecayRate": self.behaviorEpsilonDecayRateFrame.get_var(),
+                "targetEpsilon": self.targetEpsilonFrame.get_var(),
+                "targetEpsilonDecayRate": self.targetEpsilonDecayRateFrame.get_var()}
         self.gridworldPlayground.initialize(data)  # GUI gathers data, then calls initialize method of gridworldPlayground. This should all GUIs do.
 
     def initialize_value_visualization_frames(self):
@@ -215,3 +238,13 @@ class GUI:
     def unfreeze_lifetime_parameters(self):
         self.dynamicAlphaFrame.unfreeze()
         self.learningRateFrame.unfreeze()
+
+    def toggle_targetPolicyFrame(self):
+        if self.onPolicyFrame.get_var().get():
+            self.targetPolicyFrame.config(fg="grey")
+            self.targetEpsilonFrame.freeze()
+            self.targetEpsilonDecayRateFrame.freeze()
+        else:
+            self.targetPolicyFrame.config(fg="black")
+            self.targetEpsilonFrame.unfreeze()
+            self.targetEpsilonDecayRateFrame.unfreeze()
