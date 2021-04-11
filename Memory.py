@@ -16,7 +16,7 @@ class Memory:
 
     def pop_oldest_state_action(self):
         state, action, reward = self.memory.pop()
-        self.discountedRewardSum -= cached_power(self.agent.get_discount(), self.get_size()) * reward  # Because of pop, get_size() is always nStep-1 if memory was "full"
+        self.discountedRewardSum -= cached_power(self.agent.get_discount(), self.get_size()) * reward
         return action, state
 
     def get_discountedRewardSum(self):

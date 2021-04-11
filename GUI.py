@@ -85,27 +85,29 @@ class GUI:
 
         #self.parameterFrames = OrderedDict()
         #       visualizationSettingsFrame
-        self.startPauseFrame = tk.Frame(self.visualizationSettingsFrame)
-        self.timestepsLeftFrame = EntryFrame(self.visualizationSettingsFrame, text="Time Steps Left:", defaultValue=10000, targetType=int)
+        self.flowButtonsFrame = tk.Frame(self.visualizationSettingsFrame)
+        self.operationsLeftFrame = EntryFrame(self.visualizationSettingsFrame, text="Operations Left:", defaultValue=100000, targetType=int)
         self.msDelayFrame = EntryFrame(self.visualizationSettingsFrame, text="Refresh Delay [ms] >", defaultValue=1, targetType=int)
         self.showEveryNchangesFrame = EntryFrame(self.visualizationSettingsFrame, text="Show Every N Changes:", defaultValue=1, targetType=int)
 
         row = 0
-        self.timestepsLeftFrame.grid(row=row, column=0, sticky=tk.W+tk.E)
+        self.operationsLeftFrame.grid(row=row, column=0, sticky=tk.W+tk.E)
         row += 1
         self.msDelayFrame.grid(row=row, column=0, sticky=tk.W+tk.E)
         row += 1
         self.showEveryNchangesFrame.grid(row=row, column=0, sticky=tk.W+tk.E)
         row += 1
-        self.startPauseFrame.grid(row=row, column=0)
+        self.flowButtonsFrame.grid(row=row, column=0)
         row += 1
 
-        #           startStopFrame:
-        self.startButton = tk.Button(self.startPauseFrame, text="Go!", font=font, bd=5, command=self.initialize_gridworldPlayground)
-        self.pauseButton = tk.Button(self.startPauseFrame, text="Pause", font=font, bd=5, command=lambda: None, fg="red")
+        #           flowButtonsFrameFrame:
+        self.goButton = tk.Button(self.flowButtonsFrame, text="Go!", font=font, bd=5, command=self.goButton_func)
+        self.pauseButton = tk.Button(self.flowButtonsFrame, text="Pause", font=font, bd=5, command=self.pauseButton_func)
+        self.nextButton = tk.Button(self.flowButtonsFrame, text="Next", font=font, bd=5, command=self.nextButton_func)
 
-        self.startButton.grid(row=0, column=0)
+        self.goButton.grid(row=0, column=0)
         self.pauseButton.grid(row=0, column=1)
+        self.nextButton.grid(row=0, column=2)
 
         #       algorithmSettingsFrame
         self.xTorusFrame = CheckbuttonFrame(self.algorithmSettingsFrame, text="X-Torus:", defaultValue=False)
@@ -148,32 +150,52 @@ class GUI:
         self.behaviorEpsilonFrame = EntryFrame(self.behaviorPolicyFrame, text="Exploration Rate \u03B5:", defaultValue=0.5, targetType=float)  # epsilon
         self.behaviorEpsilonDecayRateFrame = EntryFrame(self.behaviorPolicyFrame, text="\u03B5-Decay Rate:", defaultValue=0.9999, targetType=float)  # epsilon
 
-        row = 0
-        self.behaviorEpsilonFrame.grid(row=row, column=0, sticky=tk.W + tk.E)
-        row += 1
-        self.behaviorEpsilonDecayRateFrame.grid(row=row, column=0, sticky=tk.W + tk.E)
+        self.behaviorEpsilonFrame.grid(row=0, column=0, sticky=tk.W + tk.E)
+        self.behaviorEpsilonDecayRateFrame.grid(row=1, column=0, sticky=tk.W + tk.E)
 
         #           targetPolicyFrame
         self.targetEpsilonFrame = EntryFrame(self.targetPolicyFrame, text="Exploration Rate \u03B5:", defaultValue=0, targetType=float)  # epsilon
         self.targetEpsilonDecayRateFrame = EntryFrame(self.targetPolicyFrame, text="\u03B5-Decay Rate:", defaultValue=1, targetType=float)  # epsilon
 
-        row = 0
-        self.targetEpsilonFrame.grid(row=row, column=0, sticky=tk.W + tk.E)
-        row += 1
-        self.targetEpsilonDecayRateFrame.grid(row=row, column=0, sticky=tk.W + tk.E)
+        self.targetEpsilonFrame.grid(row=0, column=0, sticky=tk.W + tk.E)
+        self.targetEpsilonDecayRateFrame.grid(row=1, column=0, sticky=tk.W + tk.E)
 
         self.onPolicyFrame.set_and_call_trace(self.toggle_targetPolicyFrame)
         self.lastAgentPosition = None
+        self.runStarted = False
+        self.runPaused = False
         center(self.window)
+
+    def goButton_func(self):
+        self.goButton.config(state=tk.DISABLED)
+        self.pauseButton.config(state=tk.NORMAL)
+        self.nextButton.config(state=tk.DISABLED)
+        if self.runStarted:
+            self.runPaused = False
+            self.gridworldPlayground.run()
+        else:
+            self.initialize_gridworldPlayground()
+
+    def pauseButton_func(self):
+        self.goButton.config(state=tk.NORMAL)
+        self.pauseButton.config(state=tk.DISABLED)
+        self.nextButton.config(state=tk.NORMAL)
+        self.runPaused = True
+
+    def nextButton_func(self):
+        pass
 
     def set_gridworldPlayground(self, gridworldPlayground):
         self.gridworldPlayground = gridworldPlayground
 
     def initialize_gridworldPlayground(self):
+        #TODO: separate into "pure" initialization and recallable agent birth only. then we can seperate the tiledata dict from the data dict.
+        self.runStarted = True
         self.initialize_value_visualization_frames()
         tileData = np.empty((self.X,self.Y), dtype=object)
         for x in range(self.X):
             for y in range(self.Y):
+                # TODO: Everytime a Tile is changed to an episode ender, change its Qvalues to 0 explicitly
                 tileType = self.gridworldFrame.get_tile_type(x,y)
                 tileData[x,y] = {"position": (x,y),
                                  "isWall": tileType == Tile.tileWall,
@@ -181,7 +203,7 @@ class GUI:
                                  "isGoal": tileType == Tile.tileGoal,
                                  "arrivalReward": self.gridworldFrame.get_tile_arrival_reward(x, y)}
         data = {"tileData": tileData,
-                "timestepsLeft": self.timestepsLeftFrame.get_var(),
+                "operationsLeft": self.operationsLeftFrame.get_var(),
                 "msDelay": self.msDelayFrame.get_var(),
                 "showEveryNchanges": self.showEveryNchangesFrame.get_var(),
                 "Xtorus": self.xTorusFrame.get_var(),
@@ -197,6 +219,7 @@ class GUI:
                 "behaviorEpsilonDecayRate": self.behaviorEpsilonDecayRateFrame.get_var(),
                 "targetEpsilon": self.targetEpsilonFrame.get_var(),
                 "targetEpsilonDecayRate": self.targetEpsilonDecayRateFrame.get_var()}
+        self.freeze_lifetime_parameters()
         self.gridworldPlayground.initialize(data)  # GUI gathers data, then calls initialize method of gridworldPlayground. This should all GUIs do.
 
     def initialize_value_visualization_frames(self):
@@ -222,7 +245,7 @@ class GUI:
                 if self.gridworldFrame.get_tile_type(x, y) in [Tile.tileWall, Tile.tileGoal]:
                     continue
                 for action, Qvalue in data["Qvalues"][x,y].items():
-                    self.qValueFrames[action].update_tile_appearance(x, y, text=f"{Qvalue:.2f}")
+                    self.qValueFrames[action].update_tile_appearance(x, y, text=f"{Qvalue:4.2f}")
                 if len(greedyActions[x,y]) == 1:
                     maxAction = greedyActions[x,y][0]
                 else:

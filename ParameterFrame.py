@@ -11,7 +11,6 @@ class ParameterFrame(tk.Frame):
         self.varWidget = None
         self.make_var_widget()
         self.tkVar.set(defaultValue)
-        self.varWidget.config(font=self.font)
         self.varWidget.grid(row=0, column=1)
 
     def set_and_call_trace(self, traceFunc):

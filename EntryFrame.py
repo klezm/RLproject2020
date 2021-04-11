@@ -7,6 +7,7 @@ class EntryFrame(ParameterFrame):
     def __init__(self, *args, targetType=None, **kwargs):
         self.targetType = targetType
         super().__init__(*args, **kwargs)
+        self.varWidget.config(font=self.font)
 
     def make_var_widget(self):
         if self.targetType:

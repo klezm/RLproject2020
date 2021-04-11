@@ -44,6 +44,9 @@ class Agent:
         self.hasChosenExploratoryMove = None
         self.hasMadeExploratoryMove = None
         self.targetAction = None
+        self.operationCount = 0
+        self.stepCount = 0
+        self.episodeCount = 0
         # Debug variables:
         self.actionPlan = actionPlan
         self.actionHistory = []
@@ -86,6 +89,17 @@ class Agent:
         maxActionValue = max(self.Qvalues[state].values())
         self.greedyActions[state] = [action for action, value in self.Qvalues[state].items() if value == maxActionValue]
 
+    def operate(self):
+        if self.episodeFinished:
+            if self.get_memory_size():
+                self.process_earliest_memory()
+            else:
+                self.start_episode()
+        else:
+            self.step()
+        self.operationCount += 1
+    # TODO: Model Algo needs no Memory and doesnt need to pass a target action to the behavior action. Nevertheless, expected version is possible.
+
     def start_episode(self):
         self.episodeFinished = False
         self.targetAction = None
@@ -101,7 +115,9 @@ class Agent:
         self.memory.memorize(self.state, behaviorAction, reward)
         self.return_ += reward  # underscore at the end because "return" is a python keyword
         self.state = successorState
+        self.stepCount += 1
         if self.episodeFinished:
+            self.episodeCount += 1
             self.episodeReturns.append(self.return_)
             return
         targetActionvalue = self.generate_target(self.state)
@@ -117,7 +133,7 @@ class Agent:
         discountedRewardSum = self.memory.get_discountedRewardSum()
         actionToUpdate, correspondingState = self.memory.pop_oldest_state_action()
         Qbefore = self.get_Q(S=correspondingState, A=actionToUpdate)
-        discountedTargetActionValue = cached_power(self.discount.get(), self.nStep.get()) * targetActionvalue  # in the MC case (N is -1 here) the targetctionvalue is zero anyway, so it doesnt matter what n is.
+        discountedTargetActionValue = cached_power(self.discount.get(), self.nStep.get()) * targetActionvalue  # in the MC case (N is -1 here) the targetActionvalue is zero anyway, so it doesnt matter what n is.
         returnEstimate = discountedRewardSum + discountedTargetActionValue
         TD_error = returnEstimate - Qbefore
         if self.dynamicAlpha.get():
