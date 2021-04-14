@@ -6,14 +6,15 @@ from Cell import Cell
 
 class Environment:
     def __init__(self, data):
-        tileData = data["tileData"]
-        self.grid = np.empty_like(tileData)
+        self.globalActionReward = data["globalActionReward"]
+        self.isTorus = (data["Xtorus"], data["Ytorus"])
+        self.grid = np.empty(data["shape"], dtype=object)
+        self.agentPosition = None
+
+    def update(self, tileData):
         for x in range(self.grid.shape[0]):
             for y in range(self.grid.shape[1]):
                 self.grid[x,y] = Cell(**tileData[x,y])
-        self.globalActionReward = data["globalActionReward"]
-        self.isTorus = (data["Xtorus"], data["Ytorus"])
-        self.agentPosition = None
 
     def give_initial_position(self):
         cellArray = self.grid.flatten()
@@ -39,6 +40,10 @@ class Environment:
             return rawEstimate % dimSize
         else:
             return min(max(rawEstimate, 0), dimSize-1)
+
+    def remove_agent(self):
+        self.agentPosition = None
+        return self.agentPosition
 
     def get_grid(self):
         return self.grid

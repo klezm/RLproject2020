@@ -1,9 +1,17 @@
 import numpy as np
-import random
+import enum
 
 from Memory import Memory
 from EpsilonGreedyPolicy import EpsilonGreedyPolicy
 from myFuncs import cached_power
+
+
+class Operations(enum.Enum):  # TODO: still needed?
+    UPDATED_BY_PLANNING = "Planning Update"
+    UPDATED_BY_EXPERIENCE = "Experience Update"
+    TOOK_ACTION = "Action Taken"
+    FINISHED_EPISODE = "Episode Finish"
+    STARTED_EPISODE = "Episode Start"
 
 
 class Agent:
@@ -12,6 +20,14 @@ class Agent:
     LEFT = (-1,0)
     RIGHT = (1,0)
     ACTIONSPACE = [UP, DOWN, LEFT, RIGHT]
+
+    #UPDATED_BY_PLANNING = "Planning Update"
+    #UPDATED_BY_EXPERIENCE = "Experience Update"
+    #TOOK_ACTION = "Action Taken"
+    #FINISHED_EPISODE = "Episode Finish"
+    #STARTED_EPISODE = "Episode Start"
+    # TODO: still needed?
+    #OPERATIONS = [UPDATED_BY_PLANNING, UPDATED_BY_EXPERIENCE, TOOK_ACTION, FINISHED_EPISODE, STARTED_EPISODE]
 
     def __init__(self, environment, learningRate, dynamicAlpha, discount, nStep, onPolicy, updateByExpectation,
                  behaviorEpsilon, behaviorEpsilonDecayRate, targetEpsilon, targetEpsilonDecayRate,
@@ -28,15 +44,17 @@ class Agent:
         self.onPolicy = onPolicy
         self.updateByExpectation = updateByExpectation
         self.nStep = nStep
-        self.initialActionvalueMean = initialActionvalueMean
-        self.initialActionvalueSigma = initialActionvalueSigma
+        self.nPlan = 0  # TODO: Set this in GUI
+        self.initialActionvalueMean = initialActionvalueMean  # TODO: Set this in GUI
+        self.initialActionvalueSigma = initialActionvalueSigma  # TODO: Set this in GUI
         self.Qvalues = np.empty_like(self.environment.get_grid())  # must be kept over episodes
         self.greedyActions = np.empty_like(self.environment.get_grid())
         self.initialize_actionvalues()
         self.stateActionPairCounts = np.empty_like(self.environment.get_grid())
         self.initialize_state_action_pair_counts()
         self.episodicTask = None  # TODO: This variable is not used so far.
-        self.episodeFinished = True
+        self.idle = True
+        self.episodeFinished = False
         self.state = None
         self.return_ = None  # underscore to avoid naming conflict with return keyword
         self.episodeReturns = []
@@ -44,9 +62,11 @@ class Agent:
         self.hasChosenExploratoryMove = None
         self.hasMadeExploratoryMove = None
         self.targetAction = None
-        self.operationCount = 0
-        self.stepCount = 0
-        self.episodeCount = 0
+        self.targetActionvalue = None
+        #self.operationCount = 0
+        #self.stepCount = 0
+        #self.episodeCount = 0
+        self.iSuccessivePlannings = None
         # Debug variables:
         self.actionPlan = actionPlan
         self.actionHistory = []
@@ -90,50 +110,55 @@ class Agent:
         self.greedyActions[state] = [action for action, value in self.Qvalues[state].items() if value == maxActionValue]
 
     def operate(self):
+        if self.get_memory_size() == self.nStep.get() or (self.episodeFinished and self.get_memory_size()):
+            # TODO: == to >=
+            self.process_earliest_memory()
+            return Operations.UPDATED_BY_EXPERIENCE
         if self.episodeFinished:
-            if self.get_memory_size():
-                self.process_earliest_memory()
-            else:
-                self.start_episode()
-        else:
-            self.step()
-        self.operationCount += 1
-    # TODO: Model Algo needs no Memory and doesnt need to pass a target action to the behavior action. Nevertheless, expected version is possible.
+            self.episodeReturns.append(self.return_)
+            self.hasMadeExploratoryMove = False
+            self.state = self.environment.remove_agent()
+            self.episodeFinished = False
+            self.idle = True
+            return Operations.FINISHED_EPISODE
+        if self.idle:
+            self.idle = False
+            self.start_episode()
+            return Operations.STARTED_EPISODE
+        if self.iSuccessivePlannings < self.nPlan:
+            self.plan()  # TODO: Model Algo needs no Memory and doesnt need to pass a target action to the behavior action. Nevertheless, expected version is possible.
+            self.iSuccessivePlannings = (self.iSuccessivePlannings + 1) % self.nPlan
+            return Operations.UPDATED_BY_PLANNING
+        self.take_action()
+        return Operations.TOOK_ACTION
 
     def start_episode(self):
-        self.episodeFinished = False
         self.targetAction = None
         self.return_ = 0
+        self.iSuccessivePlannings = 0
         self.state = self.environment.give_initial_position()
         if self.state is None:
             raise RuntimeError("No Starting Point found")
 
-    def step(self):
+    def take_action(self):
         behaviorAction = self.generate_behavior_action(self.state)
         reward, successorState, self.episodeFinished = self.environment.apply_action(behaviorAction)
         self.hasMadeExploratoryMove = self.hasChosenExploratoryMove  # if hasChosenExploratoryMove would be the only indicator for changing the agent color in the next visualization, then in the on-policy case, if the target was chosen to be an exploratory move in the last step-call, the coloring would happen BEFORE the move was taken, since in this line, the behavior action would already be determined and just copied from that target action with no chance to track if it was exploratory or not.
         self.memory.memorize(self.state, behaviorAction, reward)
         self.return_ += reward  # underscore at the end because "return" is a python keyword
         self.state = successorState
-        self.stepCount += 1
-        if self.episodeFinished:
-            self.episodeCount += 1
-            self.episodeReturns.append(self.return_)
-            return
-        targetActionvalue = self.generate_target(self.state)
-        if self.memory.get_size() == self.nStep.get():
-            self.update_actionvalue(targetActionvalue)
+        self.generate_target(self.state)
         self.behaviorPolicy.decay_epsilon()
         self.targetPolicy.decay_epsilon()
         # self.actionHistory.append(behaviorAction)  TODO: Dont forget debug stuff here
         # print(self.actionHistory)
 
-    def update_actionvalue(self, targetActionvalue):
+    def update_actionvalue(self):
         # step by step, so you can watch exactly whats happening when using a debugger
         discountedRewardSum = self.memory.get_discountedRewardSum()
         actionToUpdate, correspondingState = self.memory.pop_oldest_state_action()
         Qbefore = self.get_Q(S=correspondingState, A=actionToUpdate)
-        discountedTargetActionValue = cached_power(self.discount.get(), self.nStep.get()) * targetActionvalue  # in the MC case (N is -1 here) the targetActionvalue is zero anyway, so it doesnt matter what n is.
+        discountedTargetActionValue = cached_power(self.discount.get(), self.nStep.get()) * self.targetActionvalue  # in the MC case (N is -1 here) the targetActionvalue is zero anyway, so it doesnt matter what n is.
         returnEstimate = discountedRewardSum + discountedTargetActionValue
         TD_error = returnEstimate - Qbefore
         if self.dynamicAlpha.get():
@@ -143,20 +168,28 @@ class Agent:
         Qafter = Qbefore + update
         self.set_Q(S=correspondingState, A=actionToUpdate, value=Qafter)
 
-    def process_earliest_memory(self, targetActionvalue=0):
-        self.update_actionvalue(targetActionvalue=targetActionvalue)
+    def process_earliest_memory(self):
+        self.update_actionvalue()
+        # TODO: Delete earliest memory here, not in the update func
+
+    def plan(self):
+        pass
 
     def generate_target(self, state):
+        if self.episodeFinished:
+            self.targetAction = None
+            self.targetActionvalue = 0
+            return
         if self.onPolicy.get():
             policy = self.behaviorPolicy
         else:
             policy = self.targetPolicy
         if self.updateByExpectation.get():
             self.targetAction = None  # Otherwise, if switched dynamically to expectation during an episode, in the On-Policy case, the actin selected in the else-block below would be copied and used as the behavior action in every following turn, resulting in an agent that cannot change its direction anymore
-            return policy.get_expected_actionvalue(state)
+            self.targetActionvalue = policy.get_expected_actionvalue(state)
         else:
             self.targetAction = policy.generate_action(state)
-            return self.get_Q(S=state, A=self.targetAction)
+            self.targetActionvalue = self.get_Q(S=state, A=self.targetAction)
 
     def generate_behavior_action(self, state):
         if self.onPolicy.get() and self.targetAction:

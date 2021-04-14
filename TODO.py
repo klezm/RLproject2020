@@ -20,6 +20,8 @@
 # TODO: independent epsilons for behaviour and target policy
 # TODO: fonts not hardcoded
 # TODO: initial actionvalue mean and sigma in gui
+# TODO: Visualize agent trace
+# TODO: Visualize Qvalue changes
 # TODO: Handle n-step off-policy by either disabling off-policy if n>1 or by introducing that rho factor
 # TODO: Set agent params by algorithm keyword
 # TODO: Plot Reward vs Timestep for non-episodic Tasks

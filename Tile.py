@@ -4,18 +4,27 @@ from Agent import Agent
 
 
 class Tile(tk.Label):
-    BLANKCOLOR = "white"
-    WALLCOLOR = "black"
-    LETTERCOLOR = "black"
-    STARTCHAR = "S"
-    GOALCHAR = "G"
-    AGENTCOLOR_DEFAULT = "blue"
-    AGENTCOLOR_EXPLORATORY = "red"
+    BLANK_COLOR = "white"
+    WALL_COLOR = "black"
+    LETTER_COLOR = "black"
+    VALUE_INCREASE_COLOR = "green"
+    VALUE_DECREASE_COLOR = "red"
+    VALUE_CHANGE_RELIEF = tk.RAISED
+    DEFAULT_RELIEF = tk.GROOVE
+    START_CHAR = "S"
+    GOAL_CHAR = "G"
+    AGENTCOLOR_GREEDY_DEFAULT = "blue"
+    AGENTCOLOR_GREEDY_LIGHT = "#AAAAFF"  # light blue
+    AGENTCOLOR_EXPLORATORY_DEFAULT = "red"
+    AGENTCOLOR_EXPLORATORY_LIGHT = "#FFAAAA"
+    AGENTCOLOR_PLANNING = "green"
+    #trycount = 0  # TODO: delete
+    #failcount = 0
 
-    tileBlank = {"text": "", "bg": BLANKCOLOR}
-    tileWall = {"text": "", "bg": WALLCOLOR}
-    tileStart = {"text": STARTCHAR, "fg": LETTERCOLOR, "bg": BLANKCOLOR}
-    tileGoal = {"text": GOALCHAR, "fg": LETTERCOLOR, "bg": BLANKCOLOR}
+    tileBlank = {"text": "", "fg": LETTER_COLOR, "bg": BLANK_COLOR}
+    tileWall = {"text": "", "fg": LETTER_COLOR, "bg": WALL_COLOR}
+    tileStart = {"text": START_CHAR, "fg": LETTER_COLOR, "bg": BLANK_COLOR}
+    tileGoal = {"text": GOAL_CHAR, "fg": LETTER_COLOR, "bg": BLANK_COLOR}
 
     # no zip for better readability
     POLICY_CHARS = {Agent.UP: "\u2191",
@@ -31,37 +40,68 @@ class Tile(tk.Label):
 
     tileCycleTypes = [tileBlank, tileWall, tileStart, tileGoal]
 
-    def __init__(self, master, interact, **kwargs):
-        super().__init__(master, bd=1, relief=tk.GROOVE, **kwargs)
+    def __init__(self, master, indicateNumericalValueChange, indicateArbitraryValueChange, **kwargs):
+        super().__init__(master, bd=1, relief=self.DEFAULT_RELIEF, **kwargs)
         self.arrivalReward = 0  # TODO: set this in GUI!
-        self.tileType = self.tileBlank
         self.cycleIndex = 0
-        if interact:
-            self.bind("<Button-1>", lambda _: self.cycle_type(direction=1))
-            self.bind("<Button-3>", lambda _: self.cycle_type(direction=-1))
-        self.update_appearance()
+        self.protectedAttributes = set()
+        self.bind("<Button-1>", lambda _: self.cycle_type(direction=1))
+        self.bind("<Button-3>", lambda _: self.cycle_type(direction=-1))
+        self.indicateNumericalValueChange = indicateNumericalValueChange
+        #self.indicateArbitraryValueChange = indicateArbitraryValueChange
+        self.update_appearance(**self.tileBlank)
 
-    def get_tileType(self):
-        return self.tileType
+    def protect_attributes(self, *args):
+        self.protectedAttributes |= set(args)
+
+    def unprotect_attributes(self, *args):
+        self.protectedAttributes -= set(args)
 
     def get_arrivalReward(self):
         return self.arrivalReward
 
-    def cycle_type(self, direction=0):
-        self.cycleIndex = (self.cycleIndex + direction) % len(self.tileCycleTypes)
-        self.update_appearance(tileType=self.tileCycleTypes[self.cycleIndex])
+    def cycle_type(self, direction):
+        if self.master.interactionAllowed:
+            self.cycleIndex = (self.cycleIndex + direction) % len(self.tileCycleTypes)
+            self.update_appearance(**self.tileCycleTypes[self.cycleIndex])
 
-    def update_appearance(self, tileType=None, **kwargs):
-        if tileType:
-            self.tileType = tileType
-        kwargs = self.tileType | kwargs  # new in python 3.9.0: '|' merges dictionaries
+    def update_appearance(self, **kwargs):
+        kwargs = {key: value for key, value in kwargs.items() if key not in self.protectedAttributes}
+        if self.indicateNumericalValueChange and "fg" not in self.protectedAttributes:
+            #oldText = self.cget("text")
+            #newText = ""
+            #if "text" in kwargs.keys():
+            #    newText = kwargs["text"]
+            #if newText and oldText:
+            try:
+                oldValue = float(self.cget("text"))
+                newValue = float(kwargs["text"])
+                if newValue > oldValue:
+                    kwargs["fg"] = self.VALUE_INCREASE_COLOR
+                elif newValue < oldValue:
+                    kwargs["fg"] = self.VALUE_DECREASE_COLOR
+                else:
+                    kwargs["fg"] = self.LETTER_COLOR
+                #Tile.trycount += 1
+                #print(f"        trys:{self.trycount}")
+            except:
+                kwargs["fg"] = self.LETTER_COLOR
+                #Tile.failcount += 1
+                #print(f"    fails:{self.failcount}")
         kwargs = {key: value for key, value in kwargs.items() if self.cget(key) != value}
+        #if protectGoalchar and self.cget("text") == self.GOAL_CHAR and "text" in kwargs.keys():
+        #    kwargs.pop("text")
+        #if self.indicateArbitraryValueChange:
+        #    if "text" in kwargs.keys():
+        #        kwargs["relief"] = self.VALUE_CHANGE_RELIEF
+        #    else:
+        #        kwargs["relief"] = self.DEFAULT_RELIEF
         if kwargs:
             self.config(**kwargs)
 
 
 Tile.tilePolicyTypes = {action: {"text": Tile.POLICY_CHARS[action],
-                                 "fg": Tile.POLICY_COLORS[action],
-                                 "bg": Tile.BLANKCOLOR}
+                                 "fg": Tile.POLICY_COLORS[action]}
                         for action in Agent.ACTIONSPACE}
-Tile.tilePolicyTypes[None] = Tile.tileBlank
+Tile.tilePolicyTypes[None] = {"text": "",
+                              "fg": Tile.LETTER_COLOR}
