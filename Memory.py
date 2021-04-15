@@ -24,4 +24,3 @@ class Memory:
 
     def get_size(self):
         return len(self.memory)
-

@@ -73,7 +73,7 @@ class Tile(tk.Label):
                 elif newValue < oldValue:
                     kwargs["fg"] = self.VALUE_DECREASE_COLOR
                 else:
-                    kwargs["fg"] = self.LETTER_COLO
+                    kwargs["fg"] = self.LETTER_COLOR
             except:
                 kwargs["fg"] = self.LETTER_COLOR
         kwargs = {key: value for key, value in kwargs.items() if self.cget(key) != value}

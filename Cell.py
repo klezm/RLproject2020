@@ -1,6 +1,3 @@
-import numpy as np
-
-
 class Cell:
     def __init__(self, position, isWall, isStart, isGoal, arrivalReward):
         self.position = position
