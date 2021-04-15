@@ -29,21 +29,21 @@ class Agent:
     # TODO: still needed?
     #OPERATIONS = [UPDATED_BY_PLANNING, UPDATED_BY_EXPERIENCE, TOOK_ACTION, FINISHED_EPISODE, STARTED_EPISODE]
 
-    def __init__(self, environment, learningRate, dynamicAlpha, discount, nStep, onPolicy, updateByExpectation,
-                 behaviorEpsilon, behaviorEpsilonDecayRate, targetEpsilon, targetEpsilonDecayRate,
-                 initialActionvalueMean=0, initialActionvalueSigma=0, predefinedAlgorithm=None, actionPlan=[], **kwargs):
+    def __init__(self, environment, learningRateVar, dynamicAlphaVar, discountVar, nStepVar, onPolicyVar, updateByExpectationVar,
+                 behaviorEpsilonVar, behaviorEpsilonDecayRateVar, targetEpsilonVar, targetEpsilonDecayRateVar,
+                 initialActionvalueMean=0, initialActionvalueSigma=0, predefinedAlgorithm=None, actionPlan=[]):
         self.environment = environment
         if predefinedAlgorithm:
             # TODO: set missing params accordingly
             pass
-        self.learningRate = learningRate
-        self.dynamicAlpha = dynamicAlpha
-        self.discount = discount
-        self.behaviorPolicy = EpsilonGreedyPolicy(self, behaviorEpsilon, behaviorEpsilonDecayRate)
-        self.targetPolicy = EpsilonGreedyPolicy(self, targetEpsilon, targetEpsilonDecayRate)
-        self.onPolicy = onPolicy
-        self.updateByExpectation = updateByExpectation
-        self.nStep = nStep
+        self.learningRateVar = learningRateVar
+        self.dynamicAlphaVar = dynamicAlphaVar
+        self.discountVar = discountVar
+        self.behaviorPolicy = EpsilonGreedyPolicy(self, behaviorEpsilonVar, behaviorEpsilonDecayRateVar)
+        self.targetPolicy = EpsilonGreedyPolicy(self, targetEpsilonVar, targetEpsilonDecayRateVar)
+        self.onPolicyVar = onPolicyVar
+        self.updateByExpectationVar = updateByExpectationVar
+        self.nStepVar = nStepVar
         self.nPlan = 0  # TODO: Set this in GUI
         self.initialActionvalueMean = initialActionvalueMean  # TODO: Set this in GUI
         self.initialActionvalueSigma = initialActionvalueSigma  # TODO: Set this in GUI
@@ -72,7 +72,7 @@ class Agent:
         self.actionHistory = []
 
     def get_discount(self):
-        return self.discount.get()
+        return self.discountVar.get()
 
     def get_episodeReturns(self):
         return self.episodeReturns
@@ -110,7 +110,7 @@ class Agent:
         self.greedyActions[state] = [action for action, value in self.Qvalues[state].items() if value == maxActionValue]
 
     def operate(self):
-        if self.get_memory_size() == self.nStep.get() or (self.episodeFinished and self.get_memory_size()):
+        if self.get_memory_size() == self.nStepVar.get() or (self.episodeFinished and self.get_memory_size()):
             # TODO: == to >=
             self.process_earliest_memory()
             return Operations.UPDATED_BY_EXPERIENCE
@@ -158,13 +158,13 @@ class Agent:
         discountedRewardSum = self.memory.get_discountedRewardSum()
         actionToUpdate, correspondingState = self.memory.pop_oldest_state_action()
         Qbefore = self.get_Q(S=correspondingState, A=actionToUpdate)
-        discountedTargetActionValue = cached_power(self.discount.get(), self.nStep.get()) * self.targetActionvalue  # in the MC case (N is -1 here) the targetActionvalue is zero anyway, so it doesnt matter what n is.
+        discountedTargetActionValue = cached_power(self.discountVar.get(), self.nStepVar.get()) * self.targetActionvalue  # in the MC case (N is -1 here) the targetActionvalue is zero anyway, so it doesnt matter what n is.
         returnEstimate = discountedRewardSum + discountedTargetActionValue
         TD_error = returnEstimate - Qbefore
-        if self.dynamicAlpha.get():
+        if self.dynamicAlphaVar.get():
             self.stateActionPairCounts[correspondingState][actionToUpdate] += 1
-            self.learningRate.set(1/self.stateActionPairCounts[correspondingState][actionToUpdate])
-        update = self.learningRate.get() * TD_error
+            self.learningRateVar.set(1/self.stateActionPairCounts[correspondingState][actionToUpdate])
+        update = self.learningRateVar.get() * TD_error
         Qafter = Qbefore + update
         self.set_Q(S=correspondingState, A=actionToUpdate, value=Qafter)
 
@@ -180,11 +180,11 @@ class Agent:
             self.targetAction = None
             self.targetActionvalue = 0
             return
-        if self.onPolicy.get():
+        if self.onPolicyVar.get():
             policy = self.behaviorPolicy
         else:
             policy = self.targetPolicy
-        if self.updateByExpectation.get():
+        if self.updateByExpectationVar.get():
             self.targetAction = None  # Otherwise, if switched dynamically to expectation during an episode, in the On-Policy case, the actin selected in the else-block below would be copied and used as the behavior action in every following turn, resulting in an agent that cannot change its direction anymore
             self.targetActionvalue = policy.get_expected_actionvalue(state)
         else:
@@ -192,7 +192,7 @@ class Agent:
             self.targetActionvalue = self.get_Q(S=state, A=self.targetAction)
 
     def generate_behavior_action(self, state):
-        if self.onPolicy.get() and self.targetAction:
+        if self.onPolicyVar.get() and self.targetAction:
             # In this case, the target action was chosen by the behavior policy (which is the only policy in on-policy) beforehand.
             return self.targetAction
         else:  # This will be executed if one of the following applies:

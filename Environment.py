@@ -5,10 +5,10 @@ from Cell import Cell
 
 
 class Environment:
-    def __init__(self, data):
-        self.globalActionReward = data["globalActionReward"]
-        self.isTorus = (data["Xtorus"], data["Ytorus"])
-        self.grid = np.empty(data["shape"], dtype=object)
+    def __init__(self, X, Y, isXtorusVar, isYtorusVar, globalActionRewardVar):
+        self.grid = np.empty((X,Y), dtype=object)
+        self.isTorusVars = (isXtorusVar, isYtorusVar)
+        self.globalActionRewardVar = globalActionRewardVar
         self.agentPosition = None
 
     def update(self, tileData):
@@ -29,14 +29,14 @@ class Environment:
                                self.get_destination_estimate(action, iDim=1))
         if not self.grid[destinationEstimate].isWall:
             self.agentPosition = destinationEstimate
-        reward = self.globalActionReward.get() + self.grid[self.agentPosition].get_arrivalReward()
+        reward = self.globalActionRewardVar.get() + self.grid[self.agentPosition].get_arrivalReward()
         episodeFinished = self.grid[self.agentPosition].ends_episode()
         return reward, self.agentPosition, episodeFinished
 
     def get_destination_estimate(self, action, iDim):
         rawEstimate = self.agentPosition[iDim] + action[iDim]
         dimSize = self.grid.shape[iDim]
-        if self.isTorus[iDim].get():
+        if self.isTorusVars[iDim].get():
             return rawEstimate % dimSize
         else:
             return min(max(rawEstimate, 0), dimSize-1)
