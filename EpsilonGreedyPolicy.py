@@ -11,7 +11,7 @@ class EpsilonGreedyPolicy(Policy):
         
     def generate_action(self, state):
         # debug:
-        #if self.agent.actionPlan:  # debug
+        #if self.agent.actionPlan:
         #    return self.agent.actionPlan.pop(0)
         if self.epsilon.get() and random.random() < self.epsilon.get():  # only use rng if necessary
             self.agent.hasChosenExploratoryMove = True

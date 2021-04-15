@@ -16,10 +16,8 @@ class Tile(tk.Label):
     AGENTCOLOR_GREEDY_DEFAULT = "blue"
     AGENTCOLOR_GREEDY_LIGHT = "#AAAAFF"  # light blue
     AGENTCOLOR_EXPLORATORY_DEFAULT = "red"
-    AGENTCOLOR_EXPLORATORY_LIGHT = "#FFAAAA"
+    AGENTCOLOR_EXPLORATORY_LIGHT = "#FFAAAA"  # light ref
     AGENTCOLOR_PLANNING = "green"
-    #trycount = 0  # TODO: delete
-    #failcount = 0
 
     tileBlank = {"text": "", "fg": LETTER_COLOR, "bg": BLANK_COLOR}
     tileWall = {"text": "", "fg": LETTER_COLOR, "bg": WALL_COLOR}
@@ -40,15 +38,14 @@ class Tile(tk.Label):
 
     tileCycleTypes = [tileBlank, tileWall, tileStart, tileGoal]
 
-    def __init__(self, master, indicateNumericalValueChange, indicateArbitraryValueChange, **kwargs):
+    def __init__(self, master, indicateNumericalValueChange, **kwargs):
         super().__init__(master, bd=1, relief=self.DEFAULT_RELIEF, **kwargs)
-        self.arrivalReward = 0  # TODO: set this in GUI!
+        self.arrivalReward = 0  # TODO: set this in GUI
         self.cycleIndex = 0
         self.protectedAttributes = set()
         self.bind("<Button-1>", lambda _: self.cycle_type(direction=1))
         self.bind("<Button-3>", lambda _: self.cycle_type(direction=-1))
         self.indicateNumericalValueChange = indicateNumericalValueChange
-        #self.indicateArbitraryValueChange = indicateArbitraryValueChange
         self.update_appearance(**self.tileBlank)
 
     def protect_attributes(self, *args):
@@ -68,11 +65,6 @@ class Tile(tk.Label):
     def update_appearance(self, **kwargs):
         kwargs = {key: value for key, value in kwargs.items() if key not in self.protectedAttributes}
         if self.indicateNumericalValueChange and "fg" not in self.protectedAttributes:
-            #oldText = self.cget("text")
-            #newText = ""
-            #if "text" in kwargs.keys():
-            #    newText = kwargs["text"]
-            #if newText and oldText:
             try:
                 oldValue = float(self.cget("text"))
                 newValue = float(kwargs["text"])
@@ -81,21 +73,10 @@ class Tile(tk.Label):
                 elif newValue < oldValue:
                     kwargs["fg"] = self.VALUE_DECREASE_COLOR
                 else:
-                    kwargs["fg"] = self.LETTER_COLOR
-                #Tile.trycount += 1
-                #print(f"        trys:{self.trycount}")
+                    kwargs["fg"] = self.LETTER_COLO
             except:
                 kwargs["fg"] = self.LETTER_COLOR
-                #Tile.failcount += 1
-                #print(f"    fails:{self.failcount}")
         kwargs = {key: value for key, value in kwargs.items() if self.cget(key) != value}
-        #if protectGoalchar and self.cget("text") == self.GOAL_CHAR and "text" in kwargs.keys():
-        #    kwargs.pop("text")
-        #if self.indicateArbitraryValueChange:
-        #    if "text" in kwargs.keys():
-        #        kwargs["relief"] = self.VALUE_CHANGE_RELIEF
-        #    else:
-        #        kwargs["relief"] = self.DEFAULT_RELIEF
         if kwargs:
             self.config(**kwargs)
 

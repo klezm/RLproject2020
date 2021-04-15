@@ -6,6 +6,7 @@ import numpy as np
 def cached_power(base, exponent):
     return np.power(base, exponent)
 
+
 def center(window):
     # Centers a tkinter window. Function taken from stackoverflow.
     window.update_idletasks()  # For stability: Apply latest changes.

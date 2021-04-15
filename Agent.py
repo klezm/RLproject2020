@@ -1,17 +1,8 @@
 import numpy as np
-import enum
 
 from Memory import Memory
 from EpsilonGreedyPolicy import EpsilonGreedyPolicy
 from myFuncs import cached_power
-
-
-class Operations(enum.Enum):  # TODO: still needed?
-    UPDATED_BY_PLANNING = "Planning Update"
-    UPDATED_BY_EXPERIENCE = "Experience Update"
-    TOOK_ACTION = "Action Taken"
-    FINISHED_EPISODE = "Episode Finish"
-    STARTED_EPISODE = "Episode Start"
 
 
 class Agent:
@@ -21,13 +12,12 @@ class Agent:
     RIGHT = (1,0)
     ACTIONSPACE = [UP, DOWN, LEFT, RIGHT]
 
-    #UPDATED_BY_PLANNING = "Planning Update"
-    #UPDATED_BY_EXPERIENCE = "Experience Update"
-    #TOOK_ACTION = "Action Taken"
-    #FINISHED_EPISODE = "Episode Finish"
-    #STARTED_EPISODE = "Episode Start"
-    # TODO: still needed?
-    #OPERATIONS = [UPDATED_BY_PLANNING, UPDATED_BY_EXPERIENCE, TOOK_ACTION, FINISHED_EPISODE, STARTED_EPISODE]
+    UPDATED_BY_PLANNING = "Planning Update"
+    UPDATED_BY_EXPERIENCE = "Experience Update"
+    TOOK_ACTION = "Action Taken"
+    FINISHED_EPISODE = "Episode Finish"
+    STARTED_EPISODE = "Episode Start"
+    OPERATIONS = [UPDATED_BY_PLANNING, UPDATED_BY_EXPERIENCE, TOOK_ACTION, FINISHED_EPISODE, STARTED_EPISODE]
 
     def __init__(self, environment, learningRateVar, dynamicAlphaVar, discountVar, nStepVar, onPolicyVar, updateByExpectationVar,
                  behaviorEpsilonVar, behaviorEpsilonDecayRateVar, targetEpsilonVar, targetEpsilonDecayRateVar,
@@ -47,12 +37,12 @@ class Agent:
         self.nPlan = 0  # TODO: Set this in GUI
         self.initialActionvalueMean = initialActionvalueMean  # TODO: Set this in GUI
         self.initialActionvalueSigma = initialActionvalueSigma  # TODO: Set this in GUI
-        self.Qvalues = np.empty_like(self.environment.get_grid())  # must be kept over episodes
+        self.Qvalues = np.empty_like(self.environment.get_grid())
         self.greedyActions = np.empty_like(self.environment.get_grid())
         self.initialize_actionvalues()
         self.stateActionPairCounts = np.empty_like(self.environment.get_grid())
         self.initialize_state_action_pair_counts()
-        self.episodicTask = None  # TODO: This variable is not used so far.
+        self.episodicTask = None  # TODO: not used so far
         self.idle = True
         self.episodeFinished = False
         self.state = None
@@ -63,9 +53,6 @@ class Agent:
         self.hasMadeExploratoryMove = None
         self.targetAction = None
         self.targetActionvalue = None
-        #self.operationCount = 0
-        #self.stepCount = 0
-        #self.episodeCount = 0
         self.iSuccessivePlannings = None
         # Debug variables:
         self.actionPlan = actionPlan
@@ -113,24 +100,24 @@ class Agent:
         if self.get_memory_size() == self.nStepVar.get() or (self.episodeFinished and self.get_memory_size()):
             # TODO: == to >=
             self.process_earliest_memory()
-            return Operations.UPDATED_BY_EXPERIENCE
+            return self.UPDATED_BY_EXPERIENCE
         if self.episodeFinished:
             self.episodeReturns.append(self.return_)
             self.hasMadeExploratoryMove = False
             self.state = self.environment.remove_agent()
             self.episodeFinished = False
             self.idle = True
-            return Operations.FINISHED_EPISODE
+            return self.FINISHED_EPISODE
         if self.idle:
             self.idle = False
             self.start_episode()
-            return Operations.STARTED_EPISODE
+            return self.STARTED_EPISODE
         if self.iSuccessivePlannings < self.nPlan:
             self.plan()  # TODO: Model Algo needs no Memory and doesnt need to pass a target action to the behavior action. Nevertheless, expected version is possible.
             self.iSuccessivePlannings = (self.iSuccessivePlannings + 1) % self.nPlan
-            return Operations.UPDATED_BY_PLANNING
+            return self.UPDATED_BY_PLANNING
         self.take_action()
-        return Operations.TOOK_ACTION
+        return self.TOOK_ACTION
 
     def start_episode(self):
         self.targetAction = None
@@ -185,7 +172,7 @@ class Agent:
         else:
             policy = self.targetPolicy
         if self.updateByExpectationVar.get():
-            self.targetAction = None  # Otherwise, if switched dynamically to expectation during an episode, in the On-Policy case, the actin selected in the else-block below would be copied and used as the behavior action in every following turn, resulting in an agent that cannot change its direction anymore
+            self.targetAction = None  # Otherwise, if switched dynamically to expectation during an episode, in the On-Policy case, the action selected in the else-block below would be copied and used as the behavior action in every following turn, resulting in an agent that cannot change its direction anymore
             self.targetActionvalue = policy.get_expected_actionvalue(state)
         else:
             self.targetAction = policy.generate_action(state)

@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 
 import myFuncs
 from Environment import Environment
-from Agent import Agent, Operations
+from Agent import Agent
 from Tile import Tile
 from Tilemap import Tilemap
 from EntryFrame import EntryFrame
@@ -13,19 +13,7 @@ from CheckbuttonFrame import CheckbuttonFrame
 from TypedStringVar import TypedStringVar
 
 
-
-    
-
-
-
 class GridworldSandbox:
-    # Flow States.
-    # Order matters, consequences of a state with ID = i are a subset of consequences of a state with ID = j>i, holds for all state pairs
-    PASS = 0
-    VISUALIZE = 1
-    PAUSE = 2
-    END = 3
-    
     LABELFRAME_TEXTCOLOR = "blue"
     INITIAL_DIMSIZE = 9
     FONT = "calibri 15 bold"
@@ -35,7 +23,7 @@ class GridworldSandbox:
         self.agent = None
         self.latestAgentOperation = None
         self.agentOperationCounts = None
-        self.flowStatus = self.END  # value important for correct initialization
+        self.flowPaused = True
         self.stopAtNextVisualization = False
 
         # Setting up the GUI
@@ -43,9 +31,11 @@ class GridworldSandbox:
         self.guiProcess = guiProcess
         self.X, self.Y = self.ask_shape()
         
-        valueTilemapsFontsize = 10
+        valueTilemapsFontsize = 11
+        valueTilemapsTileHeight = 1
         valueTilemapsTilewidth = 4
         worldTilemapFontsize = 43
+        worldTilemapsTileHeight = 1
 
         self.window = tk.Toplevel(self.guiProcess)
         self.window.title("Gridworld Playground")
@@ -53,7 +43,7 @@ class GridworldSandbox:
         self.window.protocol("WM_DELETE_WINDOW", self.guiProcess.quit)
 
         # window:
-        self.gridworldFrame = Tilemap(self.window, X=self.X, Y=self.Y, interactionAllowed=True, fontSize=worldTilemapFontsize, bd=5, height=1, relief=tk.GROOVE)
+        self.gridworldFrame = Tilemap(self.window, X=self.X, Y=self.Y, interactionAllowed=True, fontSize=worldTilemapFontsize, bd=5, height=worldTilemapsTileHeight, relief=tk.GROOVE)
         self.valueVisualizationFrame = tk.Frame(self.window, bd=5, relief=tk.GROOVE)
         self.settingsFrame = tk.Frame(self.window, bd=5, relief=tk.GROOVE)
 
@@ -67,11 +57,10 @@ class GridworldSandbox:
             self.qValueFrames[action] = Tilemap(self.valueVisualizationFrame, X=self.X, Y=self.Y, interactionAllowed=False,
                                                 indicateNumericalValueChange=True, fontSize=valueTilemapsFontsize,
                                                 tileWidth=valueTilemapsTilewidth, bd=5, relief=tk.GROOVE,
-                                                bg=Tile.POLICY_COLORS[action])#, anchor=tk.W)
-            self.qValueFrames[action].grid(row=action[1]+1, column=action[0]+1)  # maps the Tilemaps corresponing to the actions (which are actually 2D "vectors")  to coordinates inside the valueVisualizationFrame
-        self.greedyPolicyFrame = Tilemap(self.valueVisualizationFrame, X=self.X, Y=self.Y, interactionAllowed=False,
-                                         indicateArbitraryValueChange=False, fontSize=valueTilemapsFontsize,
-                                         tileWidth=valueTilemapsTilewidth, bd=3, relief=tk.GROOVE)
+                                                bg=Tile.POLICY_COLORS[action], height=valueTilemapsTileHeight)
+            self.qValueFrames[action].grid(row=action[1]+1, column=action[0]+1)  # maps the Tilemaps corresponding to the actions (which are actually 2D "vectors")  to coordinates inside the valueVisualizationFrame
+        self.greedyPolicyFrame = Tilemap(self.valueVisualizationFrame, X=self.X, Y=self.Y, interactionAllowed=False, fontSize=valueTilemapsFontsize,
+                                         tileWidth=valueTilemapsTilewidth, bd=3, height=valueTilemapsTileHeight, relief=tk.GROOVE)
         self.greedyPolicyFrame.grid(row=1, column=1)
 
         #   settingsFrame:
@@ -102,7 +91,6 @@ class GridworldSandbox:
         self.showEveryNoperationsFrame.set_and_call_trace(self.reset_agentOperationCounts)
 
         #           flowButtonsFrame:
-        # TODO: Freeze Pause und Next Buttons. Neee, Next soll auch in der Lage sein, die Gridworld zu initializen!
         self.goButton = tk.Button(self.flowButtonsFrame, text="Go!", font=self.FONT, bd=5, command=lambda: self.start_flow(stopAtNextVisualization=False))
         self.pauseButton = tk.Button(self.flowButtonsFrame, text="Pause", font=self.FONT, bd=5, command=self.pause_flow, state=tk.DISABLED)
         self.nextButton = tk.Button(self.flowButtonsFrame, text="Next", font=self.FONT, bd=5, command=lambda: self.start_flow(stopAtNextVisualization=True))
@@ -112,7 +100,7 @@ class GridworldSandbox:
         self.nextButton.grid(row=0, column=2)
 
         #           operationsPickFrame
-        self.operationFrames = OrderedDict([(operation, CheckbuttonFrame(self.operationsPickFrame, text=f"...{operation.value}", defaultValue=True)) for operation in Operations])
+        self.operationFrames = OrderedDict([(operation, CheckbuttonFrame(self.operationsPickFrame, text=f"...{operation}", defaultValue=True)) for operation in Agent.OPERATIONS])
         self.relevantOperations = []
         for i, item in enumerate(self.operationFrames.items()):
             operation, frame = item
@@ -226,91 +214,71 @@ class GridworldSandbox:
                                  "isGoal": newText == Tile.GOAL_CHAR,
                                  "arrivalReward": self.gridworldFrame.get_tile_arrival_reward(x, y)}
         self.environment.update(tileData)
-        # TODO: Everytime a Tile is changed to an episode ender, change its Qvalues to 0 explicitly. NO! Agent cant know this beforehand, thats the point!
+        # TODO: Everytime a Tile is changed to an episode terminator, change its Qvalues to 0 explicitly. NO! Agent cant know this beforehand, thats the point!
 
-    def run(self):
+    def iterate_flow(self):
         # Following condition is needed if the PAUSE State was set by pressing the Pause button, which will be resolved
         # as part of the after function, immediately before the recursive call.
         # The PAUSE should happen as soon as possible then, since the user wants to freeze what he sees at that time.
         # Without the following condition, another iteration would resolve before a return statement would be reached,
         # resulting in freezing after processing the subsequent state of the one that the user wanted to freeze instead.
         # (This would even happen if the flow_iteration call would be skipped completely.)
-        if self.flowStatus >= self.PAUSE:  # includes PAUSE, END
-            if self.flowStatus == self.END:
-                print("That should not happen!")
-            self.flowStatus = self.PASS
+        if self.flowPaused:
             return
-        self.latestAgentOperation = self.agent.operate()
-        self.flow_iteration()
         next_msDelay = 0
-        if self.flowStatus >= self.VISUALIZE:  # includes VISUALIZE, PAUSE, END
-            self.visualize()
-            next_msDelay = self.msDelayFrame.get_value()
+        self.latestAgentOperation = self.agent.operate()
+        self.agentOperationCounts[self.latestAgentOperation] += 1
+        self.operationsLeftFrame.set_value(self.operationsLeftFrame.get_value() - 1)
+        if self.operationsLeftFrame.get_value() <= 0:
+            self.plot()
+            del self.agent
+            self.agent = None
+            self.pause_flow()
+            self.unfreeze_lifetime_parameters()
+        elif self.latestAgentOperation in self.relevantOperations:
+            totalRelevantCount = 0
+            for operation in self.relevantOperations:
+                totalRelevantCount += self.agentOperationCounts[operation]
+            if totalRelevantCount % self.showEveryNoperationsFrame.get_value() == 0:
+                self.visualize()
+                next_msDelay = self.msDelayFrame.get_value()
+                if self.stopAtNextVisualization:
+                    self.pause_flow()
         # Following condition is needed if the PAUSE state was set in the flow_iteration method.
         # The Pause and the visualization, and especially disabling the Go and the Next button should happen
         # immediately after the processing.
         # Without the following condition, the user would have another next_msDelay amount of time to trigger
         # Next or Go again and therefore call this function again, which would cause undefined behavior.
-        if self.flowStatus >= self.PAUSE:  # includes PAUSE, END
+        if self.flowPaused:
             return
-        self.guiProcess.after(next_msDelay, self.run)  # Queued GUI interactions will be resolved only during the wait process of this call.
-
-    def flow_iteration(self):
-        # TODO: 2 Cases überprüfen für fix: N = 1, großes N
-        #self.gridworldFrame.set_interactionAllowed(False)
-        self.agentOperationCounts[self.latestAgentOperation] += 1  # TODO: are this and next line okay when PAUSE?
-        self.operationsLeftFrame.set_value(self.operationsLeftFrame.get_value() - 1)
-        if self.operationsLeftFrame.get_value() <= 0:
-            self.end_flow()  # also sets self.flowStatus = self.END
-            # TODO: Freeze Pause und Next Buttons. Neee, Next soll auch in der Lage sein, die Gridworld zu initializen!
-            return
-        if self.latestAgentOperation in self.relevantOperations:
-            totalRelevantCount = 0
-            for operation in self.relevantOperations:
-                totalRelevantCount += self.agentOperationCounts[operation]
-            if totalRelevantCount % self.showEveryNoperationsFrame.get_value() == 0:
-                if self.stopAtNextVisualization:
-                    self.pause_flow()  # also sets self.flowStatus = self.PAUSE
-                else:
-                    self.flowStatus = self.VISUALIZE
-                return
-        self.flowStatus = self.PASS
+        self.guiProcess.after(next_msDelay, self.iterate_flow)  # Queued GUI interactions will be resolved only during (?) the wait process of this call.
 
     def start_flow(self, stopAtNextVisualization):
+        self.flowPaused = False
+        self.stopAtNextVisualization = stopAtNextVisualization
         self.goButton.config(state=tk.DISABLED)
         self.pauseButton.config(state=tk.NORMAL)
         self.nextButton.config(state=tk.DISABLED)
-        self.stopAtNextVisualization = stopAtNextVisualization
-        if self.flowStatus == self.END:
+        if self.agent is None:
             self.initialize_environment_and_agent()
             self.freeze_lifetime_parameters()
         if self.gridworldFrame.interactionAllowed:
+            # TODO: further dis-/enable arrangements here
             self.gridworldFrame.set_interactionAllowed(False)
             self.update_gridworldPlayground_environment()
-        self.flowStatus = self.PASS
-        self.run()
-
-    def end_flow(self):
-        self.flowStatus = self.END
-        self.pause_flow()
-        self.unfreeze_lifetime_parameters()
-        self.plot()
-        del self.agent
-        del self.environment
+        self.iterate_flow()
 
     def pause_flow(self):
+        self.flowPaused = True
+        self.stopAtNextVisualization = False
         self.goButton.config(state=tk.NORMAL)
         self.pauseButton.config(state=tk.DISABLED)
         self.nextButton.config(state=tk.NORMAL)
-        self.stopAtNextVisualization = False
-        if self.flowStatus == self.END or self.latestAgentOperation == Operations.FINISHED_EPISODE:
-            # TODO: Hier noch andere dis-/enable maßnahmen
+        if self.agent is None or self.latestAgentOperation == Agent.FINISHED_EPISODE:
+            # TODO: further dis-/enable arrangements here
             self.gridworldFrame.set_interactionAllowed(True)
-        if self.flowStatus != self.END:
-            self.flowStatus = self.PAUSE
 
     def visualize(self):
-        #print("vvvvvvvvvvvvvv begin vvvvvvvvvvvvvvvv")
         # TODO: Qlearning doesnt update some tiles after a while. THATS THE POINT! Because its off-policy. This shows that it works! Great for presentation! Example with no walls and Start/Goal in the edges.
         greedyActions = self.agent.get_greedyActions()
         for x in range(self.X):
@@ -335,7 +303,6 @@ class GridworldSandbox:
                     maxAction = None
                 self.greedyPolicyFrame.update_tile_appearance(x, y, bg=valueVisualizationFrameColor, **Tile.tilePolicyTypes[maxAction])
         self.guiProcess.update_idletasks()
-        #print("vvvvvvvvvvvvvv END vvvvvvvvvvvvvvvv")
 
     def toggle_operation_relevance(self, operation):
         #  This could also happen in check_flow_status in a similar way, but this way the stuff which must be computed at every check_flow_status call is minimized, since this function is only called after a checkbutton flip
@@ -346,7 +313,7 @@ class GridworldSandbox:
         self.reset_agentOperationCounts()
 
     def reset_agentOperationCounts(self):
-        self.agentOperationCounts = {operation: 0 for operation in Operations}
+        self.agentOperationCounts = {operation: 0 for operation in Agent.OPERATIONS}
 
     def freeze_lifetime_parameters(self):
         self.dynamicAlphaFrame.freeze()
