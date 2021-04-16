@@ -29,7 +29,7 @@ The counter is also reset to zero at any time you change that number or toggle a
 To clarify, “Experience update” means any update of any state-action-value that is NOT made by planning. “Planning Update” then obviously means the opposite.
 Planning isn’t implemented yet, but up next.
 
-With each visualization, every state-action-value that changed *since the last visualization* will be colored (red for decrease, green for increase). This feature really shines if you set n-Step to a higher n or to -1 to toggle every-visit MC, since you will exactly see the delayed updates happening.
+With each visualization, every state-action-value that changed *since the last visualization* will be colored (red for decrease, green for increase). This feature really shines if you set n-Step to a higher n or to < 1 (which toggles every-visit MC), since you will exactly see the delayed updates happening.
 Also the current agent position will now be visualized in each of the six grids, making it way easier to comprehend value updates.
 
 If you just click “Go!”, the visualizations will happen one after another in time intervals defined by the “Refresh Delay [ms]”-entry. Everything that must not be visualized in between happens as fast as possible. If you then click “Pause”, the flow and the learning algorithm will freeze in the moment represented by the current visualization. Everytime the flow is frozen (or just not started yet) you can click “Go!” to continue in the way described above, or you can click “Next” to proceed by exactly one visualization, then automatically freeze again.
@@ -40,8 +40,6 @@ Once the number set in “Operations Left” has reached zero, the flow will imm
 
 
 ### Known bugs:
-- Currently, if you decrease the n-Step n during a run, it will not be applied as intended. This will be fixed in the next update.
-Still, combining n-Step > 1 with off-policy produces an algorithm which is not intended this way by the book. With the next update, the GUI will give you at least a hint if you choose this parameter combination anyway.
 - If you change any entry to be empty during a non-frozen flow, the program will most likely crash or at least result in undefined behavior. This is not going to be fixed, just watch out that you only empty any entry while the flow is paused.
 - A very small epsilon will be displayed in scientific notation with tons of decimal places, so once the value falls below 0.0001 = 1e-4, it will appear like an arbitrary number randomly changing between 1 and 10, since the e-term doesn’t fit inside the entry anymore. Due to the nature of the used library and the own code architecture, I don’t think there exists a clean fix for this.
 
