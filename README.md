@@ -48,6 +48,3 @@ Still, combining n-Step > 1 with off-policy produces an algorithm which is not i
 Not solved yet:
 - In rare cases, after clicking “Pause” when only “...Episode Finished” is marked, you are not able to update the environment during the freeze. Then, after Clicking “Next” once, you are able again.
 - In rare cases, the plotting after a run takes extraordinary long and may cause the program to crash.
-
-
-Have fun!
