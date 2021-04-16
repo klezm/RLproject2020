@@ -44,6 +44,7 @@ Known bugs:
 Still, combining n-Step > 1 with off-policy produces an algorithm which is not intended this way by the book. With the next update, the GUI will give you at least a hint if you choose this parameter combination anyway.
 - If you change any entry to be empty during a non-frozen flow, the program will most likely crash or at least result in undefined behavior. This is not going to be fixed, just watch out that you only empty any entry while the flow is paused.
 - A very small epsilon will be displayed in scientific notation with tons of decimal places, so once the value falls below 0.0001 = 1e-4, it will appear like an arbitrary number randomly changing between 1 and 10, since the e-term doesn’t fit inside the entry anymore. Due to the nature of the used library and the own code architecture, I don’t think there exists a clean fix for this.
+
 Not solved yet:
 - In rare cases, after clicking “Pause” when only “...Episode Finished” is marked, you are not able to update the environment during the freeze. Then, after Clicking “Next” once, you are able again.
 - In rare cases, the plotting after a run takes extraordinary long and may cause the program to crash.
