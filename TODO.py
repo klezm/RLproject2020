@@ -1,5 +1,4 @@
 # TODO: Implement planning (Dyna-Q, Dyna-Q+)
-#   TODO -> Agentcolor green while planning
 #   TODO -> Load/Save maps/dict:{timestep: map} from/in file
 # TODO: Entry for some reward number, mousewheel-click on some tile applies that number as arrival reward for that tile
 #   TODO -> Find a way to display that i.e. cliff brings back to start AND has a reward of -N (Maybe all "Start Teleporters" in one specific color)
@@ -15,7 +14,6 @@
 # TODO: Ice Floor (can be toggled) -> Hard to solve for human, but no extra challenge for RL Agent!
 # TODO: fonts not hardcoded
 # TODO: initial actionvalue mean and sigma in gui
-# TODO: Handle n-step off-policy by either disabling off-policy if n>1 or by introducing that rho factor
 # TODO: Set agent params by algorithm keyword
 # TODO: Plot Reward vs Timestep for non-episodic Tasks
 # TODO: Dynamically change tilesizes w.r.t. grid dimensions on initialize

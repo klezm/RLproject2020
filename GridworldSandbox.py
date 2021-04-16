@@ -115,6 +115,7 @@ class GridworldSandbox:
         self.learningRateFrame = EntryFrame(self.algorithmSettingsFrame, text="Learning Rate \u03B1:", defaultValue=0.1, targetType=float)  # alpha
         self.dynamicAlphaFrame = CheckbuttonFrame(self.algorithmSettingsFrame, text="\u03B1 = 1/count((S,A))", defaultValue=False)  # alpha
         self.nStepFrame = EntryFrame(self.algorithmSettingsFrame, text="n-Step n:", defaultValue=1, targetType=int)
+        self.nPlanFrame = EntryFrame(self.algorithmSettingsFrame, text="Dyna-Q n:", defaultValue=0, targetType=int)
         self.onPolicyFrame = CheckbuttonFrame(self.algorithmSettingsFrame, text="On-Policy:", defaultValue=True)
         self.updateByExpectationFrame = CheckbuttonFrame(self.algorithmSettingsFrame, text="Update by Expectation", defaultValue=False)
         self.behaviorPolicyFrame = tk.LabelFrame(self.algorithmSettingsFrame, text="Behavior Policy", font=self.FONT, fg=self.LABELFRAME_TEXTCOLOR)
@@ -134,6 +135,8 @@ class GridworldSandbox:
         self.dynamicAlphaFrame.grid(row=row, column=0, sticky=tk.W+tk.E)
         row += 1
         self.nStepFrame.grid(row=row, column=0, sticky=tk.W+tk.E)
+        row += 1
+        self.nPlanFrame.grid(row=row, column=0, sticky=tk.W+tk.E)
         row += 1
         self.onPolicyFrame.grid(row=row, column=0, sticky=tk.W+tk.E)
         row += 1
@@ -190,7 +193,7 @@ class GridworldSandbox:
         self.agent = Agent(environment=self.environment, learningRateVar=self.learningRateFrame.get_var(),
                            dynamicAlphaVar=self.dynamicAlphaFrame.get_var(),
                            discountVar=self.discountFrame.get_var(), nStepVar=self.nStepFrame.get_var(),
-                           onPolicyVar=self.onPolicyFrame.get_var(),
+                           nPlanVar=self.nPlanFrame.get_var(), onPolicyVar=self.onPolicyFrame.get_var(),
                            updateByExpectationVar=self.updateByExpectationFrame.get_var(),
                            behaviorEpsilonVar=self.behaviorEpsilonFrame.get_var(),
                            behaviorEpsilonDecayRateVar=self.behaviorEpsilonDecayRateFrame.get_var(),
@@ -265,9 +268,9 @@ class GridworldSandbox:
         if self.agent is None:
             self.initialize_environment_and_agent()
             self.freeze_lifetime_parameters()
-        if self.gridworldFrame.interactionAllowed:
-            # TODO: further dis-/enable arrangements here
+        if self.gridworldFrame.interactionAllowed:  # new episode is going to start
             self.gridworldFrame.set_interactionAllowed(False)
+            self.freeze_episodetime_parameters()
             self.update_gridworldPlayground_environment()
         self.iterate_flow()
 
@@ -278,7 +281,7 @@ class GridworldSandbox:
         self.pauseButton.config(state=tk.DISABLED)
         self.nextButton.config(state=tk.NORMAL)
         if self.agent is None or self.latestAgentOperation == Agent.FINISHED_EPISODE:
-            # TODO: further dis-/enable arrangements here
+            self.unfreeze_episodetime_parameters()
             self.gridworldFrame.set_interactionAllowed(True)
 
     def visualize(self):
@@ -291,12 +294,15 @@ class GridworldSandbox:
                 gridworldFrameColor = Tile.BLANK_COLOR
                 valueVisualizationFrameColor = Tile.BLANK_COLOR
                 if (x,y) == self.agent.get_state():
-                    if self.agent.hasMadeExploratoryMove:
+                    if self.latestAgentOperation == Agent.UPDATED_BY_PLANNING:
+                        gridworldFrameColor = Tile.AGENTCOLOR_PLANNING_DEFAULT
+                        valueVisualizationFrameColor = Tile.AGENTCOLOR_PLANNING_LIGHT
+                    elif self.agent.hasMadeExploratoryMove:
                         gridworldFrameColor = Tile.AGENTCOLOR_EXPLORATORY_DEFAULT
                         valueVisualizationFrameColor = Tile.AGENTCOLOR_EXPLORATORY_LIGHT
                     else:
-                        gridworldFrameColor = Tile.AGENTCOLOR_GREEDY_DEFAULT
-                        valueVisualizationFrameColor = Tile.AGENTCOLOR_GREEDY_LIGHT
+                        gridworldFrameColor = Tile.AGENTCOLOR_DEFAULT_DEFAULT
+                        valueVisualizationFrameColor = Tile.AGENTCOLOR_DEFAULT_LIGHT
                 self.gridworldFrame.update_tile_appearance(x,y, bg=gridworldFrameColor)
                 for action, Qvalue in self.agent.get_Qvalues()[x,y].items():
                     self.qValueFrames[action].update_tile_appearance(x, y, text=f"{Qvalue:< 3.2f}"[:5], bg=valueVisualizationFrameColor)
@@ -323,6 +329,12 @@ class GridworldSandbox:
 
     def unfreeze_lifetime_parameters(self):
         self.dynamicAlphaFrame.unfreeze()
+
+    def freeze_episodetime_parameters(self):
+        self.discountFrame.freeze()
+
+    def unfreeze_episodetime_parameters(self):
+        self.discountFrame.unfreeze()
 
     def toggle_alpha_freeze(self):
         if self.dynamicAlphaFrame.get_value():

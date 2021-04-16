@@ -13,11 +13,12 @@ class Tile(tk.Label):
     DEFAULT_RELIEF = tk.GROOVE
     START_CHAR = "S"
     GOAL_CHAR = "G"
-    AGENTCOLOR_GREEDY_DEFAULT = "blue"
-    AGENTCOLOR_GREEDY_LIGHT = "#AAAAFF"  # light blue
+    AGENTCOLOR_DEFAULT_DEFAULT = "blue"
+    AGENTCOLOR_DEFAULT_LIGHT = "#AAAAFF"  # light blue
     AGENTCOLOR_EXPLORATORY_DEFAULT = "red"
-    AGENTCOLOR_EXPLORATORY_LIGHT = "#FFAAAA"  # light ref
-    AGENTCOLOR_PLANNING = "green"
+    AGENTCOLOR_EXPLORATORY_LIGHT = "#FFAAAA"  # light red
+    AGENTCOLOR_PLANNING_DEFAULT = "green"
+    AGENTCOLOR_PLANNING_LIGHT = "#AAFFAA"  # light green
 
     tileBlank = {"text": "", "fg": LETTER_COLOR, "bg": BLANK_COLOR}
     tileWall = {"text": "", "fg": LETTER_COLOR, "bg": WALL_COLOR}

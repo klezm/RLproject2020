@@ -19,8 +19,8 @@ class Agent:
     STARTED_EPISODE = "Episode Start"
     OPERATIONS = [UPDATED_BY_PLANNING, UPDATED_BY_EXPERIENCE, TOOK_ACTION, FINISHED_EPISODE, STARTED_EPISODE]
 
-    def __init__(self, environment, learningRateVar, dynamicAlphaVar, discountVar, nStepVar, onPolicyVar, updateByExpectationVar,
-                 behaviorEpsilonVar, behaviorEpsilonDecayRateVar, targetEpsilonVar, targetEpsilonDecayRateVar,
+    def __init__(self, environment, learningRateVar, dynamicAlphaVar, discountVar, nStepVar, nPlanVar, onPolicyVar,
+                 updateByExpectationVar, behaviorEpsilonVar, behaviorEpsilonDecayRateVar, targetEpsilonVar, targetEpsilonDecayRateVar,
                  initialActionvalueMean=0, initialActionvalueSigma=0, predefinedAlgorithm=None, actionPlan=[]):
         self.environment = environment
         if predefinedAlgorithm:
@@ -34,7 +34,7 @@ class Agent:
         self.onPolicyVar = onPolicyVar
         self.updateByExpectationVar = updateByExpectationVar
         self.nStepVar = nStepVar
-        self.nPlan = 0  # TODO: Set this in GUI
+        self.nPlanVar = nPlanVar
         self.initialActionvalueMean = initialActionvalueMean  # TODO: Set this in GUI
         self.initialActionvalueSigma = initialActionvalueSigma  # TODO: Set this in GUI
         self.Qvalues = np.empty_like(self.environment.get_grid())
@@ -98,27 +98,26 @@ class Agent:
 
     def operate(self):
         if self.get_memory_size() >= self.nStepVar.get() >= 1 or (self.episodeFinished and self.get_memory_size()):
-            # TODO: == to >=
             self.process_earliest_memory()
             return self.UPDATED_BY_EXPERIENCE
-        if self.episodeFinished:
+        elif self.episodeFinished:
             self.episodeReturns.append(self.return_)
             self.hasMadeExploratoryMove = False
             self.state = self.environment.remove_agent()
             self.episodeFinished = False
             self.idle = True
             return self.FINISHED_EPISODE
-        if self.idle:
+        elif self.idle:
             self.idle = False
             self.start_episode()
             return self.STARTED_EPISODE
-        if self.iSuccessivePlannings < self.nPlan:
-            # TODO: This is wrong
+        elif self.iSuccessivePlannings < self.nPlanVar.get():
             self.plan()  # TODO: Model Algo needs no Memory and doesnt need to pass a target action to the behavior action. Nevertheless, expected version is possible.
-            self.iSuccessivePlannings = (self.iSuccessivePlannings + 1) % self.nPlan
+            self.iSuccessivePlannings += 1
             return self.UPDATED_BY_PLANNING
-        self.take_action()
-        return self.TOOK_ACTION
+        else:
+            self.take_action()
+            return self.TOOK_ACTION
 
     def start_episode(self):
         self.targetAction = None
@@ -129,6 +128,7 @@ class Agent:
             raise RuntimeError("No Starting Point found")
 
     def take_action(self):
+        self.iSuccessivePlannings = 0
         behaviorAction = self.generate_behavior_action(self.state)
         reward, successorState, self.episodeFinished = self.environment.apply_action(behaviorAction)
         self.hasMadeExploratoryMove = self.hasChosenExploratoryMove  # if hasChosenExploratoryMove would be the only indicator for changing the agent color in the next visualization, then in the on-policy case, if the target was chosen to be an exploratory move in the last step-call, the coloring would happen BEFORE the move was taken, since in this line, the behavior action would already be determined and just copied from that target action with no chance to track if it was exploratory or not.
@@ -161,7 +161,7 @@ class Agent:
         self.memory.forget_oldest_memory()
 
     def plan(self):
-        pass
+        print(self.iSuccessivePlannings)
 
     def generate_target(self, state):
         if self.episodeFinished:
