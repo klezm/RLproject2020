@@ -13,8 +13,12 @@ class ParameterFrame(tk.Frame):
         self.tkVar.set(defaultValue)
         self.varWidget.grid(row=0, column=1)
 
-    def set_and_call_trace(self, traceFunc):
-        self.tkVar.trace_add("write", lambda *argDump: traceFunc())
+    def set_and_call_trace(self, inputFunc):
+        def traceFunc(*traceArgsDump):
+            if self.get_value() is None:
+                return
+            inputFunc()
+        self.tkVar.trace_add("write", traceFunc)
         traceFunc()
 
     def freeze(self, includeText=1):
@@ -34,6 +38,9 @@ class ParameterFrame(tk.Frame):
 
     def set_value(self, value):
         return self.get_var().set(value)
+
+    def set_color(self, color):
+        self.nameLabel.config(fg=color)
 
     def make_var_widget(self):
         pass

@@ -7,4 +7,7 @@ class TypedStringVar(tk.StringVar):
         self.targetType = targetType
 
     def get(self):
-        return self.targetType(super().get())
+        try:
+            return self.targetType(super().get())
+        except:
+            return None

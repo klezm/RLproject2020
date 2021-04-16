@@ -97,7 +97,7 @@ class Agent:
         self.greedyActions[state] = [action for action, value in self.Qvalues[state].items() if value == maxActionValue]
 
     def operate(self):
-        if self.get_memory_size() == self.nStepVar.get() or (self.episodeFinished and self.get_memory_size()):
+        if self.get_memory_size() >= self.nStepVar.get() >= 1 or (self.episodeFinished and self.get_memory_size()):
             # TODO: == to >=
             self.process_earliest_memory()
             return self.UPDATED_BY_EXPERIENCE
@@ -113,6 +113,7 @@ class Agent:
             self.start_episode()
             return self.STARTED_EPISODE
         if self.iSuccessivePlannings < self.nPlan:
+            # TODO: This is wrong
             self.plan()  # TODO: Model Algo needs no Memory and doesnt need to pass a target action to the behavior action. Nevertheless, expected version is possible.
             self.iSuccessivePlannings = (self.iSuccessivePlannings + 1) % self.nPlan
             return self.UPDATED_BY_PLANNING
@@ -143,9 +144,9 @@ class Agent:
     def update_actionvalue(self):
         # step by step, so you can watch exactly whats happening when using a debugger
         discountedRewardSum = self.memory.get_discountedRewardSum()
-        actionToUpdate, correspondingState = self.memory.pop_oldest_state_action()
+        correspondingState, actionToUpdate, _ = self.memory.get_oldest_memory()
         Qbefore = self.get_Q(S=correspondingState, A=actionToUpdate)
-        discountedTargetActionValue = cached_power(self.discountVar.get(), self.nStepVar.get()) * self.targetActionvalue  # in the MC case (N is -1 here) the targetActionvalue is zero anyway, so it doesnt matter what n is.
+        discountedTargetActionValue = cached_power(self.discountVar.get(), self.nStepVar.get()) * self.targetActionvalue  # in the MC case (n is -1 here) the targetActionvalue is zero anyway, so it doesnt matter what n is.
         returnEstimate = discountedRewardSum + discountedTargetActionValue
         TD_error = returnEstimate - Qbefore
         if self.dynamicAlphaVar.get():
@@ -157,7 +158,7 @@ class Agent:
 
     def process_earliest_memory(self):
         self.update_actionvalue()
-        # TODO: Delete earliest memory here, not in the update func
+        self.memory.forget_oldest_memory()
 
     def plan(self):
         pass

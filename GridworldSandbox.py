@@ -157,7 +157,10 @@ class GridworldSandbox:
         self.targetEpsilonFrame.grid(row=0, column=0, sticky=tk.W + tk.E)
         self.targetEpsilonDecayRateFrame.grid(row=1, column=0, sticky=tk.W + tk.E)
 
+        self.dynamicAlphaFrame.set_and_call_trace(self.toggle_alpha_freeze)
         self.onPolicyFrame.set_and_call_trace(self.toggle_targetPolicyFrame)
+        self.onPolicyFrame.set_and_call_trace(self.toggle_offPolicy_nStep_warning)
+        self.nStepFrame.set_and_call_trace(self.toggle_offPolicy_nStep_warning)
         myFuncs.center(self.window)
 
     def ask_shape(self):
@@ -317,15 +320,18 @@ class GridworldSandbox:
 
     def freeze_lifetime_parameters(self):
         self.dynamicAlphaFrame.freeze()
-        if self.dynamicAlphaFrame.get_var().get():
-            self.learningRateFrame.freeze()
 
     def unfreeze_lifetime_parameters(self):
         self.dynamicAlphaFrame.unfreeze()
-        self.learningRateFrame.unfreeze()
+
+    def toggle_alpha_freeze(self):
+        if self.dynamicAlphaFrame.get_value():
+            self.learningRateFrame.freeze()
+        else:
+            self.learningRateFrame.unfreeze()
 
     def toggle_targetPolicyFrame(self):
-        if self.onPolicyFrame.get_var().get():
+        if self.onPolicyFrame.get_value():
             self.targetPolicyFrame.config(fg="grey")
             self.targetEpsilonFrame.freeze()
             self.targetEpsilonDecayRateFrame.freeze()
@@ -333,8 +339,15 @@ class GridworldSandbox:
             self.targetPolicyFrame.config(fg=self.LABELFRAME_TEXTCOLOR)
             self.targetEpsilonFrame.unfreeze()
             self.targetEpsilonDecayRateFrame.unfreeze()
+            
+    def toggle_offPolicy_nStep_warning(self):
+        if self.nStepFrame.get_value() > 1 and not self.onPolicyFrame.get_value():
+            self.onPolicyFrame.set_color("red")
+        else:
+            self.onPolicyFrame.set_color("black")
 
     def plot(self):
+        print(self.agent.get_episodeReturns())
         fig, ax = plt.subplots()
         ax.plot(self.agent.get_episodeReturns())
         ax.set(xlabel='Episode', ylabel='Reward', title='Development of the Reward per Episode')

@@ -65,6 +65,7 @@ class Tile(tk.Label):
     def update_appearance(self, **kwargs):
         kwargs = {key: value for key, value in kwargs.items() if key not in self.protectedAttributes}
         if self.indicateNumericalValueChange and "fg" not in self.protectedAttributes:
+            # TODO: Make the color proportional to relative value change
             try:
                 oldValue = float(self.cget("text"))
                 newValue = float(kwargs["text"])

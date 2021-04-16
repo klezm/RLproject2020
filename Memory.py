@@ -14,10 +14,12 @@ class Memory:
         self.discountedRewardSum *= self.agent.get_discount()
         self.discountedRewardSum += reward
 
-    def pop_oldest_state_action(self):
-        state, action, reward = self.memory.pop()
-        self.discountedRewardSum -= cached_power(self.agent.get_discount(), self.get_size()) * reward
-        return action, state
+    def get_oldest_memory(self):
+        return self.memory[-1]
+
+    def forget_oldest_memory(self):
+        _, _, reward = self.memory.pop()
+        self.discountedRewardSum -= cached_power(self.agent.get_discount(), self.get_size()) * reward  # get_size() here returns the original size minus one
 
     def get_discountedRewardSum(self):
         return self.discountedRewardSum

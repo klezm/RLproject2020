@@ -1,4 +1,3 @@
-# TODO: Rework Memory
 # TODO: Implement planning (Dyna-Q, Dyna-Q+)
 #   TODO -> Agentcolor green while planning
 #   TODO -> Load/Save maps/dict:{timestep: map} from/in file
