@@ -20,7 +20,7 @@ You need python 3.9 to run at the moment. Using Conda you can create a environme
 > python RLproject.py
 
 
-###Flow control explanation:
+### Flow control explanation:
 
 In the upper right, you see an entry named “Show Every…”, followed by five checkboxes, one for each possible operation the agent can perform (“...Experience Update”, “...Action Taken”, “...Episode Finished”, etc). They define which operations will be visualized and which not as follows:
 Each time any of the marked operations is performed, an internal counter is incremented. If this counter reaches the number set in the “Show Every…”-entry, a visualization happens, then the counter is reset to zero.
@@ -39,7 +39,7 @@ At any time when the flow is frozen as the Agent just finished an Episode, meani
 Once the number set in “Operations Left” has reached zero, the flow will immediately end, produce plots and kill the agent. You can then optionally modify the environment and start a new run with a new agent by just setting “Operations Left” to a number greater than zero and restarting the flow.
 
 
-###Known bugs:
+### Known bugs:
 - Currently, if you decrease the n-Step n during a run, it will not be applied as intended. This will be fixed in the next update.
 Still, combining n-Step > 1 with off-policy produces an algorithm which is not intended this way by the book. With the next update, the GUI will give you at least a hint if you choose this parameter combination anyway.
 - If you change any entry to be empty during a non-frozen flow, the program will most likely crash or at least result in undefined behavior. This is not going to be fixed, just watch out that you only empty any entry while the flow is paused.
