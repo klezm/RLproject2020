@@ -115,28 +115,28 @@ class Agent:
 
     def take_action(self):
         self.iSuccessivePlannings = 0
-        behaviorAction = self.generate_behavior_action(self.state)
+        behaviorAction = self.generate_behavior_action()
         reward, successorState, self.episodeFinished = self.environment.apply_action(behaviorAction)  # This is the only place where the agent exchanges information with the environment
         self.hasMadeExploratoryMove = self.hasChosenExploratoryMove  # if hasChosenExploratoryMove would be the only indicator for changing the agent color in the next visualization, then in the on-policy case, if the target was chosen to be an exploratory move in the last step-call, the coloring would happen BEFORE the move was taken, since in this line, the behavior action would already be determined and just copied from that target action with no chance to track if it was exploratory or not.
         self.memory.memorize(self.state, behaviorAction, reward)
         self.return_ += reward  # underscore at the end because "return" is a python keyword
-        self.state = successorState  # must happen after memorize!
-        self.generate_target(self.state)
+        self.state = successorState  # must happen after memorize and before generate_target!
+        self.generate_target()
         self.behaviorPolicy.decay_epsilon()
         self.targetPolicy.decay_epsilon()
         # self.actionHistory.append(behaviorAction)  TODO: Dont forget debug stuff here
         # print(self.actionHistory)
 
-    def generate_behavior_action(self, state):
+    def generate_behavior_action(self):
         if self.onPolicyVar.get() and self.targetAction:
             # In this case, the target action was chosen by the behavior policy (which is the only policy in on-policy) beforehand.
             return self.targetAction
         else:  # This will be executed if one of the following applies:
             # ...the updates are off policy, so the behavior action will NOT be copied from a previously chosen target action.
             # ...there is no recent target action because: the value used for the latest update was an expectation OR no update happened in this episode so far.
-            return self.behaviorPolicy.generate_action(state)
+            return self.behaviorPolicy.generate_action(self.state)
 
-    def generate_target(self, state):
+    def generate_target(self):
         if self.episodeFinished:
             self.targetAction = None
             self.targetActionvalue = 0  # per definition
@@ -147,10 +147,10 @@ class Agent:
             policy = self.targetPolicy
         if self.updateByExpectationVar.get():
             self.targetAction = None  # Otherwise, if switched dynamically to expectation during an episode, in the On-Policy case, the action selected in the else-block below would be copied and used as the behavior action in every following turn, resulting in an agent that cannot change its direction anymore
-            self.targetActionvalue = policy.get_expected_actionvalue(state)
+            self.targetActionvalue = policy.get_expected_actionvalue(self.state)
         else:
-            self.targetAction = policy.generate_action(state)
-            self.targetActionvalue = self.get_Q(S=state, A=self.targetAction)
+            self.targetAction = policy.generate_action(self.state)
+            self.targetActionvalue = self.get_Q(S=self.state, A=self.targetAction)
 
     def process_earliest_memory(self):
         self.update_actionvalue()
@@ -171,6 +171,9 @@ class Agent:
         Qafter = Qbefore + update
         self.set_Q(S=correspondingState, A=actionToUpdate, value=Qafter)
 
+    def plan(self):
+        print(self.iSuccessivePlannings)
+
     def get_discount(self):
         return self.discountVar.get()
 
@@ -189,24 +192,8 @@ class Agent:
     def get_Q(self, S, A):
         return self.Qvalues[S][A]
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-    def plan(self):
-        print(self.iSuccessivePlannings)
-
-
-
+    def get_targetAction(self):
+        return self.targetAction
 
     def get_memory_size(self):
         return self.memory.get_size()

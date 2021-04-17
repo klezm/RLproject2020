@@ -14,4 +14,4 @@ class EntryFrame(ParameterFrame):
             self.tkVar = TypedStringVar(self.targetType)
         else:
             self.tkVar = tk.StringVar()
-        self.varWidget = tk.Entry(self, textvariable=self.tkVar, width=10)
+        self.varWidget = tk.Entry(self, textvariable=self.tkVar, width=8)

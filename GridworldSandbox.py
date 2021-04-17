@@ -17,6 +17,8 @@ class GridworldSandbox:
     LABELFRAME_TEXTCOLOR = "blue"
     INITIAL_DIMSIZE = 9
     FONT = "calibri 15 bold"
+    VALUE_TILEMAPS_RELIEF_DEFAULT = tk.FLAT
+    VALUE_TILEMAPS_RELIEF_TARGET_ACTION = tk.GROOVE
 
     def __init__(self, guiProcess):
         # RL objects:
@@ -33,12 +35,14 @@ class GridworldSandbox:
 
         self.guiProcess = guiProcess
         self.X, self.Y = self.ask_shape()
-        
+
+        # TODO: Make this class static consts
         valueTilemapsFontsize = 11
         valueTilemapsTileHeight = 1
-        valueTilemapsTilewidth = 4
+        self.valueTilemapsTilewidth = 4
         worldTilemapFontsize = 43
         worldTilemapsTileHeight = 1
+        valueTilemapsBd = 10
 
         self.window = tk.Toplevel(self.guiProcess)
         self.window.title("Gridworld Playground")
@@ -59,11 +63,11 @@ class GridworldSandbox:
         for action in Agent.ACTIONSPACE:
             self.qValueFrames[action] = Tilemap(self.valueVisualizationFrame, X=self.X, Y=self.Y, interactionAllowed=False,
                                                 indicateNumericalValueChange=True, fontSize=valueTilemapsFontsize,
-                                                tileWidth=valueTilemapsTilewidth, bd=5, relief=tk.GROOVE,
+                                                tileWidth=self.valueTilemapsTilewidth, bd=valueTilemapsBd, relief=self.VALUE_TILEMAPS_RELIEF_DEFAULT,
                                                 bg=Tile.POLICY_COLORS[action], height=valueTilemapsTileHeight)
             self.qValueFrames[action].grid(row=action[1]+1, column=action[0]+1)  # maps the Tilemaps corresponding to the actions (which are actually 2D "vectors")  to coordinates inside the valueVisualizationFrame
         self.greedyPolicyFrame = Tilemap(self.valueVisualizationFrame, X=self.X, Y=self.Y, interactionAllowed=False, fontSize=valueTilemapsFontsize,
-                                         tileWidth=valueTilemapsTilewidth, bd=3, height=valueTilemapsTileHeight, relief=tk.GROOVE)
+                                         tileWidth=self.valueTilemapsTilewidth, bd=valueTilemapsBd, height=valueTilemapsTileHeight, relief=tk.GROOVE)
         self.greedyPolicyFrame.grid(row=1, column=1)
 
         #   settingsFrame:
@@ -309,12 +313,19 @@ class GridworldSandbox:
                         valueVisualizationFrameColor = Tile.AGENTCOLOR_DEFAULT_LIGHT
                 self.gridworldFrame.update_tile_appearance(x,y, bg=gridworldFrameColor)
                 for action, Qvalue in self.agent.get_Qvalues()[x,y].items():
-                    self.qValueFrames[action].update_tile_appearance(x, y, text=f"{Qvalue:< 3.2f}"[:5], bg=valueVisualizationFrameColor)
+                    self.qValueFrames[action].update_tile_appearance(x, y, text=f"{Qvalue:< 3.2f}"[:self.valueTilemapsTilewidth+1], bg=valueVisualizationFrameColor)
                 if len(greedyActions[x,y]) == 1:
                     maxAction = greedyActions[x,y][0]
                 else:
                     maxAction = None
                 self.greedyPolicyFrame.update_tile_appearance(x, y, bg=valueVisualizationFrameColor, **Tile.tilePolicyTypes[maxAction])
+        for action, tilemap in self.qValueFrames.items():
+            if action == self.agent.get_targetAction():
+                relief = self.VALUE_TILEMAPS_RELIEF_TARGET_ACTION
+            else:
+                relief = self.VALUE_TILEMAPS_RELIEF_DEFAULT
+            if tilemap.cget("relief") != relief:  # pre-check gives huge speedup (also used in Tile class)
+                tilemap.config(relief=relief)
         self.guiProcess.update_idletasks()
 
     def toggle_operation_relevance(self, operation):

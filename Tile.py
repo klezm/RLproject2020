@@ -9,7 +9,6 @@ class Tile(tk.Label):
     LETTER_COLOR = "black"
     VALUE_INCREASE_COLOR = "green"
     VALUE_DECREASE_COLOR = "red"
-    VALUE_CHANGE_RELIEF = tk.RAISED
     DEFAULT_RELIEF = tk.GROOVE
     START_CHAR = "S"
     GOAL_CHAR = "G"
