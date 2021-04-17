@@ -50,7 +50,7 @@ class Tile(tk.Label):
         self.update_appearance(**self.tileBlank)
 
     def protect_attributes(self, *args):
-        self.protectedAttributes |= set(args)
+        self.protectedAttributes |= set(args)  # fancy new operator in python 3.9
 
     def unprotect_attributes(self, *args):
         self.protectedAttributes -= set(args)

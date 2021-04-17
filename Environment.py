@@ -10,6 +10,7 @@ class Environment:
         self.isTorusVars = (isXtorusVar, isYtorusVar)
         self.globalActionRewardVar = globalActionRewardVar
         self.agentPosition = None
+        # In a gridworld, position and agent state can be treated equivalent, but not in general! i.e. snake
 
     def update(self, tileData):
         for x in range(self.grid.shape[0]):
@@ -25,12 +26,14 @@ class Environment:
         return self.agentPosition
 
     def apply_action(self, action):
+        # First estimate the destination cell by only regarding gridworld shape and torus properties
         destinationEstimate = (self.get_destination_estimate(action, iDim=0),
                                self.get_destination_estimate(action, iDim=1))
+        # Then check if this cell is a valid place to stay
         if not self.grid[destinationEstimate].isWall:
             self.agentPosition = destinationEstimate
         reward = self.globalActionRewardVar.get() + self.grid[self.agentPosition].get_arrivalReward()
-        episodeFinished = self.grid[self.agentPosition].ends_episode()
+        episodeFinished = self.grid[self.agentPosition].terminates_episode()
         return reward, self.agentPosition, episodeFinished
 
     def get_destination_estimate(self, action, iDim):

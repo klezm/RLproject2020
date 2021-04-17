@@ -19,8 +19,11 @@ class GridworldSandbox:
     FONT = "calibri 15 bold"
 
     def __init__(self, guiProcess):
+        # RL objects:
         self.environment = None
         self.agent = None
+
+        # Flow control variables
         self.latestAgentOperation = None
         self.agentOperationCounts = None
         self.flowPaused = True
@@ -189,7 +192,8 @@ class GridworldSandbox:
     def initialize_environment_and_agent(self):
         self.environment = Environment(X=self.X, Y=self.Y, isXtorusVar=self.xTorusFrame.get_var(),
                                        isYtorusVar=self.yTorusFrame.get_var(),
-                                       globalActionRewardVar=self.globalActionRewardFrame.get_var(), )
+                                       globalActionRewardVar=self.globalActionRewardFrame.get_var())
+        # Agent needs an environment to exist, but environment doesnt need an agent
         self.agent = Agent(environment=self.environment, learningRateVar=self.learningRateFrame.get_var(),
                            dynamicAlphaVar=self.dynamicAlphaFrame.get_var(),
                            discountVar=self.discountFrame.get_var(), nStepVar=self.nStepFrame.get_var(),
@@ -222,6 +226,21 @@ class GridworldSandbox:
         self.environment.update(tileData)
         # TODO: Everytime a Tile is changed to an episode terminator, change its Qvalues to 0 explicitly. NO! Agent cant know this beforehand, thats the point!
 
+    def start_flow(self, stopAtNextVisualization):
+        self.flowPaused = False
+        self.stopAtNextVisualization = stopAtNextVisualization
+        self.goButton.config(state=tk.DISABLED)
+        self.pauseButton.config(state=tk.NORMAL)
+        self.nextButton.config(state=tk.DISABLED)
+        if self.agent is None:
+            self.initialize_environment_and_agent()
+            self.freeze_lifetime_parameters()
+        if self.gridworldFrame.interactionAllowed:  # new episode is going to start
+            self.gridworldFrame.set_interactionAllowed(False)
+            self.freeze_episodetime_parameters()
+            self.update_gridworldPlayground_environment()
+        self.iterate_flow()
+
     def iterate_flow(self):
         # Following condition is needed if the PAUSE State was set by pressing the Pause button, which will be resolved
         # as part of the after function, immediately before the recursive call.
@@ -232,7 +251,7 @@ class GridworldSandbox:
         if self.flowPaused:
             return
         next_msDelay = 0
-        self.latestAgentOperation = self.agent.operate()
+        self.latestAgentOperation = self.agent.operate()  # This is where all the RL-Stuff happens
         self.agentOperationCounts[self.latestAgentOperation] += 1
         self.operationsLeftFrame.set_value(self.operationsLeftFrame.get_value() - 1)
         if self.operationsLeftFrame.get_value() <= 0:
@@ -258,21 +277,6 @@ class GridworldSandbox:
         if self.flowPaused:
             return
         self.guiProcess.after(next_msDelay, self.iterate_flow)  # Queued GUI interactions will be resolved only during (?) the wait process of this call.
-
-    def start_flow(self, stopAtNextVisualization):
-        self.flowPaused = False
-        self.stopAtNextVisualization = stopAtNextVisualization
-        self.goButton.config(state=tk.DISABLED)
-        self.pauseButton.config(state=tk.NORMAL)
-        self.nextButton.config(state=tk.DISABLED)
-        if self.agent is None:
-            self.initialize_environment_and_agent()
-            self.freeze_lifetime_parameters()
-        if self.gridworldFrame.interactionAllowed:  # new episode is going to start
-            self.gridworldFrame.set_interactionAllowed(False)
-            self.freeze_episodetime_parameters()
-            self.update_gridworldPlayground_environment()
-        self.iterate_flow()
 
     def pause_flow(self):
         self.flowPaused = True
