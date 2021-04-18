@@ -78,6 +78,19 @@ class GridworldSandbox:
                                          tileWidth=self.valueTilemapsTilewidth, bd=valueTilemapsBd, height=valueTilemapsTileHeight, relief=tk.GROOVE)
         self.greedyPolicyFrame.grid(row=1, column=1)
 
+        # # TODO: nice visualization for arrows of max q values
+        # # chars:
+        # 1or2greedy =  [[ul, u, ur],
+        #                [l,  egal, r],
+        #                [dl, d, dr]]
+        #
+        # 3or4greedy = [[egal, ulr, egal],
+        #               [dlu,  " ", urd],
+        #               [egal, ldr, egal]]
+        #
+        # # for color: 1 or 2: actions addieren, winkel holen -> colorwheel
+        # #            3 or 4: black
+
         #   settingsFrame:
         self.visualizationSettingsFrame = tk.Frame(self.settingsFrame, bd=3, relief=tk.GROOVE)
         self.algorithmSettingsFrame = tk.Frame(self.settingsFrame, bd=3, relief=tk.GROOVE)
