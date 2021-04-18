@@ -82,7 +82,7 @@ class Agent:
     def get_Qvalues(self):
         return self.Qvalues
 
-    def get_greedyActions(self):
+    def get_greedyActions(self) -> np.ndarray:
         return self.greedyActions
 
     def get_Q(self, S, A):

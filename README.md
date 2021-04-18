@@ -46,3 +46,16 @@ Once the number set in “Operations Left” has reached zero, the flow will imm
 Not solved yet:
 - In rare cases, after clicking “Pause” when only “...Episode Finished” is marked, you are not able to update the environment during the freeze. Then, after Clicking “Next” once, you are able again.
 - In rare cases, the plotting after a run takes extraordinary long and may cause the program to crash.
+
+
+### Example
+
+Run:
+
+```bash
+python RLproject.py --grid-shape 9 --steps 1000000 --refresh-rate 1 --show-rate 100 --off-policy --grid-world-template 15
+```
+
+which will result in:
+
+![](assets/Example1.png)
