@@ -12,7 +12,6 @@ class Tile(tk.Label):
     LETTER_COLOR = "black"
     VALUE_INCREASE_COLOR = "green"
     VALUE_DECREASE_COLOR = "red"
-    VALUE_CHANGE_RELIEF = tk.RAISED
     DEFAULT_RELIEF = tk.GROOVE
     START_CHAR = "S"
     GOAL_CHAR = "🏁"
@@ -132,7 +131,7 @@ class Tile(tk.Label):
         self.update_appearance(**self.tileBlank)
 
     def protect_attributes(self, *args):
-        self.protectedAttributes |= set(args)
+        self.protectedAttributes |= set(args)  # fancy new operator in python 3.9
 
     def unprotect_attributes(self, *args):
         self.protectedAttributes -= set(args)

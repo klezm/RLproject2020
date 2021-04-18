@@ -17,12 +17,17 @@ class GridworldSandbox:
     LABELFRAME_TEXTCOLOR = "blue"
     INITIAL_DIMSIZE = 9
     FONT = "calibri 15 bold"
+    VALUE_TILEMAPS_RELIEF_DEFAULT = tk.FLAT
+    VALUE_TILEMAPS_RELIEF_TARGET_ACTION = tk.GROOVE
 
     def __init__(self, guiProcess, pargs = None):
         if pargs is None:
             pargs = {}
+        # RL objects:
         self.environment = None
         self.agent = None
+
+        # Flow control variables
         self.latestAgentOperation = None
         self.agentOperationCounts = None
         self.flowPaused = True
@@ -37,11 +42,13 @@ class GridworldSandbox:
         else:
             self.X, self.Y = self.ask_shape()
 
+        # TODO: Make this class static consts
         valueTilemapsFontsize = 11
         valueTilemapsTileHeight = 1
-        valueTilemapsTilewidth = 4
+        self.valueTilemapsTilewidth = 4
         worldTilemapFontsize = 43
         worldTilemapsTileHeight = 1
+        valueTilemapsBd = 10
 
         self.window = tk.Toplevel(self.guiProcess)
         self.window.title("Gridworld Playground")
@@ -64,11 +71,11 @@ class GridworldSandbox:
         for action in Agent.ACTIONSPACE:
             self.qValueFrames[action] = Tilemap(self.valueVisualizationFrame, X=self.X, Y=self.Y, interactionAllowed=False,
                                                 indicateNumericalValueChange=True, fontSize=valueTilemapsFontsize,
-                                                tileWidth=valueTilemapsTilewidth, bd=5, relief=tk.GROOVE,
+                                                tileWidth=self.valueTilemapsTilewidth, bd=valueTilemapsBd, relief=self.VALUE_TILEMAPS_RELIEF_DEFAULT,
                                                 bg=Tile.POLICY_COLORS[action], height=valueTilemapsTileHeight)
             self.qValueFrames[action].grid(row=action[1]+1, column=action[0]+1)  # maps the Tilemaps corresponding to the actions (which are actually 2D "vectors")  to coordinates inside the valueVisualizationFrame
         self.greedyPolicyFrame = Tilemap(self.valueVisualizationFrame, X=self.X, Y=self.Y, interactionAllowed=False, fontSize=valueTilemapsFontsize,
-                                         tileWidth=valueTilemapsTilewidth, bd=3, height=valueTilemapsTileHeight, relief=tk.GROOVE)
+                                         tileWidth=self.valueTilemapsTilewidth, bd=valueTilemapsBd, height=valueTilemapsTileHeight, relief=tk.GROOVE)
         self.greedyPolicyFrame.grid(row=1, column=1)
 
         #   settingsFrame:
@@ -197,7 +204,8 @@ class GridworldSandbox:
     def initialize_environment_and_agent(self):
         self.environment = Environment(X=self.X, Y=self.Y, isXtorusVar=self.xTorusFrame.get_var(),
                                        isYtorusVar=self.yTorusFrame.get_var(),
-                                       globalActionRewardVar=self.globalActionRewardFrame.get_var(), )
+                                       globalActionRewardVar=self.globalActionRewardFrame.get_var())
+        # Agent needs an environment to exist, but environment doesnt need an agent
         self.agent = Agent(environment=self.environment, learningRateVar=self.learningRateFrame.get_var(),
                            dynamicAlphaVar=self.dynamicAlphaFrame.get_var(),
                            discountVar=self.discountFrame.get_var(), nStepVar=self.nStepFrame.get_var(),
@@ -230,6 +238,21 @@ class GridworldSandbox:
         self.environment.update(tileData)
         # TODO: Everytime a Tile is changed to an episode terminator, change its Qvalues to 0 explicitly. NO! Agent cant know this beforehand, thats the point!
 
+    def start_flow(self, stopAtNextVisualization):
+        self.flowPaused = False
+        self.stopAtNextVisualization = stopAtNextVisualization
+        self.goButton.config(state=tk.DISABLED)
+        self.pauseButton.config(state=tk.NORMAL)
+        self.nextButton.config(state=tk.DISABLED)
+        if self.agent is None:
+            self.initialize_environment_and_agent()
+            self.freeze_lifetime_parameters()
+        if self.gridworldFrame.interactionAllowed:  # new episode is going to start
+            self.gridworldFrame.set_interactionAllowed(False)
+            self.freeze_episodetime_parameters()
+            self.update_gridworldPlayground_environment()
+        self.iterate_flow()
+
     def iterate_flow(self):
         # Following condition is needed if the PAUSE State was set by pressing the Pause button, which will be resolved
         # as part of the after function, immediately before the recursive call.
@@ -240,7 +263,7 @@ class GridworldSandbox:
         if self.flowPaused:
             return
         next_msDelay = 0
-        self.latestAgentOperation = self.agent.operate()
+        self.latestAgentOperation = self.agent.operate()  # This is where all the RL-Stuff happens
         self.agentOperationCounts[self.latestAgentOperation] += 1
         self.operationsLeftFrame.set_value(self.operationsLeftFrame.get_value() - 1)
         if self.operationsLeftFrame.get_value() <= 0:
@@ -267,21 +290,6 @@ class GridworldSandbox:
         if self.flowPaused:
             return
         self.guiProcess.after(next_msDelay, self.iterate_flow)  # Queued GUI interactions will be resolved only during (?) the wait process of this call.
-
-    def start_flow(self, stopAtNextVisualization):
-        self.flowPaused = False
-        self.stopAtNextVisualization = stopAtNextVisualization
-        self.goButton.config(state=tk.DISABLED)
-        self.pauseButton.config(state=tk.NORMAL)
-        self.nextButton.config(state=tk.DISABLED)
-        if self.agent is None:
-            self.initialize_environment_and_agent()
-            self.freeze_lifetime_parameters()
-        if self.gridworldFrame.interactionAllowed:  # new episode is going to start
-            self.gridworldFrame.set_interactionAllowed(False)
-            self.freeze_episodetime_parameters()
-            self.update_gridworldPlayground_environment()
-        self.iterate_flow()
 
     def pause_flow(self):
         self.flowPaused = True
@@ -323,7 +331,7 @@ class GridworldSandbox:
                         valueVisualizationFrameColor = Tile.AGENTCOLOR_DEFAULT_LIGHT
                 self.gridworldFrame.update_tile_appearance(x,y, bg=gridworldFrameColor)
                 for action, Qvalue in self.agent.get_Qvalues()[x,y].items():
-                    self.qValueFrames[action].update_tile_appearance(x, y, text=f"{Qvalue:< 3.2f}"[:5], bg=valueVisualizationFrameColor)
+                    self.qValueFrames[action].update_tile_appearance(x, y, text=f"{Qvalue:< 3.2f}"[:self.valueTilemapsTilewidth+1], bg=valueVisualizationFrameColor)
 
                 maxAction = tuple(np.sum(greedyActions[x, y], axis = 0))
                 if len(greedyActions[x,y]) == 1:
@@ -338,6 +346,14 @@ class GridworldSandbox:
                 else:  # 3 or 4 max greedy actions
                     tile = self.tile_policy_types(maxAction, 3)
                 self.greedyPolicyFrame.update_tile_appearance(x, y, bg = valueVisualizationFrameColor, **tile)
+
+        for action, tilemap in self.qValueFrames.items():
+            if action == self.agent.get_targetAction():
+                relief = self.VALUE_TILEMAPS_RELIEF_TARGET_ACTION
+            else:
+                relief = self.VALUE_TILEMAPS_RELIEF_DEFAULT
+            if tilemap.cget("relief") != relief:  # pre-check gives huge speedup (also used in Tile class)
+                tilemap.config(relief=relief)
 
         self.guiProcess.update_idletasks()
 

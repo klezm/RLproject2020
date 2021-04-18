@@ -6,11 +6,11 @@ from myFuncs import cached_power
 class Memory:
     def __init__(self, agent):
         self.agent = agent
-        self.memory = deque()
+        self.memory = deque()  # most efficient for appending and popping from both sides
         self.discountedRewardSum = 0
 
     def memorize(self, state, action, reward):
-        self.memory.appendleft((state, action, reward))
+        self.memory.appendleft((state, action, reward))  # the higher the index, the older the memory
         self.discountedRewardSum *= self.agent.get_discount()
         self.discountedRewardSum += reward
 
