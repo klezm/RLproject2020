@@ -13,8 +13,9 @@ class Tile(tk.Label):
     VALUE_INCREASE_COLOR = "green"
     VALUE_DECREASE_COLOR = "red"
     DEFAULT_RELIEF = tk.GROOVE
-    START_CHAR = "S"
-    GOAL_CHAR = "🏁"
+    START_CHAR = "🐇"  # 🐇🏎️🏎🏍️🏍  # 🐭🐀🐁  # 🐒🐵  # 👽  # 👶👧🧒👦  # ⚽️
+    GOAL_CHAR = "🏁"  # 🏁  # 🧀  # 🍌  # 🪐🌌🌠  # 🍭🍧🍨🍦🥧🧁🍰🎂  # 🥅
+    START_CHAR, GOAL_CHAR = np.random.choice(["🐭🧀", "🐇🏁", "🏎🏁", "🐵🍌", "👽🪐", "👶🍭"])
     AGENTCOLOR_DEFAULT_DEFAULT = "blue"
     AGENTCOLOR_DEFAULT_LIGHT = "#AAAAFF"  # light blue
     AGENTCOLOR_EXPLORATORY_DEFAULT = "red"

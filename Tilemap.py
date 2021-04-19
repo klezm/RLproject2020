@@ -49,8 +49,10 @@ class Tilemap(tk.Frame):
     def print_world(self):
         def to_str(v):
             if txt := v.cget("text"):
-                if txt == "🏁":
+                if txt == Tile.GOAL_CHAR:
                     txt = "G"
+                elif txt == Tile.START_CHAR:
+                    txt = "S"
                 return txt
             if bg := v.cget("bg") == Tile.WALL_COLOR:
                 return "#"
@@ -96,9 +98,9 @@ class Tilemap(tk.Frame):
         def map_value(v):
             if v in "#X-O0xo*":
                 return Tile.tileWall
-            elif v in "Ss":
+            elif v in "Ss🐭🐇🏎🐵👽👶":
                 return Tile.tileStart
-            elif v in "Gg🏁":
+            elif v in "Gg🏁🧀🍌🪐🍭":
                 return Tile.tileGoal
             else:  # if v == " ":
                 return Tile.tileBlank
