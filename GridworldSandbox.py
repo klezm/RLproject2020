@@ -20,7 +20,9 @@ class GridworldSandbox:
     VALUE_TILEMAPS_RELIEF_DEFAULT = tk.FLAT
     VALUE_TILEMAPS_RELIEF_TARGET_ACTION = tk.GROOVE
 
-    def __init__(self, guiProcess):
+    def __init__(self, guiProcess, pargs = None):
+        if pargs is None:
+            pargs = {}
         # RL objects:
         self.environment = None
         self.agent = None
@@ -34,7 +36,11 @@ class GridworldSandbox:
         # Setting up the GUI
 
         self.guiProcess = guiProcess
-        self.X, self.Y = self.ask_shape()
+        if pargs.get("grid_shape"):
+            self.X = pargs["grid_shape"][0]
+            self.Y = pargs["grid_shape"][-1]  # if only one param is provided (for quadratic world)
+        else:
+            self.X, self.Y = self.ask_shape()
 
         # TODO: Make this class static consts
         valueTilemapsFontsize = 11
@@ -55,6 +61,8 @@ class GridworldSandbox:
         self.settingsFrame = tk.Frame(self.window, bd=5, relief=tk.GROOVE)
 
         self.gridworldFrame.grid(row=0, column=0)
+        if pargs.get("grid_world_template"):
+            self.gridworldFrame.cycle_maps(n = pargs.get("grid_world_template"))
         self.valueVisualizationFrame.grid(row=0, column=1)
         self.settingsFrame.grid(row=0, column=2)
 
@@ -70,6 +78,19 @@ class GridworldSandbox:
                                          tileWidth=self.valueTilemapsTilewidth, bd=valueTilemapsBd, height=valueTilemapsTileHeight, relief=tk.GROOVE)
         self.greedyPolicyFrame.grid(row=1, column=1)
 
+        # # TODO: nice visualization for arrows of max q values
+        # # chars:
+        # 1or2greedy =  [[ul, u, ur],
+        #                [l,  egal, r],
+        #                [dl, d, dr]]
+        #
+        # 3or4greedy = [[egal, ulr, egal],
+        #               [dlu,  " ", urd],
+        #               [egal, ldr, egal]]
+        #
+        # # for color: 1 or 2: actions addieren, winkel holen -> colorwheel
+        # #            3 or 4: black
+
         #   settingsFrame:
         self.visualizationSettingsFrame = tk.Frame(self.settingsFrame, bd=3, relief=tk.GROOVE)
         self.algorithmSettingsFrame = tk.Frame(self.settingsFrame, bd=3, relief=tk.GROOVE)
@@ -78,10 +99,10 @@ class GridworldSandbox:
         self.algorithmSettingsFrame.grid(row=1, column=0, ipadx=3, ipady=3, sticky=tk.W+tk.E)
 
         #       visualizationSettingsFrame
-        self.operationsLeftFrame = EntryFrame(self.visualizationSettingsFrame, text="Operations Left:", defaultValue=100000, targetType=int)
-        self.msDelayFrame = EntryFrame(self.visualizationSettingsFrame, text="Refresh Delay [ms] >", defaultValue=1000, targetType=int)
+        self.operationsLeftFrame = EntryFrame(self.visualizationSettingsFrame, text="Operations Left:", defaultValue = pargs.get("steps", 100000), targetType=int)
+        self.msDelayFrame = EntryFrame(self.visualizationSettingsFrame, text="Refresh Delay [ms] >", defaultValue = pargs.get("refresh_rate", 1000), targetType=int)
         self.flowButtonsFrame = tk.Frame(self.visualizationSettingsFrame)
-        self.showEveryNoperationsFrame = EntryFrame(self.visualizationSettingsFrame, text="Show Every...", defaultValue=1, targetType=int)
+        self.showEveryNoperationsFrame = EntryFrame(self.visualizationSettingsFrame, text="Show Every...", defaultValue = pargs.get("show_rate", 1), targetType=int)
         self.operationsPickFrame = tk.Frame(self.visualizationSettingsFrame)
 
         row = 0
@@ -118,13 +139,13 @@ class GridworldSandbox:
         self.xTorusFrame = CheckbuttonFrame(self.algorithmSettingsFrame, text="X-Torus:", defaultValue=False)
         self.yTorusFrame = CheckbuttonFrame(self.algorithmSettingsFrame, text="Y-Torus:", defaultValue=False)
         self.globalActionRewardFrame = EntryFrame(self.algorithmSettingsFrame, text="Global Action Reward:", defaultValue=-1, targetType=float)
-        self.discountFrame = EntryFrame(self.algorithmSettingsFrame, text="Discount \u03B3:", defaultValue=1, targetType=float)  # gamma
-        self.learningRateFrame = EntryFrame(self.algorithmSettingsFrame, text="Learning Rate \u03B1:", defaultValue=0.1, targetType=float)  # alpha
+        self.discountFrame = EntryFrame(self.algorithmSettingsFrame, text="Discount \u03B3:", defaultValue = pargs.get("discount", 1), targetType=float)  # gamma
+        self.learningRateFrame = EntryFrame(self.algorithmSettingsFrame, text="Learning Rate \u03B1:", defaultValue = pargs.get("learning_rate", 0.1), targetType=float)  # alpha
         self.dynamicAlphaFrame = CheckbuttonFrame(self.algorithmSettingsFrame, text="\u03B1 = 1/count((S,A))", defaultValue=False)  # alpha
-        self.nStepFrame = EntryFrame(self.algorithmSettingsFrame, text="n-Step n:", defaultValue=1, targetType=int)
-        self.nPlanFrame = EntryFrame(self.algorithmSettingsFrame, text="Dyna-Q n:", defaultValue=0, targetType=int)
-        self.onPolicyFrame = CheckbuttonFrame(self.algorithmSettingsFrame, text="On-Policy:", defaultValue=True)
-        self.updateByExpectationFrame = CheckbuttonFrame(self.algorithmSettingsFrame, text="Update by Expectation", defaultValue=False)
+        self.nStepFrame = EntryFrame(self.algorithmSettingsFrame, text="n-Step n:", defaultValue = pargs.get("n_step_n", 1), targetType=int)
+        self.nPlanFrame = EntryFrame(self.algorithmSettingsFrame, text="Dyna-Q n:", defaultValue = pargs.get("dyna_q_n", 0), targetType=int)
+        self.onPolicyFrame = CheckbuttonFrame(self.algorithmSettingsFrame, text="On-Policy:", defaultValue = pargs.get("off_policy", True))
+        self.updateByExpectationFrame = CheckbuttonFrame(self.algorithmSettingsFrame, text="Update by Expectation", defaultValue = pargs.get("use_expectation", False))
         self.behaviorPolicyFrame = tk.LabelFrame(self.algorithmSettingsFrame, text="Behavior Policy", font=self.FONT, fg=self.LABELFRAME_TEXTCOLOR)
         self.targetPolicyFrame = tk.LabelFrame(self.algorithmSettingsFrame, text="Target Policy", font=self.FONT)
 
@@ -154,8 +175,8 @@ class GridworldSandbox:
         self.targetPolicyFrame.grid(row=row, column=0, sticky=tk.W+tk.E, ipadx=3)
 
         #           behaviorPolicyFrame
-        self.behaviorEpsilonFrame = EntryFrame(self.behaviorPolicyFrame, text="Exploration Rate \u03B5:", defaultValue=0.5, targetType=float)  # epsilon
-        self.behaviorEpsilonDecayRateFrame = EntryFrame(self.behaviorPolicyFrame, text="\u03B5-Decay Rate:", defaultValue=0.9999, targetType=float)  # epsilon
+        self.behaviorEpsilonFrame = EntryFrame(self.behaviorPolicyFrame, text="Exploration Rate \u03B5:", defaultValue = pargs.get("exploration_rate", 0.5), targetType=float)  # epsilon
+        self.behaviorEpsilonDecayRateFrame = EntryFrame(self.behaviorPolicyFrame, text="\u03B5-Decay Rate:", defaultValue = pargs.get("exploration_rate_decay", .9999), targetType=float)  # epsilon
 
         self.behaviorEpsilonFrame.grid(row=0, column=0, sticky=tk.W + tk.E)
         self.behaviorEpsilonDecayRateFrame.grid(row=1, column=0, sticky=tk.W + tk.E)
@@ -259,7 +280,8 @@ class GridworldSandbox:
         self.agentOperationCounts[self.latestAgentOperation] += 1
         self.operationsLeftFrame.set_value(self.operationsLeftFrame.get_value() - 1)
         if self.operationsLeftFrame.get_value() <= 0:
-            self.plot()
+            if self.agent.get_episodeReturns():
+                self.plot()
             del self.agent
             self.agent = None
             self.pause_flow()
@@ -292,9 +314,18 @@ class GridworldSandbox:
             self.unfreeze_episodetime_parameters()
             self.gridworldFrame.set_interactionAllowed(True)
 
+    def tile_policy_types(self, action, dim = 2):
+        symbol = tuple(x + 1 for x in action)
+        if dim <= 2:
+            symbol = Tile.greedy12actions[symbol]
+        else:
+            symbol = Tile.greedy34actions[symbol]
+        color = Tile.POLICY_COLORS[action]
+        return {"text": symbol, "fg": color}
+
     def visualize(self):
         # TODO: Qlearning doesnt update some tiles after a while. THATS THE POINT! Because its off-policy. This shows that it works! Great for presentation! Example with no walls and Start/Goal in the edges.
-        greedyActions = self.agent.get_greedyActions()
+        greedyActions: np.ndarray = self.agent.get_greedyActions()
         for x in range(self.X):
             for y in range(self.Y):
                 if self.gridworldFrame.get_tile_background_color(x, y) == Tile.WALL_COLOR:
@@ -314,11 +345,21 @@ class GridworldSandbox:
                 self.gridworldFrame.update_tile_appearance(x,y, bg=gridworldFrameColor)
                 for action, Qvalue in self.agent.get_Qvalues()[x,y].items():
                     self.qValueFrames[action].update_tile_appearance(x, y, text=f"{Qvalue:< 3.2f}"[:self.valueTilemapsTilewidth+1], bg=valueVisualizationFrameColor)
+
+                maxAction = tuple(np.sum(greedyActions[x, y], axis = 0))
                 if len(greedyActions[x,y]) == 1:
-                    maxAction = greedyActions[x,y][0]
-                else:
-                    maxAction = None
-                self.greedyPolicyFrame.update_tile_appearance(x, y, bg=valueVisualizationFrameColor, **Tile.tilePolicyTypes[maxAction])
+                    tile = self.tile_policy_types(maxAction, 1)
+                elif len(greedyActions[x, y]) == 2:
+                    if maxAction == (0, 0):
+                        if set(greedyActions[x, y]) == {self.agent.LEFT, self.agent.RIGHT}:
+                            maxAction = (0, 2)  # "lr"
+                        elif set(greedyActions[x, y]) == {self.agent.DOWN, self.agent.UP}:
+                            maxAction = (2, 0)  # "ud"
+                    tile = self.tile_policy_types(maxAction, 2)
+                else:  # 3 or 4 max greedy actions
+                    tile = self.tile_policy_types(maxAction, 3)
+                self.greedyPolicyFrame.update_tile_appearance(x, y, bg = valueVisualizationFrameColor, **tile)
+
         for action, tilemap in self.qValueFrames.items():
             if action == self.agent.get_targetAction():
                 relief = self.VALUE_TILEMAPS_RELIEF_TARGET_ACTION
@@ -326,6 +367,7 @@ class GridworldSandbox:
                 relief = self.VALUE_TILEMAPS_RELIEF_DEFAULT
             if tilemap.cget("relief") != relief:  # pre-check gives huge speedup (also used in Tile class)
                 tilemap.config(relief=relief)
+
         self.guiProcess.update_idletasks()
 
     def toggle_operation_relevance(self, operation):
@@ -374,7 +416,7 @@ class GridworldSandbox:
             self.onPolicyFrame.set_color("black")
 
     def plot(self):
-        print(self.agent.get_episodeReturns())
+        # print("Episode returns of the agent:", self.agent.get_episodeReturns())
         fig, ax = plt.subplots()
         ax.plot(self.agent.get_episodeReturns())
         ax.set(xlabel='Episode', ylabel='Reward', title='Development of the Reward per Episode')

@@ -6,7 +6,9 @@ from Cell import Cell
 
 class Environment:
     def __init__(self, X, Y, isXtorusVar, isYtorusVar, globalActionRewardVar):
+        # TODO: self.grid.dtype should be int to increase performance drastically! (affects self.greedyActions in Agent.py as well)
         self.grid = np.empty((X,Y), dtype=object)
+        # self.grid = np.empty((X,Y), dtype=float)
         self.isTorusVars = (isXtorusVar, isYtorusVar)
         self.globalActionRewardVar = globalActionRewardVar
         self.agentPosition = None

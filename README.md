@@ -4,21 +4,30 @@
 
 You need python 3.9 to run at the moment. Using Conda you can create a environment with Python 3.9 by running.
 
-> conda create -n py39 python=3.9
- 
-> conda activate py39
-
-> pip install matplotlib numpy
+```shell
+conda create -n py39 python=3.9
+conda activate py39
+pip install -r requirements.txt
+```
 
 ### Getting the Code
 
-> git clone https://github.com/alexschroeter/RLproject2020 
-
-> cd RLproject2020
+```sh
+git clone https://github.com/alexschroeter/RLproject2020 
+cd RLproject2020
+```
 
 ### Running the Program
-> python RLproject.py
 
+Run:
+
+```bash
+python RLproject.py --grid-shape 9 --steps 1000000 --refresh-rate 1 --show-rate 100 --off-policy --grid-world-template 15
+```
+
+which will result in:
+
+![](assets/Example1.png)
 
 ### Flow control explanation:
 
