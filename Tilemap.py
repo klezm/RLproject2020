@@ -18,6 +18,7 @@ class Tilemap(tk.Frame):
         # TODO: you have to click pixel perfect on the edge of the tilemap...
         self.bind("<Button-1>", lambda _: self.print_world())
         self.bind("<Button-2>", lambda _: self.cycle_maps())
+        self.bind("<Button-3>", lambda _: self.cycle_chars())
 
     def protect_text_and_color(self, x, y):
         self.tiles[x,y].protect_attributes("text", "fg")
@@ -39,6 +40,19 @@ class Tilemap(tk.Frame):
 
     def update_tile_appearance(self, x, y, **kwargs):
         self.tiles[x,y].update_appearance(**kwargs)
+
+    def cycle_chars(self):
+        START_CHAR_OLD, GOAL_CHAR_OLD = Tile.START_CHAR, Tile.GOAL_CHAR
+        Tile.START_CHAR, Tile.GOAL_CHAR = Tile.CHAR_CHOICES[(Tile.CHAR_CHOICES.index(Tile.START_CHAR + Tile.GOAL_CHAR) + 1) % len(Tile.CHAR_CHOICES)]
+        Tile.tileStart = {"text": Tile.START_CHAR, "fg": Tile.LETTER_COLOR, "bg": Tile.BLANK_COLOR}
+        Tile.tileGoal = {"text": Tile.GOAL_CHAR, "fg": Tile.LETTER_COLOR, "bg": Tile.BLANK_COLOR}
+        Tile.tileCycleTypes = [Tile.tileBlank, Tile.tileWall, Tile.tileStart, Tile.tileGoal]
+        for x in self.tiles.flatten():
+            if x["text"] == START_CHAR_OLD:
+                x.update_appearance(**Tile.tileStart)
+            elif x["text"] == GOAL_CHAR_OLD:
+                x.update_appearance(**Tile.tileGoal)
+        # print(START_CHAR_OLD, GOAL_CHAR_OLD, "  =>  ", Tile.START_CHAR, Tile.GOAL_CHAR)
 
     def reset_world(self):
         # np.vectorize(lambda x: x.update_appearance(**Tile.tileBlank))(self.tiles)

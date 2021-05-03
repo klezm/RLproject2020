@@ -15,7 +15,11 @@ class Tile(tk.Label):
     DEFAULT_RELIEF = tk.GROOVE
     START_CHAR = "🐇"  # 🐇🏎️🏎🏍️🏍  # 🐭🐀🐁  # 🐒🐵  # 👽  # 👶👧🧒👦  # ⚽️
     GOAL_CHAR = "🏁"  # 🏁  # 🧀  # 🍌  # 🪐🌌🌠  # 🍭🍧🍨🍦🥧🧁🍰🎂  # 🥅
-    START_CHAR, GOAL_CHAR = np.random.choice(["🐭🧀", "🐇🏁", "🏎🏁", "🐵🍌", "👽🪐", "👶🍭"])
+    CHAR_CHOICES = ["🐇🏁", "🏎🏁", "🐭🧀", "🐵🍌", "👽🪐", "👶🍭"]
+    START_CHAR, GOAL_CHAR = np.random.choice(CHAR_CHOICES)
+    # START_CHAR, GOAL_CHAR = [x.encode("raw-unicode-escape").decode("utf8", "replace") for x in [START_CHAR, GOAL_CHAR]]
+    # START_CHAR, GOAL_CHAR = [x.encode("raw-unicode-escape") for x in [START_CHAR, GOAL_CHAR]]
+    # START_CHAR, GOAL_CHAR = [chr(ord(x)) for x in [START_CHAR, GOAL_CHAR]]
     AGENTCOLOR_DEFAULT_DEFAULT = "blue"
     AGENTCOLOR_DEFAULT_LIGHT = "#AAAAFF"  # light blue
     AGENTCOLOR_EXPLORATORY_DEFAULT = "red"
@@ -27,15 +31,6 @@ class Tile(tk.Label):
     tileWall = {"text": "", "fg": LETTER_COLOR, "bg": WALL_COLOR}
     tileStart = {"text": START_CHAR, "fg": LETTER_COLOR, "bg": BLANK_COLOR}
     tileGoal = {"text": GOAL_CHAR, "fg": LETTER_COLOR, "bg": BLANK_COLOR}
-
-    # print("nw", np.sum([Agent.UP, Agent.LEFT], axis = 0))
-    # print("ne", np.sum([Agent.UP, Agent.RIGHT], axis = 0))
-    # print("se", np.sum([Agent.DOWN, Agent.RIGHT], axis = 0))
-    # print("sw", np.sum([Agent.DOWN, Agent.LEFT], axis = 0))
-    # print("nl", np.sum(list({Agent.UP, Agent.DOWN, Agent.LEFT, Agent.RIGHT}.difference({Agent.LEFT})), axis = 0))
-    # print("nr", np.sum(list({Agent.UP, Agent.DOWN, Agent.LEFT, Agent.RIGHT}.difference({Agent.RIGHT})), axis = 0))
-    # print("nu", np.sum(list({Agent.UP, Agent.DOWN, Agent.LEFT, Agent.RIGHT}.difference({Agent.UP})), axis = 0))
-    # print("nd", np.sum(list({Agent.UP, Agent.DOWN, Agent.LEFT, Agent.RIGHT}.difference({Agent.DOWN})), axis = 0))
 
     # 2 actions
     NW = (-1, -1)
