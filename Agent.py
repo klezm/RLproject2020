@@ -11,7 +11,11 @@ class Agent:
     DOWN = (0,1)
     LEFT = (-1,0)
     RIGHT = (1,0)
-    ACTIONSPACE = [UP, DOWN, LEFT, RIGHT]  # for iteration purposes
+    #UPLEFT = (-1,-1)
+    #UPRIGHT = (1,-1)
+    #DOWNLEFT = (-1,1)
+    #DOWNRIGHT = (1,1)
+    ACTIONSPACE = [UP, DOWN, LEFT, RIGHT] #, UPLEFT, UPRIGHT, DOWNLEFT, DOWNRIGHT]  # for iteration purposes
 
     # Flow control variables to pass to an external GUI:
     UPDATED_BY_PLANNING = "Planning Update"
@@ -70,11 +74,12 @@ class Agent:
                                       for action in self.ACTIONSPACE}
                 self.update_greedy_actions((x,y))
 
-    def update_greedy_actions(self, state):
+    def update_greedy_actions(self, state: tuple):
         maxActionValue = max(self.Qvalues[state].values())
         self.greedyActions[state] = [action for action, value in self.Qvalues[state].items() if value == maxActionValue]
 
-    def set_Q(self, S, A, value):
+    #def set_Q(self, S: Tuple, A: tuple, value: float):  # TODO: import Tuple from typing
+    def set_Q(self, S: tuple, A: tuple, value: float):
         self.Qvalues[S][A] = value
         self.update_greedy_actions(state=S)
 

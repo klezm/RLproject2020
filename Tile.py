@@ -160,8 +160,8 @@ class Tile(tk.Label):
             self.config(**kwargs)
 
 
-# Tile.tilePolicyTypes = {action: {"text": Tile.POLICY_CHARS[action],
-#                                  "fg": Tile.POLICY_COLORS[action]}
-#                         for action in Tile.POLICY_CHARS.keys()}
-# Tile.tilePolicyTypes[None] = {"text": "",
-#                               "fg": Tile.LETTER_COLOR}
+Tile.tilePolicyTypes = {action: {"text": Tile.POLICY_CHARS[action],
+                                 "fg": Tile.POLICY_COLORS[action]}
+                        for action in Agent.ACTIONSPACE}
+Tile.tilePolicyTypes[None] = {"text": "",
+                              "fg": Tile.LETTER_COLOR}
