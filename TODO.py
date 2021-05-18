@@ -14,7 +14,7 @@
 # TODO: Implement Double Learning
 
 # TODO: Use property instead of getter/setter
-# TODO: Visualize Agent Trace (The longer a tile was not visited, the more the trace on that tile fades)
+# TODO: Visualize Agent Trace (The longer a tile was not visited, the more the trace on that tile fades) (intensity = (1 - (min(nstep, i_steps_unvisited) / nstep) * 255
 # TODO: (Stochastic) Windy Gridworld (from x & y)
 #   TODO -> Action (0,0) as possible action? Show actionvalues in the middle (where greedy policy is now) and greedy policy in some edge
 # TODO: King-Moves (can be toggled)
@@ -24,6 +24,8 @@
 # TODO: initial actionvalue mean and sigma in gui
 # TODO: Set agent params by algorithm keyword
 # TODO: Plot Reward vs Timestep for non-episodic Tasks
+# TODO: Allow running n Agents one after another with fixed params and without visualization to make average plots
+#   TODO -> Nice once {timestep: map} is implemented
 # TODO: Dynamically change tilesizes w.r.t. grid dimensions on initialize
 # TODO: Flags for debug stuff and prints, own print function
 # TODO: Yaml config instead of pseudoconstant statics
