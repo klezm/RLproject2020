@@ -4,8 +4,9 @@ from TypedStringVar import TypedStringVar
 
 
 class EntryFrame(ParameterFrame):
-    def __init__(self, *args, targetType=None, **kwargs):
+    def __init__(self, *args, targetType=None, entryWidth=8, **kwargs):
         self.targetType = targetType
+        self.entryWidth = entryWidth
         super().__init__(*args, **kwargs)
         self.varWidget.config(font=self.font)
 
@@ -14,4 +15,4 @@ class EntryFrame(ParameterFrame):
             self.tkVar = TypedStringVar(self.targetType)
         else:
             self.tkVar = tk.StringVar()
-        self.varWidget = tk.Entry(self, textvariable=self.tkVar, width=8)
+        self.varWidget = tk.Entry(self, textvariable=self.tkVar, width=self.entryWidth)

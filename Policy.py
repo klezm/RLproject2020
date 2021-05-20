@@ -13,7 +13,7 @@ class Policy:
             return random.choice(greedyActions)
         
     def sample_random_action(self):
-        return random.choice(self.agent.ACTIONSPACE)
+        return random.choice(self.agent.get_actionspace())
         # We can use this one-liner ONLY BECAUSE in a gridworld, the actionspace does not depend on the state.
     
     def generate_action(self, state):

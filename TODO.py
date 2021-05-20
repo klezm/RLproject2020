@@ -1,6 +1,3 @@
-# TODO: remove cycle maps feature
-# TODO: check (and improve) tile_policy_types def and usage, rework Tile.py
-#   TODO -> Try to easily include King-Moves
 # TODO: rename pargs keys consistently / Better: Read from easy editable yaml config -> adjust readme
 # TODO: "if True:"-Einrückungen in GUI init für übersicht
 # TODO: Free bottlenecks from np object arrays
@@ -14,10 +11,8 @@
 # TODO: Implement Double Learning
 
 # TODO: Use property instead of getter/setter
-# TODO: Visualize Agent Trace (The longer a tile was not visited, the more the trace on that tile fades) (intensity = (1 - (min(nstep, i_steps_unvisited) / nstep) * 255
 # TODO: (Stochastic) Windy Gridworld (from x & y)
 #   TODO -> Action (0,0) as possible action? Show actionvalues in the middle (where greedy policy is now) and greedy policy in some edge
-# TODO: King-Moves (can be toggled)
 # TODO: Teleporters
 # TODO: Ice Floor (can be toggled) -> Hard to solve for human, but no extra challenge for RL Agent!
 # TODO: fonts not hardcoded

@@ -7,15 +7,17 @@ from myFuncs import cached_power
 
 class Agent:
     # RL variables:
-    UP = (0,-1)  # actions and states are defined as tupels (not as lists), so they can be used as dict keys
+    UP = (0,-1)  # actions and states are defined as tuples (not as lists), so they can be used as dict keys
     DOWN = (0,1)
     LEFT = (-1,0)
     RIGHT = (1,0)
-    #UPLEFT = (-1,-1)
-    #UPRIGHT = (1,-1)
-    #DOWNLEFT = (-1,1)
-    #DOWNRIGHT = (1,1)
-    ACTIONSPACE = [UP, DOWN, LEFT, RIGHT] #, UPLEFT, UPRIGHT, DOWNLEFT, DOWNRIGHT]  # for iteration purposes
+    UPLEFT = (-1,-1)
+    UPRIGHT = (1,-1)
+    DOWNLEFT = (-1,1)
+    DOWNRIGHT = (1,1)
+    DEFAULT_ACTIONSPACE = [UP, DOWN, LEFT, RIGHT]  # for iteration purposes
+    KING_EXCLUSIVE_ACTIONSPACE = [UPLEFT, UPRIGHT, DOWNLEFT, DOWNRIGHT]
+    EXTENDED_ACTIONSPACE = DEFAULT_ACTIONSPACE + KING_EXCLUSIVE_ACTIONSPACE
 
     # Flow control variables to pass to an external GUI:
     UPDATED_BY_PLANNING = "Planning Update"
@@ -25,10 +27,14 @@ class Agent:
     STARTED_EPISODE = "Episode Start"
     OPERATIONS = [UPDATED_BY_PLANNING, UPDATED_BY_EXPERIENCE, TOOK_ACTION, FINISHED_EPISODE, STARTED_EPISODE]  # for iteration purposes
 
-    def __init__(self, environment, learningRateVar, dynamicAlphaVar, discountVar, nStepVar, nPlanVar, onPolicyVar,
+    def __init__(self, environment, use_kingMoves, learningRateVar, dynamicAlphaVar, discountVar, nStepVar, nPlanVar, onPolicyVar,
                  updateByExpectationVar, behaviorEpsilonVar, behaviorEpsilonDecayRateVar, targetEpsilonVar, targetEpsilonDecayRateVar,
                  initialActionvalueMean=0, initialActionvalueSigma=0, predefinedAlgorithm=None, actionPlan=[]):
         self.environment = environment
+        if use_kingMoves:
+            self.actionspace = self.EXTENDED_ACTIONSPACE
+        else:
+            self.actionspace = self.DEFAULT_ACTIONSPACE
         if predefinedAlgorithm:
             # TODO: set missing params accordingly
             pass
@@ -45,9 +51,9 @@ class Agent:
         self.initialActionvalueSigma = initialActionvalueSigma  # TODO: Set this in GUI
         self.Qvalues = np.empty_like(self.environment.get_grid())
         self.greedyActions = np.empty_like(self.environment.get_grid())
-        self.initialize_Qvalues()
         self.stateActionPairCounts = np.empty_like(self.environment.get_grid())
-        self.initialize_stateActionPairCounts()
+        self.stateAbsenceCounts = np.zeros_like(self.environment.get_grid())
+        self.initialize_tables()
         # Strictly speaking, the agent has no model at all and therefore in the beginning knows nothing about the environment, including its shape.
         # But to avoid technical details in implementation that would anyway not change the Agent behavior at all,
         # the agent will be given that the states can be structured in a matrix that has the same shape as the environment
@@ -67,12 +73,13 @@ class Agent:
         self.actionPlan = actionPlan
         self.actionHistory = []
 
-    def initialize_Qvalues(self):
+    def initialize_tables(self):
         for x in range(self.Qvalues.shape[0]):
             for y in range(self.Qvalues.shape[1]):
                 self.Qvalues[x,y] = {action: np.random.normal(self.initialActionvalueMean, self.initialActionvalueSigma)
-                                      for action in self.ACTIONSPACE}
+                                      for action in self.get_actionspace()}
                 self.update_greedy_actions((x,y))
+                self.stateActionPairCounts[x,y] = {action: 0 for action in self.get_actionspace()}
 
     def update_greedy_actions(self, state: tuple):
         maxActionValue = max(self.Qvalues[state].values())
@@ -83,11 +90,6 @@ class Agent:
         self.Qvalues[S][A] = value
         self.update_greedy_actions(state=S)
 
-    def initialize_stateActionPairCounts(self):
-        for x in range(self.stateActionPairCounts.shape[0]):
-            for y in range(self.stateActionPairCounts.shape[1]):
-                self.stateActionPairCounts[x,y] = {action: 0 for action in self.ACTIONSPACE}
-
     def operate(self):
         if self.get_memory_size() >= self.nStepVar.get() >= 1 or (self.episodeFinished and self.get_memory_size()):
             # First condition is never True for MC
@@ -97,6 +99,7 @@ class Agent:
             self.episodeReturns.append(self.return_)
             self.hasMadeExploratoryMove = False  # So at the next start the agent isnt colored exploratory anymore
             self.state = self.environment.remove_agent()
+            self.memory.yield_lastForgottenState()  # for correct trace visualization
             self.episodeFinished = False
             return self.FINISHED_EPISODE
         elif self.state is None:
@@ -114,11 +117,13 @@ class Agent:
         self.targetAction = None
         self.return_ = 0
         self.iSuccessivePlannings = 0
+        self.stateAbsenceCounts *= 0  # is this faster then re-initializing the whole array?
         self.state = self.environment.give_initial_position()
         if self.state is None:
             raise RuntimeError("No Starting Point found")
 
     def take_action(self):
+        self.stateAbsenceCounts += 1
         self.iSuccessivePlannings = 0
         behaviorAction = self.generate_behavior_action()
         reward, successorState, self.episodeFinished = self.environment.apply_action(behaviorAction)  # This is the only place where the agent exchanges information with the environment
@@ -126,6 +131,7 @@ class Agent:
         self.memory.memorize(self.state, behaviorAction, reward)
         self.return_ += reward  # underscore at the end because "return" is a python keyword
         self.state = successorState  # must happen after memorize and before generate_target!
+        self.stateAbsenceCounts[self.state] = 0
         self.generate_target()
         self.behaviorPolicy.decay_epsilon()
         self.targetPolicy.decay_epsilon()
@@ -194,11 +200,20 @@ class Agent:
     def get_greedyActions(self):
         return self.greedyActions
 
+    def get_absence(self, state):
+        return self.stateAbsenceCounts[state]
+
     def get_Q(self, S, A):
         return self.Qvalues[S][A]
 
     def get_targetAction(self):
         return self.targetAction
 
+    def get_memory(self):
+        return self.memory
+
     def get_memory_size(self):
-        return self.memory.get_size()
+        return len(self.memory)
+
+    def get_actionspace(self):
+        return self.actionspace

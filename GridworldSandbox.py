@@ -40,7 +40,7 @@ class GridworldSandbox:
             self.X = pargs["grid_shape"][0]
             self.Y = pargs["grid_shape"][-1]  # if only one param is provided (for quadratic world)
         else:
-            self.X, self.Y = self.ask_shape()
+            self.X, self.Y, self.allow_kingMoves = self.ask_params()
 
         # TODO: Make this class static consts
         valueTilemapsFontsize = 11
@@ -61,35 +61,20 @@ class GridworldSandbox:
         self.settingsFrame = tk.Frame(self.window, bd=5, relief=tk.GROOVE)
 
         self.gridworldFrame.grid(row=0, column=0)
-        if pargs.get("grid_world_template"):
-            self.gridworldFrame.cycle_maps(n = pargs.get("grid_world_template"))
         self.valueVisualizationFrame.grid(row=0, column=1)
         self.settingsFrame.grid(row=0, column=2)
 
         #   valueVisualizationFrame:
         self.qValueFrames = {}
-        for action in Agent.ACTIONSPACE:
+        for action in (Agent.EXTENDED_ACTIONSPACE if self.allow_kingMoves else Agent.DEFAULT_ACTIONSPACE):
             self.qValueFrames[action] = Tilemap(self.valueVisualizationFrame, X=self.X, Y=self.Y, interactionAllowed=False,
                                                 indicateNumericalValueChange=True, fontSize=valueTilemapsFontsize,
                                                 tileWidth=self.valueTilemapsTilewidth, bd=valueTilemapsBd, relief=self.VALUE_TILEMAPS_RELIEF_DEFAULT,
-                                                bg=Tile.POLICY_COLORS[action], height=valueTilemapsTileHeight)
+                                                bg=Tile.direction_to_hsvHexString(action), height=valueTilemapsTileHeight)
             self.qValueFrames[action].grid(row=action[1]+1, column=action[0]+1)  # maps the Tilemaps corresponding to the actions (which are actually 2D "vectors")  to coordinates inside the valueVisualizationFrame
         self.greedyPolicyFrame = Tilemap(self.valueVisualizationFrame, X=self.X, Y=self.Y, interactionAllowed=False, fontSize=valueTilemapsFontsize,
                                          tileWidth=self.valueTilemapsTilewidth, bd=valueTilemapsBd, height=valueTilemapsTileHeight, relief=tk.GROOVE)
         self.greedyPolicyFrame.grid(row=1, column=1)
-
-        # # TODO: nice visualization for arrows of max q values
-        # # chars:
-        # 1or2greedy =  [[ul, u, ur],
-        #                [l,  egal, r],
-        #                [dl, d, dr]]
-        #
-        # 3or4greedy = [[egal, ulr, egal],
-        #               [dlu,  " ", urd],
-        #               [egal, ldr, egal]]
-        #
-        # # for color: 1 or 2: actions addieren, winkel holen -> colorwheel
-        # #            3 or 4: black
 
         #   settingsFrame:
         self.visualizationSettingsFrame = tk.Frame(self.settingsFrame, bd=3, relief=tk.GROOVE)
@@ -101,6 +86,7 @@ class GridworldSandbox:
         #       visualizationSettingsFrame
         self.operationsLeftFrame = EntryFrame(self.visualizationSettingsFrame, text="Operations Left:", defaultValue = pargs.get("steps", 100000), targetType=int)
         self.msDelayFrame = EntryFrame(self.visualizationSettingsFrame, text="Refresh Delay [ms] >", defaultValue = pargs.get("refresh_rate", 1000), targetType=int)
+        self.visualizeMemoryFrame = CheckbuttonFrame(self.visualizationSettingsFrame, text="Visualize Memory", defaultValue=True)
         self.flowButtonsFrame = tk.Frame(self.visualizationSettingsFrame)
         self.showEveryNoperationsFrame = EntryFrame(self.visualizationSettingsFrame, text="Show Every...", defaultValue = pargs.get("show_rate", 1), targetType=int)
         self.operationsPickFrame = tk.Frame(self.visualizationSettingsFrame)
@@ -109,6 +95,8 @@ class GridworldSandbox:
         self.operationsLeftFrame.grid(row=row, column=0, sticky=tk.W+tk.E)
         row += 1
         self.msDelayFrame.grid(row=row, column=0, sticky=tk.W+tk.E)
+        row += 1
+        self.visualizeMemoryFrame.grid(row=row, column=0, sticky=tk.W+tk.E)
         row += 1
         self.flowButtonsFrame.grid(row=row, column=0)
         row += 1
@@ -194,32 +182,40 @@ class GridworldSandbox:
         self.nStepFrame.set_and_call_trace(self.toggle_offPolicy_nStep_warning)
         myFuncs.center(self.window)
 
-    def ask_shape(self):
+    def ask_params(self):
         configWindow = tk.Toplevel(self.guiProcess)
         configWindow.title("Config")
         configWindow.iconbitmap("./blank.ico")
-        #configWindow.protocol("WM_DELETE_WINDOW", self.guiProcess.quit)
-        dim1StringVar = TypedStringVar(int, value=self.INITIAL_DIMSIZE)
-        dim2StringVar = TypedStringVar(int, value=self.INITIAL_DIMSIZE)
+        row = 0
 
-        tk.Label(configWindow, text="Gridworld Size:", font=self.FONT).grid(row=0, column=0, columnspan=2)
-        tk.Label(configWindow, text="Dim 1:", font=self.FONT).grid(row=1, column=0)
-        tk.Label(configWindow, text="Dim 2:", font=self.FONT).grid(row=2, column=0)
-        tk.Entry(configWindow, textvariable=dim1StringVar, width=3, font=self.FONT).grid(row=1, column=1)
-        tk.Entry(configWindow, textvariable=dim2StringVar, width=3, font=self.FONT).grid(row=2, column=1)
-        tk.Button(configWindow, text="Ok", font=self.FONT, command=configWindow.destroy).grid(row=3, column=0, columnspan=2)
+        #tk.Label(configWindow, text="Gridworld Size:", font=self.FONT).grid(row=row, column=0, columnspan=2)
+        #row += 1
+        dim1Frame = EntryFrame(configWindow, text="Dim 1 size:", defaultValue=9, targetType=int, labelWidth=10, entryWidth=2)
+        dim2Frame = EntryFrame(configWindow, text="Dim 2 size:", defaultValue=9, targetType=int, labelWidth=10, entryWidth=2)
+        kingMovesFrame = CheckbuttonFrame(configWindow, text="King-Moves:", defaultValue=False, labelWidth=10)
+
+        dim1Frame.grid(row=row, column=0, sticky=tk.W+tk.E)
+        row += 1
+        dim2Frame.grid(row=row, column=0, sticky=tk.W+tk.E)
+        row += 1
+        kingMovesFrame.grid(row=row, column=0, sticky=tk.W+tk.E)
+        row += 1
+        tk.Button(configWindow, text="Ok", font=self.FONT, command=configWindow.destroy).grid(row=row, column=0, columnspan=2)
+        row += 1
+
+        #configWindow.protocol("WM_DELETE_WINDOW", self.guiProcess.quit)
         myFuncs.center(configWindow)
         self.guiProcess.wait_window(configWindow)
-        X = min(dim1StringVar.get(), dim2StringVar.get())
-        Y = max(dim1StringVar.get(), dim2StringVar.get())
-        return X, Y
+        X = min(dim1Frame.get_value(), dim2Frame.get_value())
+        Y = max(dim1Frame.get_value(), dim2Frame.get_value())
+        return X, Y, kingMovesFrame.get_value()
         
     def initialize_environment_and_agent(self):
         self.environment = Environment(X=self.X, Y=self.Y, isXtorusVar=self.xTorusFrame.get_var(),
                                        isYtorusVar=self.yTorusFrame.get_var(),
                                        globalActionRewardVar=self.globalActionRewardFrame.get_var())
         # Agent needs an environment to exist, but environment doesnt need an agent
-        self.agent = Agent(environment=self.environment, learningRateVar=self.learningRateFrame.get_var(),
+        self.agent = Agent(environment=self.environment, use_kingMoves=self.allow_kingMoves, learningRateVar=self.learningRateFrame.get_var(),
                            dynamicAlphaVar=self.dynamicAlphaFrame.get_var(),
                            discountVar=self.discountFrame.get_var(), nStepVar=self.nStepFrame.get_var(),
                            nPlanVar=self.nPlanFrame.get_var(), onPolicyVar=self.onPolicyFrame.get_var(),
@@ -314,51 +310,42 @@ class GridworldSandbox:
             self.unfreeze_episodetime_parameters()
             self.gridworldFrame.set_interactionAllowed(True)
 
-    def tile_policy_types(self, action, dim = 2):
-        symbol = tuple(x + 1 for x in action)
-        if dim <= 2:
-            symbol = Tile.greedy12actions[symbol]
-        else:
-            symbol = Tile.greedy34actions[symbol]
-        color = Tile.POLICY_COLORS[action]
-        return {"text": symbol, "fg": color}
-
     def visualize(self):
         # TODO: Qlearning doesnt update some tiles after a while. THATS THE POINT! Because its off-policy. This shows that it works! Great for presentation! Example with no walls and Start/Goal in the edges.
         greedyActions: np.ndarray = self.agent.get_greedyActions()
+        if self.visualizeMemoryFrame.get_value():
+            agentcolorDefaultHue, agentcolorDefaultSaturation, agentcolorDefaultValue = myFuncs.rgbHexString_to_hsv(Tile.AGENTCOLOR_DEFAULT_LIGHT)
+            traceCandidates = {state for state, _, _ in self.agent.get_memory()}
+            traceTail = self.agent.get_memory().yield_lastForgottenState()
+            memorySize = self.agent.get_memory_size() + int(bool(traceTail))
+            if traceTail:
+                traceCandidates.add(traceTail)
+
         for x in range(self.X):
             for y in range(self.Y):
                 if self.gridworldFrame.get_tile_background_color(x, y) == Tile.WALL_COLOR:
                     continue
-                gridworldFrameColor = Tile.BLANK_COLOR
-                valueVisualizationFrameColor = Tile.BLANK_COLOR
+                gridworldFrame_Color = Tile.BLANK_COLOR
+                valueVisualizationFrame_Color = Tile.BLANK_COLOR
+                if self.visualizeMemoryFrame.get_value() and (x,y) in traceCandidates:
+                    newSaturation = (0.75 - 0.5 * self.agent.get_absence((x,y)) / (memorySize+1)) * agentcolorDefaultSaturation
+                    valueVisualizationFrame_Color = myFuncs.hsv_to_rgbHexString(agentcolorDefaultHue, newSaturation, agentcolorDefaultValue)
                 if (x,y) == self.agent.get_state():
                     if self.latestAgentOperation == Agent.UPDATED_BY_PLANNING:
-                        gridworldFrameColor = Tile.AGENTCOLOR_PLANNING_DEFAULT
-                        valueVisualizationFrameColor = Tile.AGENTCOLOR_PLANNING_LIGHT
+                        gridworldFrame_Color = Tile.AGENTCOLOR_PLANNING_DEFAULT
+                        valueVisualizationFrame_Color = Tile.AGENTCOLOR_PLANNING_LIGHT
                     elif self.agent.hasMadeExploratoryMove:
-                        gridworldFrameColor = Tile.AGENTCOLOR_EXPLORATORY_DEFAULT
-                        valueVisualizationFrameColor = Tile.AGENTCOLOR_EXPLORATORY_LIGHT
+                        gridworldFrame_Color = Tile.AGENTCOLOR_EXPLORATORY_DEFAULT
+                        valueVisualizationFrame_Color = Tile.AGENTCOLOR_EXPLORATORY_LIGHT
                     else:
-                        gridworldFrameColor = Tile.AGENTCOLOR_DEFAULT_DEFAULT
-                        valueVisualizationFrameColor = Tile.AGENTCOLOR_DEFAULT_LIGHT
-                self.gridworldFrame.update_tile_appearance(x,y, bg=gridworldFrameColor)
+                        gridworldFrame_Color = Tile.AGENTCOLOR_DEFAULT_DEFAULT
+                        valueVisualizationFrame_Color = Tile.AGENTCOLOR_DEFAULT_LIGHT
+                self.gridworldFrame.update_tile_appearance(x, y, bg=gridworldFrame_Color)
                 for action, Qvalue in self.agent.get_Qvalues()[x,y].items():
-                    self.qValueFrames[action].update_tile_appearance(x, y, text=f"{Qvalue:< 3.2f}"[:self.valueTilemapsTilewidth+1], bg=valueVisualizationFrameColor)
+                    self.qValueFrames[action].update_tile_appearance(x, y, text=f"{Qvalue:< 3.2f}"[:self.valueTilemapsTilewidth+1], bg=valueVisualizationFrame_Color)
 
-                maxAction = tuple(np.sum(greedyActions[x, y], axis = 0))
-                if len(greedyActions[x,y]) == 1:
-                    tile = self.tile_policy_types(maxAction, 1)
-                elif len(greedyActions[x, y]) == 2:
-                    if maxAction == (0, 0):
-                        if set(greedyActions[x, y]) == {self.agent.LEFT, self.agent.RIGHT}:
-                            maxAction = (0, 2)  # "lr"
-                        elif set(greedyActions[x, y]) == {self.agent.DOWN, self.agent.UP}:
-                            maxAction = (2, 0)  # "ud"
-                    tile = self.tile_policy_types(maxAction, 2)
-                else:  # 3 or 4 max greedy actions
-                    tile = self.tile_policy_types(maxAction, 3)
-                self.greedyPolicyFrame.update_tile_appearance(x, y, bg = valueVisualizationFrameColor, **tile)
+                greedyReprKwargs = Tile.get_greedy_actions_representation(tuple(greedyActions[x,y]))  # tuple cast because a cached function needs mutable args
+                self.greedyPolicyFrame.update_tile_appearance(x, y, bg=valueVisualizationFrame_Color, **greedyReprKwargs)
 
         for action, tilemap in self.qValueFrames.items():
             if action == self.agent.get_targetAction():

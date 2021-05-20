@@ -20,7 +20,7 @@ def arg_parser():
     parse.add_argument("-s", "--grid-shape", action = "extend", nargs = "+", metavar = ("x", "y"), type = int,
                        help = "Choose the dimensions for the gridworld.")
     parse.add_argument("--steps", default = 100000, type = int, help = "Number of steps to run the training.")
-    parse.add_argument("--refresh-rate", default = 1000, type = int, help = "refresh rate for visualizatio in [ms]")
+    parse.add_argument("--refresh-rate", default = 10, type = int, help = "refresh rate for visualizatio in [ms]")
     parse.add_argument("--show-rate", default = 1, type = int, help = "render every nth frame")
     parse.add_argument("--lr", "--learning-rate", default = .1, type = float, help = "learning rate")
     parse.add_argument("--discount", default = 1, type = float, help = "discounted rewards")
