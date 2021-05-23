@@ -10,19 +10,14 @@ from Tile import Tile
 from Tilemap import Tilemap
 from EntryFrame import EntryFrame
 from CheckbuttonFrame import CheckbuttonFrame
-from TypedStringVar import TypedStringVar
 
 
 class GridworldSandbox:
     LABELFRAME_TEXTCOLOR = "blue"
-    INITIAL_DIMSIZE = 9
-    FONT = "calibri 15 bold"
     VALUE_TILEMAPS_RELIEF_DEFAULT = tk.FLAT
     VALUE_TILEMAPS_RELIEF_TARGET_ACTION = tk.GROOVE
 
-    def __init__(self, guiProcess, pargs = None):
-        if pargs is None:
-            pargs = {}
+    def __init__(self, guiProcess):
         # RL objects:
         self.environment = None
         self.agent = None
@@ -34,181 +29,131 @@ class GridworldSandbox:
         self.stopAtNextVisualization = False
 
         # Setting up the GUI
-
         self.guiProcess = guiProcess
-        if pargs.get("grid_shape"):
-            self.X = pargs["grid_shape"][0]
-            self.Y = pargs["grid_shape"][-1]  # if only one param is provided (for quadratic world)
+        initialValuesDict = myFuncs.get_dict_from_yaml_file("initialValues")
+        sizesDict = myFuncs.get_dict_from_yaml_file("sizes")
+        fontQvalues = myFuncs.create_font(sizesDict["qvalues fontsize"])
+        fontWorldtiles = myFuncs.create_font(sizesDict["worldtiles fontsize"])
+        fontMiddle = myFuncs.create_font(sizesDict["fontsize middle"])
+        fontBig = myFuncs.create_font(sizesDict["fontsize big"])
+
+        if initialValuesDict["skip config window"]:
+            guiScale = initialValuesDict["GUI Scale"]
+            dim1 = initialValuesDict["Dim 1 Size"]
+            dim2 = initialValuesDict["Dim 2 Size"]
+            self.allow_kingMoves = initialValuesDict["King-Moves"]
         else:
-            self.X, self.Y, self.allow_kingMoves = self.ask_params()
+            configWindow = tk.Toplevel(self.guiProcess, pady=5, padx=5)
+            configWindow.title("Config")
+            configWindow.iconbitmap("./blank.ico")
 
-        # TODO: Make this class static consts
-        valueTilemapsFontsize = 11
-        valueTilemapsTileHeight = 1
-        self.valueTilemapsTilewidth = 4
-        worldTilemapFontsize = 43
-        worldTilemapsTileHeight = 1
-        valueTilemapsBd = 10
+            scaleVar = tk.DoubleVar(value=initialValuesDict["GUI Scale"])
+            tk.Scale(configWindow, label="GUI Scale:", variable=scaleVar, from_=1.0, to=1.5, resolution=0.1, font=fontMiddle, orient=tk.HORIZONTAL, width=15, sliderlength=20)
+            dim1Frame = EntryFrame(configWindow, text="Dim 1 Size", font=fontMiddle, defaultValue=initialValuesDict["Dim 1 Size"], targetType=int, labelWidth=10, entryWidth=2)
+            dim2Frame = EntryFrame(configWindow, text="Dim 2 Size", font=fontMiddle, defaultValue=initialValuesDict["Dim 2 Size"], targetType=int, labelWidth=10, entryWidth=2)
+            kingMovesFrame = CheckbuttonFrame(configWindow, text="King-Moves", font=fontMiddle, defaultValue=initialValuesDict["King-Moves"], labelWidth=10)
+            tk.Button(configWindow, text="Ok", height=1, font=fontBig, command=configWindow.destroy)
 
-        self.window = tk.Toplevel(self.guiProcess)
-        self.window.title("Gridworld Playground")
-        self.window.iconbitmap("./blank.ico")
-        self.window.protocol("WM_DELETE_WINDOW", self.guiProcess.quit)
+            myFuncs.arrange_children(configWindow, rowDiff=1)
+
+            # configWindow.protocol("WM_DELETE_WINDOW", self.guiProcess.quit)
+            myFuncs.center(configWindow)
+            self.guiProcess.wait_window(configWindow)
+            guiScale = scaleVar.get()
+            dim1 = dim1Frame.get_value()
+            dim2 = dim2Frame.get_value()
+            self.allow_kingMoves = kingMovesFrame.get_value()
+        self.guiProcess.call('tk', 'scaling', guiScale)
+        self.X = min(dim1, dim2)
+        self.Y = max(dim1, dim2)
+
+        self.mainWindow = tk.Toplevel(self.guiProcess)
+        self.mainWindow.title("Gridworld Playground")
+        self.mainWindow.iconbitmap("./blank.ico")
+        self.mainWindow.protocol("WM_DELETE_WINDOW", self.guiProcess.quit)
 
         # window:
-        self.gridworldFrame = Tilemap(self.window, X=self.X, Y=self.Y, interactionAllowed=True, fontSize=worldTilemapFontsize, bd=5, height=worldTilemapsTileHeight, relief=tk.GROOVE)
-        self.valueVisualizationFrame = tk.Frame(self.window, bd=5, relief=tk.GROOVE)
-        self.settingsFrame = tk.Frame(self.window, bd=5, relief=tk.GROOVE)
+        self.gridworldFrame = Tilemap(self.mainWindow, X=self.X, Y=self.Y, interactionAllowed=True, font=fontWorldtiles, bd=5, height=sizesDict["worldtiles height"], relief=tk.GROOVE)
+        self.valueVisualizationFrame = tk.Frame(self.mainWindow, bd=5, relief=tk.GROOVE)
+        self.settingsFrame = tk.Frame(self.mainWindow, bd=5, relief=tk.GROOVE)
 
-        self.gridworldFrame.grid(row=0, column=0)
-        self.valueVisualizationFrame.grid(row=0, column=1)
-        self.settingsFrame.grid(row=0, column=2)
+        myFuncs.arrange_children(self.mainWindow, columnDiff=1, useSticky=False)
 
-        #   valueVisualizationFrame:
-        self.qValueFrames = {}
-        for action in (Agent.EXTENDED_ACTIONSPACE if self.allow_kingMoves else Agent.DEFAULT_ACTIONSPACE):
-            self.qValueFrames[action] = Tilemap(self.valueVisualizationFrame, X=self.X, Y=self.Y, interactionAllowed=False,
-                                                indicateNumericalValueChange=True, fontSize=valueTilemapsFontsize,
-                                                tileWidth=self.valueTilemapsTilewidth, bd=valueTilemapsBd, relief=self.VALUE_TILEMAPS_RELIEF_DEFAULT,
-                                                bg=Tile.direction_to_hsvHexString(action), height=valueTilemapsTileHeight)
-            self.qValueFrames[action].grid(row=action[1]+1, column=action[0]+1)  # maps the Tilemaps corresponding to the actions (which are actually 2D "vectors")  to coordinates inside the valueVisualizationFrame
-        self.greedyPolicyFrame = Tilemap(self.valueVisualizationFrame, X=self.X, Y=self.Y, interactionAllowed=False, fontSize=valueTilemapsFontsize,
-                                         tileWidth=self.valueTilemapsTilewidth, bd=valueTilemapsBd, height=valueTilemapsTileHeight, relief=tk.GROOVE)
-        self.greedyPolicyFrame.grid(row=1, column=1)
+        if True:  # valueVisualizationFrame:
+            self.QVALUES_WIDTH = sizesDict["qvalues width"]
+            self.qValueFrames = {}
+            for action in (Agent.EXTENDED_ACTIONSPACE if self.allow_kingMoves else Agent.DEFAULT_ACTIONSPACE):
+                self.qValueFrames[action] = Tilemap(self.valueVisualizationFrame, X=self.X, Y=self.Y, interactionAllowed=False,
+                                                    indicateNumericalValueChange=True, font=fontQvalues, tileWidth=self.QVALUES_WIDTH,
+                                                    bd=sizesDict["qvalues borderwidth"], relief=self.VALUE_TILEMAPS_RELIEF_DEFAULT,
+                                                    bg=Tile.direction_to_hsvHexString(action), height=sizesDict["qvalues height"])
+                self.qValueFrames[action].grid(row=action[1]+1, column=action[0]+1)  # maps the Tilemaps corresponding to the actions (which are actually 2D "vectors")  to coordinates inside the valueVisualizationFrame
+            self.greedyPolicyFrame = Tilemap(self.valueVisualizationFrame, X=self.X, Y=self.Y, interactionAllowed=False, font=fontQvalues,
+                                             tileWidth=self.QVALUES_WIDTH, bd=sizesDict["qvalues borderwidth"], height=sizesDict["qvalues height"], relief=tk.GROOVE)
+            self.greedyPolicyFrame.grid(row=1, column=1)
 
-        #   settingsFrame:
-        self.visualizationSettingsFrame = tk.Frame(self.settingsFrame, bd=3, relief=tk.GROOVE)
-        self.algorithmSettingsFrame = tk.Frame(self.settingsFrame, bd=3, relief=tk.GROOVE)
+        if True:  # settingsFrame:
+            self.visualizationSettingsFrame = tk.Frame(self.settingsFrame, bd=3, relief=tk.GROOVE)
+            self.algorithmSettingsFrame = tk.Frame(self.settingsFrame, bd=3, relief=tk.GROOVE)
 
-        self.visualizationSettingsFrame.grid(row=0, column=0, ipadx=3, ipady=3, sticky=tk.W+tk.E)
-        self.algorithmSettingsFrame.grid(row=1, column=0, ipadx=3, ipady=3, sticky=tk.W+tk.E)
+            myFuncs.arrange_children(self.settingsFrame, rowDiff=1, ipadx=3, ipady=3)
 
-        #       visualizationSettingsFrame
-        self.operationsLeftFrame = EntryFrame(self.visualizationSettingsFrame, text="Operations Left:", defaultValue = pargs.get("steps", 100000), targetType=int)
-        self.msDelayFrame = EntryFrame(self.visualizationSettingsFrame, text="Refresh Delay [ms] >", defaultValue = pargs.get("refresh_rate", 1000), targetType=int)
-        self.visualizeMemoryFrame = CheckbuttonFrame(self.visualizationSettingsFrame, text="Visualize Memory", defaultValue=True)
-        self.flowButtonsFrame = tk.Frame(self.visualizationSettingsFrame)
-        self.showEveryNoperationsFrame = EntryFrame(self.visualizationSettingsFrame, text="Show Every...", defaultValue = pargs.get("show_rate", 1), targetType=int)
-        self.operationsPickFrame = tk.Frame(self.visualizationSettingsFrame)
+            if True:  # visualizationSettingsFrame
+                self.operationsLeftFrame = EntryFrame(self.visualizationSettingsFrame, text="Operations Left", font=fontMiddle, defaultValue=initialValuesDict["Operations Left"], targetType=int)
+                self.msDelayFrame = EntryFrame(self.visualizationSettingsFrame, text="Min Refresh Rate [ms]", font=fontMiddle, defaultValue=initialValuesDict["Min Refresh Rate [ms]"], targetType=int)
+                self.visualizeMemoryFrame = CheckbuttonFrame(self.visualizationSettingsFrame, text="Visualize Memory", font=fontMiddle, defaultValue=initialValuesDict["Visualize Memory"])
+                self.flowButtonsFrame = tk.Frame(self.visualizationSettingsFrame)
+                self.showEveryNoperationsFrame = EntryFrame(self.visualizationSettingsFrame, text="Show Every...", font=fontMiddle, defaultValue=initialValuesDict["Show Every..."], targetType=int)
+                self.operationFrames = OrderedDict([(operation, CheckbuttonFrame(self.visualizationSettingsFrame, text=f"...{operation}", font=fontMiddle, defaultValue=initialValuesDict[f"...{operation}"])) for operation in Agent.OPERATIONS])
 
-        row = 0
-        self.operationsLeftFrame.grid(row=row, column=0, sticky=tk.W+tk.E)
-        row += 1
-        self.msDelayFrame.grid(row=row, column=0, sticky=tk.W+tk.E)
-        row += 1
-        self.visualizeMemoryFrame.grid(row=row, column=0, sticky=tk.W+tk.E)
-        row += 1
-        self.flowButtonsFrame.grid(row=row, column=0)
-        row += 1
-        self.showEveryNoperationsFrame.grid(row=row, column=0, sticky=tk.W + tk.E)
-        row += 1
-        self.operationsPickFrame.grid(row=row, column=0, sticky=tk.W + tk.E)
+                myFuncs.arrange_children(self.visualizationSettingsFrame, rowDiff=1)
+                self.flowButtonsFrame.grid_configure(sticky="")
 
-        self.showEveryNoperationsFrame.set_and_call_trace(self.reset_agentOperationCounts)
+                self.relevantOperations = set()
+                self.showEveryNoperationsFrame.set_and_call_trace(self.reset_agentOperationCounts)
+                for operation, frame in(self.operationFrames.items()):
+                    frame.set_and_call_trace(lambda operation=operation: self.toggle_operation_relevance(operation))
 
-        #           flowButtonsFrame:
-        self.goButton = tk.Button(self.flowButtonsFrame, text="Go!", font=self.FONT, bd=5, command=lambda: self.start_flow(stopAtNextVisualization=False))
-        self.pauseButton = tk.Button(self.flowButtonsFrame, text="Pause", font=self.FONT, bd=5, command=self.pause_flow, state=tk.DISABLED)
-        self.nextButton = tk.Button(self.flowButtonsFrame, text="Next", font=self.FONT, bd=5, command=lambda: self.start_flow(stopAtNextVisualization=True))
+                if True:  # flowButtonsFrame:
+                    self.goButton = tk.Button(self.flowButtonsFrame, text="Go!", font=fontBig, bd=5, command=lambda: self.start_flow(stopAtNextVisualization=False))
+                    self.pauseButton = tk.Button(self.flowButtonsFrame, text="Pause", font=fontBig, bd=5, command=self.pause_flow, state=tk.DISABLED)
+                    self.nextButton = tk.Button(self.flowButtonsFrame, text="Next", font=fontBig, bd=5, command=lambda: self.start_flow(stopAtNextVisualization=True))
 
-        self.goButton.grid(row=0, column=0)
-        self.pauseButton.grid(row=0, column=1)
-        self.nextButton.grid(row=0, column=2)
+                    myFuncs.arrange_children(self.flowButtonsFrame, columnDiff=1)
 
-        #           operationsPickFrame
-        self.operationFrames = OrderedDict([(operation, CheckbuttonFrame(self.operationsPickFrame, text=f"...{operation}", defaultValue=True)) for operation in Agent.OPERATIONS])
-        self.relevantOperations = []
-        for i, item in enumerate(self.operationFrames.items()):
-            operation, frame = item
-            frame.grid(row=i, column=0, sticky=tk.W + tk.E)
-            frame.set_and_call_trace(lambda operation=operation: self.toggle_operation_relevance(operation))
+            if True:  # algorithmSettingsFrame
+                self.xTorusFrame = CheckbuttonFrame(self.algorithmSettingsFrame, text="X-Torus", font=fontMiddle, defaultValue=initialValuesDict["X-Torus"])
+                self.yTorusFrame = CheckbuttonFrame(self.algorithmSettingsFrame, text="Y-Torus", font=fontMiddle, defaultValue=initialValuesDict["Y-Torus"])
+                self.globalActionRewardFrame = EntryFrame(self.algorithmSettingsFrame, text="Global Action Reward", font=fontMiddle, defaultValue=initialValuesDict["Global Action Reward"], targetType=float)
+                self.discountFrame = EntryFrame(self.algorithmSettingsFrame, text="Discount \u03B3", font=fontMiddle, defaultValue=initialValuesDict["Discount"], targetType=float)  # gamma
+                self.learningRateFrame = EntryFrame(self.algorithmSettingsFrame, text="Learning Rate \u03B1", font=fontMiddle, defaultValue=initialValuesDict["Learning Rate"], targetType=float)  # alpha
+                self.dynamicAlphaFrame = CheckbuttonFrame(self.algorithmSettingsFrame, text="\u03B1 = 1/count((S,A))", font=fontMiddle, defaultValue=initialValuesDict["Learning Rate = 1/count((S,A))"])  # alpha
+                self.nStepFrame = EntryFrame(self.algorithmSettingsFrame, text="n-Step n", font=fontMiddle, defaultValue=initialValuesDict["n-Step n"], targetType=int)
+                self.nPlanFrame = EntryFrame(self.algorithmSettingsFrame, text="Dyna-Q n", font=fontMiddle, defaultValue=initialValuesDict["Dyna-Q n"], targetType=int)
+                self.onPolicyFrame = CheckbuttonFrame(self.algorithmSettingsFrame, text="On-Policy", font=fontMiddle, defaultValue=initialValuesDict["On-Policy"])
+                self.updateByExpectationFrame = CheckbuttonFrame(self.algorithmSettingsFrame, text="Update by Expectation", font=fontMiddle, defaultValue=initialValuesDict["Update by Expectation"])
+                self.behaviorPolicyFrame = tk.LabelFrame(self.algorithmSettingsFrame, text="Behavior Policy", font=fontBig, fg=self.LABELFRAME_TEXTCOLOR)
+                self.targetPolicyFrame = tk.LabelFrame(self.algorithmSettingsFrame, text="Target Policy", font=fontBig)
 
-        #       algorithmSettingsFrame
-        self.xTorusFrame = CheckbuttonFrame(self.algorithmSettingsFrame, text="X-Torus:", defaultValue=False)
-        self.yTorusFrame = CheckbuttonFrame(self.algorithmSettingsFrame, text="Y-Torus:", defaultValue=False)
-        self.globalActionRewardFrame = EntryFrame(self.algorithmSettingsFrame, text="Global Action Reward:", defaultValue=-1, targetType=float)
-        self.discountFrame = EntryFrame(self.algorithmSettingsFrame, text="Discount \u03B3:", defaultValue = pargs.get("discount", 1), targetType=float)  # gamma
-        self.learningRateFrame = EntryFrame(self.algorithmSettingsFrame, text="Learning Rate \u03B1:", defaultValue = pargs.get("learning_rate", 0.1), targetType=float)  # alpha
-        self.dynamicAlphaFrame = CheckbuttonFrame(self.algorithmSettingsFrame, text="\u03B1 = 1/count((S,A))", defaultValue=False)  # alpha
-        self.nStepFrame = EntryFrame(self.algorithmSettingsFrame, text="n-Step n:", defaultValue = pargs.get("n_step_n", 1), targetType=int)
-        self.nPlanFrame = EntryFrame(self.algorithmSettingsFrame, text="Dyna-Q n:", defaultValue = pargs.get("dyna_q_n", 0), targetType=int)
-        self.onPolicyFrame = CheckbuttonFrame(self.algorithmSettingsFrame, text="On-Policy:", defaultValue = pargs.get("off_policy", True))
-        self.updateByExpectationFrame = CheckbuttonFrame(self.algorithmSettingsFrame, text="Update by Expectation", defaultValue = pargs.get("use_expectation", False))
-        self.behaviorPolicyFrame = tk.LabelFrame(self.algorithmSettingsFrame, text="Behavior Policy", font=self.FONT, fg=self.LABELFRAME_TEXTCOLOR)
-        self.targetPolicyFrame = tk.LabelFrame(self.algorithmSettingsFrame, text="Target Policy", font=self.FONT)
+                myFuncs.arrange_children(self.algorithmSettingsFrame, rowDiff=1)
 
-        row = 0
-        self.xTorusFrame.grid(row=row, column=0, sticky=tk.W+tk.E)
-        row += 1
-        self.yTorusFrame.grid(row=row, column=0, sticky=tk.W+tk.E)
-        row += 1
-        self.globalActionRewardFrame.grid(row=row, column=0, sticky=tk.W+tk.E)
-        row += 1
-        self.discountFrame.grid(row=row, column=0, sticky=tk.W+tk.E)
-        row += 1
-        self.learningRateFrame.grid(row=row, column=0, sticky=tk.W+tk.E)
-        row += 1
-        self.dynamicAlphaFrame.grid(row=row, column=0, sticky=tk.W+tk.E)
-        row += 1
-        self.nStepFrame.grid(row=row, column=0, sticky=tk.W+tk.E)
-        row += 1
-        self.nPlanFrame.grid(row=row, column=0, sticky=tk.W+tk.E)
-        row += 1
-        self.onPolicyFrame.grid(row=row, column=0, sticky=tk.W+tk.E)
-        row += 1
-        self.updateByExpectationFrame.grid(row=row, column=0, sticky=tk.W+tk.E)
-        row += 1
-        self.behaviorPolicyFrame.grid(row=row, column=0, sticky=tk.W+tk.E, ipadx=3)
-        row += 1
-        self.targetPolicyFrame.grid(row=row, column=0, sticky=tk.W+tk.E, ipadx=3)
+                if True:  # behaviorPolicyFrame
+                    self.behaviorEpsilonFrame = EntryFrame(self.behaviorPolicyFrame, text="Exploration Rate \u03B5", font=fontMiddle, defaultValue=initialValuesDict["Behavior Policy Exploration Rate"], targetType=float)  # epsilon
+                    self.behaviorEpsilonDecayRateFrame = EntryFrame(self.behaviorPolicyFrame, text="\u03B5-Decay Rate", font=fontMiddle, defaultValue=initialValuesDict["Behavior Policy epsilon-Decay Rate"], targetType=float)  # epsilon
 
-        #           behaviorPolicyFrame
-        self.behaviorEpsilonFrame = EntryFrame(self.behaviorPolicyFrame, text="Exploration Rate \u03B5:", defaultValue = pargs.get("exploration_rate", 0.5), targetType=float)  # epsilon
-        self.behaviorEpsilonDecayRateFrame = EntryFrame(self.behaviorPolicyFrame, text="\u03B5-Decay Rate:", defaultValue = pargs.get("exploration_rate_decay", .9999), targetType=float)  # epsilon
+                    myFuncs.arrange_children(self.behaviorPolicyFrame, rowDiff=1)
 
-        self.behaviorEpsilonFrame.grid(row=0, column=0, sticky=tk.W + tk.E)
-        self.behaviorEpsilonDecayRateFrame.grid(row=1, column=0, sticky=tk.W + tk.E)
+                if True:  # targetPolicyFrame
+                    self.targetEpsilonFrame = EntryFrame(self.targetPolicyFrame, text="Exploration Rate \u03B5", font=fontMiddle, defaultValue=initialValuesDict["Target Policy Exploration Rate"], targetType=float)  # epsilon
+                    self.targetEpsilonDecayRateFrame = EntryFrame(self.targetPolicyFrame, text="\u03B5-Decay Rate", font=fontMiddle, defaultValue=initialValuesDict["Target Policy epsilon-Decay Rate"], targetType=float)  # epsilon
 
-        #           targetPolicyFrame
-        self.targetEpsilonFrame = EntryFrame(self.targetPolicyFrame, text="Exploration Rate \u03B5:", defaultValue=0, targetType=float)  # epsilon
-        self.targetEpsilonDecayRateFrame = EntryFrame(self.targetPolicyFrame, text="\u03B5-Decay Rate:", defaultValue=1, targetType=float)  # epsilon
+                    myFuncs.arrange_children(self.targetPolicyFrame, rowDiff=1)
 
-        self.targetEpsilonFrame.grid(row=0, column=0, sticky=tk.W + tk.E)
-        self.targetEpsilonDecayRateFrame.grid(row=1, column=0, sticky=tk.W + tk.E)
-
-        self.dynamicAlphaFrame.set_and_call_trace(self.toggle_alpha_freeze)
-        self.onPolicyFrame.set_and_call_trace(self.toggle_targetPolicyFrame)
-        self.onPolicyFrame.set_and_call_trace(self.toggle_offPolicy_nStep_warning)
-        self.nStepFrame.set_and_call_trace(self.toggle_offPolicy_nStep_warning)
-        myFuncs.center(self.window)
-
-    def ask_params(self):
-        configWindow = tk.Toplevel(self.guiProcess)
-        configWindow.title("Config")
-        configWindow.iconbitmap("./blank.ico")
-        row = 0
-
-        #tk.Label(configWindow, text="Gridworld Size:", font=self.FONT).grid(row=row, column=0, columnspan=2)
-        #row += 1
-        dim1Frame = EntryFrame(configWindow, text="Dim 1 size:", defaultValue=9, targetType=int, labelWidth=10, entryWidth=2)
-        dim2Frame = EntryFrame(configWindow, text="Dim 2 size:", defaultValue=9, targetType=int, labelWidth=10, entryWidth=2)
-        kingMovesFrame = CheckbuttonFrame(configWindow, text="King-Moves:", defaultValue=False, labelWidth=10)
-
-        dim1Frame.grid(row=row, column=0, sticky=tk.W+tk.E)
-        row += 1
-        dim2Frame.grid(row=row, column=0, sticky=tk.W+tk.E)
-        row += 1
-        kingMovesFrame.grid(row=row, column=0, sticky=tk.W+tk.E)
-        row += 1
-        tk.Button(configWindow, text="Ok", font=self.FONT, command=configWindow.destroy).grid(row=row, column=0, columnspan=2)
-        row += 1
-
-        #configWindow.protocol("WM_DELETE_WINDOW", self.guiProcess.quit)
-        myFuncs.center(configWindow)
-        self.guiProcess.wait_window(configWindow)
-        X = min(dim1Frame.get_value(), dim2Frame.get_value())
-        Y = max(dim1Frame.get_value(), dim2Frame.get_value())
-        return X, Y, kingMovesFrame.get_value()
+                self.dynamicAlphaFrame.set_and_call_trace(self.toggle_alpha_freeze)
+                self.onPolicyFrame.set_and_call_trace(self.toggle_targetPolicyFrame)
+                self.onPolicyFrame.set_and_call_trace(self.toggle_offPolicy_nStep_warning)
+                self.nStepFrame.set_and_call_trace(self.toggle_offPolicy_nStep_warning)
+        myFuncs.center(self.mainWindow)
         
     def initialize_environment_and_agent(self):
         self.environment = Environment(X=self.X, Y=self.Y, isXtorusVar=self.xTorusFrame.get_var(),
@@ -328,7 +273,7 @@ class GridworldSandbox:
                 gridworldFrame_Color = Tile.BLANK_COLOR
                 valueVisualizationFrame_Color = Tile.BLANK_COLOR
                 if self.visualizeMemoryFrame.get_value() and (x,y) in traceCandidates:
-                    newSaturation = (0.75 - 0.5 * self.agent.get_absence((x,y)) / (memorySize+1)) * agentcolorDefaultSaturation
+                    newSaturation = (0.75 - 0.4 * self.agent.get_absence((x,y)) / (memorySize+1)) * agentcolorDefaultSaturation
                     valueVisualizationFrame_Color = myFuncs.hsv_to_rgbHexString(agentcolorDefaultHue, newSaturation, agentcolorDefaultValue)
                 if (x,y) == self.agent.get_state():
                     if self.latestAgentOperation == Agent.UPDATED_BY_PLANNING:
@@ -342,7 +287,7 @@ class GridworldSandbox:
                         valueVisualizationFrame_Color = Tile.AGENTCOLOR_DEFAULT_LIGHT
                 self.gridworldFrame.update_tile_appearance(x, y, bg=gridworldFrame_Color)
                 for action, Qvalue in self.agent.get_Qvalues()[x,y].items():
-                    self.qValueFrames[action].update_tile_appearance(x, y, text=f"{Qvalue:< 3.2f}"[:self.valueTilemapsTilewidth+1], bg=valueVisualizationFrame_Color)
+                    self.qValueFrames[action].update_tile_appearance(x, y, text=f"{Qvalue:< 3.2f}"[:self.QVALUES_WIDTH + 1], bg=valueVisualizationFrame_Color)
 
                 greedyReprKwargs = Tile.get_greedy_actions_representation(tuple(greedyActions[x,y]))  # tuple cast because a cached function needs mutable args
                 self.greedyPolicyFrame.update_tile_appearance(x, y, bg=valueVisualizationFrame_Color, **greedyReprKwargs)
@@ -360,9 +305,12 @@ class GridworldSandbox:
     def toggle_operation_relevance(self, operation):
         #  This could also happen in check_flow_status in a similar way, but this way the stuff which must be computed at every check_flow_status call is minimized, since this function is only called after a checkbutton flip
         if self.operationFrames[operation].get_value():
-            self.relevantOperations.append(operation)
+            self.relevantOperations.add(operation)
         else:
-            self.relevantOperations.remove(operation)
+            try:
+                self.relevantOperations.remove(operation)
+            except:
+                pass
         self.reset_agentOperationCounts()
 
     def reset_agentOperationCounts(self):

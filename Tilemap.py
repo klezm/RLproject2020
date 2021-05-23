@@ -5,14 +5,14 @@ from Tile import Tile
 
 
 class Tilemap(tk.Frame):
-    def __init__(self, master, X, Y, interactionAllowed, fontSize, indicateNumericalValueChange=False, tileWidth=2, height=2, anchor=tk.CENTER, **kwargs):
+    def __init__(self, master, X, Y, interactionAllowed, font="calibri 14 bold", indicateNumericalValueChange=False, tileWidth=2, height=2, anchor=tk.CENTER, **kwargs):
         super().__init__(master, **kwargs)
         self.interactionAllowed = interactionAllowed
         self.tiles = np.empty((X,Y), dtype=Tile)
         for x in range(X):
             for y in range(Y):
                 self.tiles[x,y] = Tile(self, indicateNumericalValueChange=indicateNumericalValueChange,
-                                       width=tileWidth, height=height, anchor=anchor, font=f"calibri {fontSize} bold")
+                                       width=tileWidth, height=height, anchor=anchor, font=font)
                 self.tiles[x,y].grid(row=y, column=x)
 
     def protect_text_and_color(self, x, y):

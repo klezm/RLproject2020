@@ -2,9 +2,9 @@ import tkinter as tk
 
 
 class ParameterFrame(tk.Frame):
-    def __init__(self, *args, text="", defaultValue="", fontsize=14, textColor="black", labelWidth=20, **kwargs):
+    def __init__(self, *args, text="", defaultValue="", font="calibri 14 bold", textColor="black", labelWidth=20, **kwargs):
         super().__init__(*args, **kwargs)
-        self.font = f"calibri {fontsize} bold"
+        self.font = font
         self.nameLabel = tk.Label(self, text=text, fg=textColor, width=labelWidth, anchor=tk.W, font=self.font)
         self.nameLabel.grid(row=0, column=0)
         self.tkVar = None

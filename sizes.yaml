@@ -1,0 +1,10 @@
+qvalues fontsize: 11
+qvalues height: 1
+qvalues width: 4
+qvalues borderwidth: 10
+
+worldtiles fontsize: 43
+worldtiles height: 1
+
+fontsize big: 15
+fontsize middle: 14

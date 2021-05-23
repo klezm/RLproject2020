@@ -1,7 +1,4 @@
-# TODO: rename pargs keys consistently / Better: Read from easy editable yaml config -> adjust readme
-# TODO: "if True:"-Einrückungen in GUI init für übersicht
 # TODO: Free bottlenecks from np object arrays
-# TODO: Add remaining argtypes
 # TODO: Implement planning (Dyna-Q, Dyna-Q+)
 #   TODO -> Load/Save maps/dict:{timestep: map} from/in file
 # TODO: Entry for some reward number, mousewheel-click on some tile applies that number as arrival reward for that tile
@@ -15,10 +12,11 @@
 #   TODO -> Action (0,0) as possible action? Show actionvalues in the middle (where greedy policy is now) and greedy policy in some edge
 # TODO: Teleporters
 # TODO: Ice Floor (can be toggled) -> Hard to solve for human, but no extra challenge for RL Agent!
+#   TODO -> Disable Wind if Ice
 # TODO: fonts not hardcoded
 # TODO: initial actionvalue mean and sigma in gui
 # TODO: Set agent params by algorithm keyword
-# TODO: Plot Reward vs Timestep for non-episodic Tasks
+# TODO: Plot Return vs Timestep for non-episodic Tasks
 # TODO: Allow running n Agents one after another with fixed params and without visualization to make average plots
 #   TODO -> Nice once {timestep: map} is implemented
 # TODO: Dynamically change tilesizes w.r.t. grid dimensions on initialize

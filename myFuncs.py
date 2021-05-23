@@ -2,6 +2,9 @@ from functools import cache
 import colorsys
 import webcolors
 import numpy as np
+import tkinter as tk
+from tkinter import filedialog
+import yaml
 
 
 @cache
@@ -46,3 +49,36 @@ def center(window):
     x = window.winfo_screenwidth() // 2 - window_width // 2
     y = window.winfo_screenheight() // 2 - window_height // 2
     window.geometry('{}x{}+{}+{}'.format(width, height, x, y))
+
+
+def arrange_children(frame, rowDiff=0, columnDiff=0, useSticky=True, **kwargs):
+    sticky = ""
+    if rowDiff:
+        if useSticky:
+            sticky = tk.W + tk.E
+        rowspan = rowDiff
+        columnspan = 1
+    if columnDiff:
+        if useSticky:
+            sticky = tk.N + tk.S
+        rowspan = 1
+        columnspan = columnDiff
+    row = 0
+    column = 0
+    for child in frame.winfo_children():
+        child.grid(row=row, column=column, rowspan=rowspan, columnspan=columnspan, sticky=sticky, **kwargs)
+        row += rowDiff
+        column += columnDiff
+
+
+def get_dict_from_yaml_file(filename=None, initialdir="."):
+    if filename is None:
+        filename = filedialog.askopenfilename(initialdir=initialdir, filetypes=[("", "*.yaml")])
+    else:
+        filename += ".yaml"
+    with open(filename, "r") as file:
+        return yaml.safe_load(file)
+
+
+def create_font(size, family= "calibri", weight="bold"):
+    return f"{family} {size} {weight}"
