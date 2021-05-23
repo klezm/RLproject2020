@@ -8,9 +8,9 @@ class ParameterFrame(tk.Frame):
         self.nameLabel = tk.Label(self, text=text, fg=textColor, width=labelWidth, anchor=tk.W, font=self.font)
         self.nameLabel.grid(row=0, column=0)
         self.tkVar = None
-        self.varWidget = None
+        self.varWidget= None
         self.make_var_widget()
-        self.tkVar.set(defaultValue)
+        self.set_value(defaultValue)
         self.varWidget.grid(row=0, column=1)
 
     def set_and_call_trace(self, inputFunc):
@@ -21,7 +21,7 @@ class ParameterFrame(tk.Frame):
         self.tkVar.trace_add("write", traceFunc)
         traceFunc()
 
-    def freeze(self, includeText=1):
+    def freeze(self, includeText=True):
         self.varWidget.config(state=tk.DISABLED)
         if includeText:
             self.nameLabel.config(state=tk.DISABLED)

@@ -1,6 +1,6 @@
-skip config window: true
+skip config window: 1
 
-GUI Scale: 1.3
+GUI Scale: 1.35
 Dim 1 Size: 9
 Dim 2 Size: 9
 King-Moves: false

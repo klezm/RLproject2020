@@ -48,7 +48,7 @@ class GridworldSandbox:
             configWindow.iconbitmap("./blank.ico")
 
             scaleVar = tk.DoubleVar(value=initialValuesDict["GUI Scale"])
-            tk.Scale(configWindow, label="GUI Scale:", variable=scaleVar, from_=1.0, to=1.5, resolution=0.1, font=fontMiddle, orient=tk.HORIZONTAL, width=15, sliderlength=20)
+            tk.Scale(configWindow, label="GUI Scale:", variable=scaleVar, from_=1.0, to=1.5, resolution=0.05, font=fontMiddle, orient=tk.HORIZONTAL, width=15, sliderlength=20)
             dim1Frame = EntryFrame(configWindow, text="Dim 1 Size", font=fontMiddle, defaultValue=initialValuesDict["Dim 1 Size"], targetType=int, labelWidth=10, entryWidth=2)
             dim2Frame = EntryFrame(configWindow, text="Dim 2 Size", font=fontMiddle, defaultValue=initialValuesDict["Dim 2 Size"], targetType=int, labelWidth=10, entryWidth=2)
             kingMovesFrame = CheckbuttonFrame(configWindow, text="King-Moves", font=fontMiddle, defaultValue=initialValuesDict["King-Moves"], labelWidth=10)
@@ -115,11 +115,15 @@ class GridworldSandbox:
                     frame.set_and_call_trace(lambda operation=operation: self.toggle_operation_relevance(operation))
 
                 if True:  # flowButtonsFrame:
-                    self.goButton = tk.Button(self.flowButtonsFrame, text="Go!", font=fontBig, bd=5, command=lambda: self.start_flow(stopAtNextVisualization=False))
-                    self.pauseButton = tk.Button(self.flowButtonsFrame, text="Pause", font=fontBig, bd=5, command=self.pause_flow, state=tk.DISABLED)
-                    self.nextButton = tk.Button(self.flowButtonsFrame, text="Next", font=fontBig, bd=5, command=lambda: self.start_flow(stopAtNextVisualization=True))
+                    # pause is only hidden behind go because of the order of lines below. If this somehow fails, uncomment all lines that say "use this again if Pause appears over Go! when it shouldnt" as a comment
+                    self.pauseButton = tk.Button(self.flowButtonsFrame, text="Pause", font=fontBig, bd=5, width=5, command=self.pause_flow)
+                    self.goButton = tk.Button(self.flowButtonsFrame, text="Go!", font=fontBig, bd=5, width=5, command=lambda: self.start_flow(stopAtNextVisualization=False))
+                    self.nextButton = tk.Button(self.flowButtonsFrame, text="Next", font=fontBig, bd=5, width=5, command=lambda: self.start_flow(stopAtNextVisualization=True))
 
-                    myFuncs.arrange_children(self.flowButtonsFrame, columnDiff=1)
+                    self.goButton.grid(row=0, column=0)
+                    self.pauseButton.grid(row=0, column=0)
+                    #self.pauseButton.grid_remove()  # use this again if Pause appears over Go! when it shouldnt
+                    self.nextButton.grid(row=0, column=1)
 
             if True:  # algorithmSettingsFrame
                 self.xTorusFrame = CheckbuttonFrame(self.algorithmSettingsFrame, text="X-Torus", font=fontMiddle, defaultValue=initialValuesDict["X-Torus"])
@@ -171,7 +175,7 @@ class GridworldSandbox:
                            targetEpsilonDecayRateVar=self.targetEpsilonDecayRateFrame.get_var())
 
     def update_gridworldPlayground_environment(self):
-        tileData = np.empty((self.X,self.Y), dtype=object)
+        tileData = np.empty((self.X,self.Y), dtype=dict)
         valueVisualizationTilemaps = self.valueVisualizationFrame.winfo_children()
         for x in range(self.X):
             for y in range(self.Y):
@@ -195,8 +199,8 @@ class GridworldSandbox:
     def start_flow(self, stopAtNextVisualization):
         self.flowPaused = False
         self.stopAtNextVisualization = stopAtNextVisualization
-        self.goButton.config(state=tk.DISABLED)
-        self.pauseButton.config(state=tk.NORMAL)
+        #self.pauseButton.grid()  # use this again if Pause appears over Go! when it shouldnt
+        self.goButton.grid_remove()
         self.nextButton.config(state=tk.DISABLED)
         if self.agent is None:
             self.initialize_environment_and_agent()
@@ -222,6 +226,7 @@ class GridworldSandbox:
         self.operationsLeftFrame.set_value(self.operationsLeftFrame.get_value() - 1)
         if self.operationsLeftFrame.get_value() <= 0:
             if self.agent.get_episodeReturns():
+                self.visualize()
                 self.plot()
             del self.agent
             self.agent = None
@@ -248,8 +253,8 @@ class GridworldSandbox:
     def pause_flow(self):
         self.flowPaused = True
         self.stopAtNextVisualization = False
-        self.goButton.config(state=tk.NORMAL)
-        self.pauseButton.config(state=tk.DISABLED)
+        self.goButton.grid()
+        #self.pauseButton.grid_remove()  # use this again if Pause appears over Go! when it shouldnt
         self.nextButton.config(state=tk.NORMAL)
         if self.agent is None or self.latestAgentOperation == Agent.FINISHED_EPISODE:
             self.unfreeze_episodetime_parameters()

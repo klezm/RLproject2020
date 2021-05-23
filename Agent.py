@@ -49,10 +49,10 @@ class Agent:
         self.nPlanVar = nPlanVar
         self.initialActionvalueMean = initialActionvalueMean  # TODO: Set this in GUI
         self.initialActionvalueSigma = initialActionvalueSigma  # TODO: Set this in GUI
-        self.Qvalues = np.empty_like(self.environment.get_grid())
-        self.greedyActions = np.empty_like(self.environment.get_grid())
-        self.stateActionPairCounts = np.empty_like(self.environment.get_grid())
-        self.stateAbsenceCounts = np.zeros_like(self.environment.get_grid())
+        self.Qvalues = np.empty_like(self.environment.get_grid(), dtype=dict)
+        self.greedyActions = np.empty_like(self.environment.get_grid(), dtype=list)
+        self.stateActionPairCounts = np.empty_like(self.environment.get_grid(), dtype=dict)
+        self.stateAbsenceCounts = np.zeros_like(self.environment.get_grid(), dtype=np.int32)
         self.initialize_tables()
         # Strictly speaking, the agent has no model at all and therefore in the beginning knows nothing about the environment, including its shape.
         # But to avoid technical details in implementation that would anyway not change the Agent behavior at all,
@@ -77,7 +77,7 @@ class Agent:
         for x in range(self.Qvalues.shape[0]):
             for y in range(self.Qvalues.shape[1]):
                 self.Qvalues[x,y] = {action: np.random.normal(self.initialActionvalueMean, self.initialActionvalueSigma)
-                                      for action in self.get_actionspace()}
+                                     for action in self.get_actionspace()}
                 self.update_greedy_actions((x,y))
                 self.stateActionPairCounts[x,y] = {action: 0 for action in self.get_actionspace()}
 
