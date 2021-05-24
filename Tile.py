@@ -82,6 +82,7 @@ class Tile(tk.Label):
         self.arrivalReward = 0  # TODO: set this in GUI
         self.cycleIndex = 0
         self.protectedAttributes = set()
+        self.bind("<Enter>", lambda *bindArgs: self.focus_set())
         self.bind("<Button-1>", lambda _: self.cycle_type(direction=1))
         self.bind("<Button-3>", lambda _: self.cycle_type(direction=-1))
         self.indicateNumericalValueChange = indicateNumericalValueChange

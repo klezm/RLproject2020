@@ -1,3 +1,4 @@
+# TODO: Comments in yaml
 # TODO: Implement planning (Dyna-Q, Dyna-Q+)
 #   TODO -> Load/Save maps/dict:{timestep: map} from/in file
 # TODO: Entry for some reward number, mousewheel-click on some tile applies that number as arrival reward for that tile

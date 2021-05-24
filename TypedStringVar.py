@@ -1,4 +1,5 @@
 import tkinter as tk
+from tkinter import messagebox
 
 
 class TypedStringVar(tk.StringVar):
@@ -9,5 +10,5 @@ class TypedStringVar(tk.StringVar):
     def get(self):
         try:
             return self.targetType(super().get())
-        except:
-            return None
+        except ValueError as e:
+            messagebox.showinfo("Value Error", e)

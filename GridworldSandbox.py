@@ -2,6 +2,7 @@
 import numpy as np
 from collections import OrderedDict
 import matplotlib.pyplot as plt
+from pprint import pprint
 
 import myFuncs
 from Environment import Environment
@@ -30,28 +31,28 @@ class GridworldSandbox:
 
         # Setting up the GUI
         self.guiProcess = guiProcess
-        initialValuesDict = myFuncs.get_dict_from_yaml_file("initialValues")
+        initialWindowDict = myFuncs.get_dict_from_yaml_file("initialWindow")
         sizesDict = myFuncs.get_dict_from_yaml_file("sizes")
         fontQvalues = myFuncs.create_font(sizesDict["qvalues fontsize"])
         fontWorldtiles = myFuncs.create_font(sizesDict["worldtiles fontsize"])
         fontMiddle = myFuncs.create_font(sizesDict["fontsize middle"])
         fontBig = myFuncs.create_font(sizesDict["fontsize big"])
 
-        if initialValuesDict["skip config window"]:
-            guiScale = initialValuesDict["GUI Scale"]
-            dim1 = initialValuesDict["Dim 1 Size"]
-            dim2 = initialValuesDict["Dim 2 Size"]
-            self.allow_kingMoves = initialValuesDict["King-Moves"]
+        if initialWindowDict["skip config window"]:
+            guiScale = initialWindowDict["GUI Scale"]
+            dim1 = initialWindowDict["Dim 1 Size"]
+            dim2 = initialWindowDict["Dim 2 Size"]
+            self.allow_kingMoves = initialWindowDict["King-Moves"]
         else:
             configWindow = tk.Toplevel(self.guiProcess, pady=5, padx=5)
             configWindow.title("Config")
             configWindow.iconbitmap("./blank.ico")
 
-            scaleVar = tk.DoubleVar(value=initialValuesDict["GUI Scale"])
+            scaleVar = tk.DoubleVar(value=initialWindowDict["GUI Scale"])
             tk.Scale(configWindow, label="GUI Scale:", variable=scaleVar, from_=1.0, to=1.5, resolution=0.05, font=fontMiddle, orient=tk.HORIZONTAL, width=15, sliderlength=20)
-            dim1Frame = EntryFrame(configWindow, text="Dim 1 Size", font=fontMiddle, defaultValue=initialValuesDict["Dim 1 Size"], targetType=int, labelWidth=10, entryWidth=2)
-            dim2Frame = EntryFrame(configWindow, text="Dim 2 Size", font=fontMiddle, defaultValue=initialValuesDict["Dim 2 Size"], targetType=int, labelWidth=10, entryWidth=2)
-            kingMovesFrame = CheckbuttonFrame(configWindow, text="King-Moves", font=fontMiddle, defaultValue=initialValuesDict["King-Moves"], labelWidth=10)
+            dim1Frame = EntryFrame(configWindow, text="Dim 1 Size", font=fontMiddle, defaultValue=initialWindowDict["Dim 1 Size"], targetType=int, labelWidth=10, entryWidth=2)
+            dim2Frame = EntryFrame(configWindow, text="Dim 2 Size", font=fontMiddle, defaultValue=initialWindowDict["Dim 2 Size"], targetType=int, labelWidth=10, entryWidth=2)
+            kingMovesFrame = CheckbuttonFrame(configWindow, text="King-Moves", font=fontMiddle, defaultValue=initialWindowDict["King-Moves"], labelWidth=10)
             tk.Button(configWindow, text="Ok", height=1, font=fontBig, command=configWindow.destroy)
 
             myFuncs.arrange_children(configWindow, rowDiff=1)
@@ -95,24 +96,21 @@ class GridworldSandbox:
         if True:  # settingsFrame:
             self.visualizationSettingsFrame = tk.Frame(self.settingsFrame, bd=3, relief=tk.GROOVE)
             self.algorithmSettingsFrame = tk.Frame(self.settingsFrame, bd=3, relief=tk.GROOVE)
+            self.dataButtonsFrame = tk.Frame(self.settingsFrame)
 
             myFuncs.arrange_children(self.settingsFrame, rowDiff=1, ipadx=3, ipady=3)
+            self.dataButtonsFrame.grid_configure(sticky="")
 
             if True:  # visualizationSettingsFrame
-                self.operationsLeftFrame = EntryFrame(self.visualizationSettingsFrame, text="Operations Left", font=fontMiddle, defaultValue=initialValuesDict["Operations Left"], targetType=int)
-                self.msDelayFrame = EntryFrame(self.visualizationSettingsFrame, text="Min Refresh Rate [ms]", font=fontMiddle, defaultValue=initialValuesDict["Min Refresh Rate [ms]"], targetType=int)
-                self.visualizeMemoryFrame = CheckbuttonFrame(self.visualizationSettingsFrame, text="Visualize Memory", font=fontMiddle, defaultValue=initialValuesDict["Visualize Memory"])
+                self.operationsLeftFrame = EntryFrame(self.visualizationSettingsFrame, text="Operations Left", font=fontMiddle, targetType=int)
+                self.msDelayFrame = EntryFrame(self.visualizationSettingsFrame, text="Min Refresh Rate [ms]", font=fontMiddle, targetType=int)
+                self.visualizeMemoryFrame = CheckbuttonFrame(self.visualizationSettingsFrame, text="Visualize Memory", font=fontMiddle)
                 self.flowButtonsFrame = tk.Frame(self.visualizationSettingsFrame)
-                self.showEveryNoperationsFrame = EntryFrame(self.visualizationSettingsFrame, text="Show Every...", font=fontMiddle, defaultValue=initialValuesDict["Show Every..."], targetType=int)
-                self.operationFrames = OrderedDict([(operation, CheckbuttonFrame(self.visualizationSettingsFrame, text=f"...{operation}", font=fontMiddle, defaultValue=initialValuesDict[f"...{operation}"])) for operation in Agent.OPERATIONS])
+                self.showEveryNoperationsFrame = EntryFrame(self.visualizationSettingsFrame, text="Show Every...", font=fontMiddle, targetType=int)
+                self.operationFrames = OrderedDict([(operation, CheckbuttonFrame(self.visualizationSettingsFrame, text=f"...{operation}", font=fontMiddle)) for operation in Agent.OPERATIONS])
 
                 myFuncs.arrange_children(self.visualizationSettingsFrame, rowDiff=1)
                 self.flowButtonsFrame.grid_configure(sticky="")
-
-                self.relevantOperations = set()
-                self.showEveryNoperationsFrame.set_and_call_trace(self.reset_agentOperationCounts)
-                for operation, frame in(self.operationFrames.items()):
-                    frame.set_and_call_trace(lambda operation=operation: self.toggle_operation_relevance(operation))
 
                 if True:  # flowButtonsFrame:
                     # pause is only hidden behind go because of the order of lines below. If this somehow fails, uncomment all lines that say "use this again if Pause appears over Go! when it shouldnt" as a comment
@@ -126,39 +124,71 @@ class GridworldSandbox:
                     self.nextButton.grid(row=0, column=1)
 
             if True:  # algorithmSettingsFrame
-                self.xTorusFrame = CheckbuttonFrame(self.algorithmSettingsFrame, text="X-Torus", font=fontMiddle, defaultValue=initialValuesDict["X-Torus"])
-                self.yTorusFrame = CheckbuttonFrame(self.algorithmSettingsFrame, text="Y-Torus", font=fontMiddle, defaultValue=initialValuesDict["Y-Torus"])
-                self.globalActionRewardFrame = EntryFrame(self.algorithmSettingsFrame, text="Global Action Reward", font=fontMiddle, defaultValue=initialValuesDict["Global Action Reward"], targetType=float)
-                self.discountFrame = EntryFrame(self.algorithmSettingsFrame, text="Discount \u03B3", font=fontMiddle, defaultValue=initialValuesDict["Discount"], targetType=float)  # gamma
-                self.learningRateFrame = EntryFrame(self.algorithmSettingsFrame, text="Learning Rate \u03B1", font=fontMiddle, defaultValue=initialValuesDict["Learning Rate"], targetType=float)  # alpha
-                self.dynamicAlphaFrame = CheckbuttonFrame(self.algorithmSettingsFrame, text="\u03B1 = 1/count((S,A))", font=fontMiddle, defaultValue=initialValuesDict["Learning Rate = 1/count((S,A))"])  # alpha
-                self.nStepFrame = EntryFrame(self.algorithmSettingsFrame, text="n-Step n", font=fontMiddle, defaultValue=initialValuesDict["n-Step n"], targetType=int)
-                self.nPlanFrame = EntryFrame(self.algorithmSettingsFrame, text="Dyna-Q n", font=fontMiddle, defaultValue=initialValuesDict["Dyna-Q n"], targetType=int)
-                self.onPolicyFrame = CheckbuttonFrame(self.algorithmSettingsFrame, text="On-Policy", font=fontMiddle, defaultValue=initialValuesDict["On-Policy"])
-                self.updateByExpectationFrame = CheckbuttonFrame(self.algorithmSettingsFrame, text="Update by Expectation", font=fontMiddle, defaultValue=initialValuesDict["Update by Expectation"])
+                self.xTorusFrame = CheckbuttonFrame(self.algorithmSettingsFrame, text="X-Torus", font=fontMiddle)
+                self.yTorusFrame = CheckbuttonFrame(self.algorithmSettingsFrame, text="Y-Torus", font=fontMiddle)
+                self.globalActionRewardFrame = EntryFrame(self.algorithmSettingsFrame, text="Global Action Reward", font=fontMiddle, targetType=float)
+                self.discountFrame = EntryFrame(self.algorithmSettingsFrame, text="Discount \u03B3", font=fontMiddle, targetType=float)  # gamma
+                self.learningRateFrame = EntryFrame(self.algorithmSettingsFrame, text="Learning Rate \u03B1", font=fontMiddle, targetType=float)  # alpha
+                self.dynamicAlphaFrame = CheckbuttonFrame(self.algorithmSettingsFrame, text="\u03B1 = 1/count((S,A))", font=fontMiddle)  # alpha
+                self.nStepFrame = EntryFrame(self.algorithmSettingsFrame, text="n-Step n", font=fontMiddle, targetType=int)
+                self.nPlanFrame = EntryFrame(self.algorithmSettingsFrame, text="Dyna-Q n", font=fontMiddle, targetType=int)
+                self.onPolicyFrame = CheckbuttonFrame(self.algorithmSettingsFrame, text="On-Policy", font=fontMiddle)
+                self.updateByExpectationFrame = CheckbuttonFrame(self.algorithmSettingsFrame, text="Update by Expectation", font=fontMiddle)
                 self.behaviorPolicyFrame = tk.LabelFrame(self.algorithmSettingsFrame, text="Behavior Policy", font=fontBig, fg=self.LABELFRAME_TEXTCOLOR)
                 self.targetPolicyFrame = tk.LabelFrame(self.algorithmSettingsFrame, text="Target Policy", font=fontBig)
 
                 myFuncs.arrange_children(self.algorithmSettingsFrame, rowDiff=1)
 
                 if True:  # behaviorPolicyFrame
-                    self.behaviorEpsilonFrame = EntryFrame(self.behaviorPolicyFrame, text="Exploration Rate \u03B5", font=fontMiddle, defaultValue=initialValuesDict["Behavior Policy Exploration Rate"], targetType=float)  # epsilon
-                    self.behaviorEpsilonDecayRateFrame = EntryFrame(self.behaviorPolicyFrame, text="\u03B5-Decay Rate", font=fontMiddle, defaultValue=initialValuesDict["Behavior Policy epsilon-Decay Rate"], targetType=float)  # epsilon
+                    self.behaviorEpsilonFrame = EntryFrame(self.behaviorPolicyFrame, text="Exploration Rate \u03B5 (b)", font=fontMiddle, targetType=float)  # epsilon
+                    self.behaviorEpsilonDecayRateFrame = EntryFrame(self.behaviorPolicyFrame, text="\u03B5-Decay Rate (b)", font=fontMiddle, targetType=float)  # epsilon
 
                     myFuncs.arrange_children(self.behaviorPolicyFrame, rowDiff=1)
 
                 if True:  # targetPolicyFrame
-                    self.targetEpsilonFrame = EntryFrame(self.targetPolicyFrame, text="Exploration Rate \u03B5", font=fontMiddle, defaultValue=initialValuesDict["Target Policy Exploration Rate"], targetType=float)  # epsilon
-                    self.targetEpsilonDecayRateFrame = EntryFrame(self.targetPolicyFrame, text="\u03B5-Decay Rate", font=fontMiddle, defaultValue=initialValuesDict["Target Policy epsilon-Decay Rate"], targetType=float)  # epsilon
+                    self.targetEpsilonFrame = EntryFrame(self.targetPolicyFrame, text="Exploration Rate \u03B5 (t)", font=fontMiddle, targetType=float)  # epsilon
+                    self.targetEpsilonDecayRateFrame = EntryFrame(self.targetPolicyFrame, text="\u03B5-Decay Rate (t)", font=fontMiddle, targetType=float)  # epsilon
 
                     myFuncs.arrange_children(self.targetPolicyFrame, rowDiff=1)
 
-                self.dynamicAlphaFrame.set_and_call_trace(self.toggle_alpha_freeze)
-                self.onPolicyFrame.set_and_call_trace(self.toggle_targetPolicyFrame)
-                self.onPolicyFrame.set_and_call_trace(self.toggle_offPolicy_nStep_warning)
-                self.nStepFrame.set_and_call_trace(self.toggle_offPolicy_nStep_warning)
+            if True:  # dataButtonsFrame:
+                self.loadButton = tk.Button(self.dataButtonsFrame, text="Load", font=fontBig, bd=5, width=5, command=self.load)
+                self.saveButton = tk.Button(self.dataButtonsFrame, text="Save", font=fontBig, bd=5, width=5, command=self.save)
+
+                myFuncs.arrange_children(self.dataButtonsFrame, columnDiff=1)
+
+        self.parameterFramesVarsDict = self.recursiveGather_parameterFrameVars(self.mainWindow)
+        self.load(initialWindowDict["default configfile"])
+
+        self.relevantOperations = set()
+        self.showEveryNoperationsFrame.set_and_call_trace(self.reset_agentOperationCounts)
+        for operation, frame in(self.operationFrames.items()):
+            frame.set_and_call_trace(lambda operation=operation: self.toggle_operation_relevance(operation))
+        self.dynamicAlphaFrame.set_and_call_trace(self.toggle_alpha_freeze)
+        self.onPolicyFrame.set_and_call_trace(self.toggle_targetPolicyFrame)
+        self.onPolicyFrame.set_and_call_trace(self.toggle_offPolicy_nStep_warning)
+        self.nStepFrame.set_and_call_trace(self.toggle_offPolicy_nStep_warning)
+
         myFuncs.center(self.mainWindow)
-        
+
+    def recursiveGather_parameterFrameVars(self, frame):
+        collection = dict()
+        for child in frame.winfo_children():
+            try:
+                collection[child.get_text()] = child.get_var()
+            except:
+                collection |= self.recursiveGather_parameterFrameVars(child)
+        return collection
+
+    def load(self, filename=None):
+        yamlDict = myFuncs.get_dict_from_yaml_file(filename)
+        for name, tkVar in self.parameterFramesVarsDict.items():
+            tkVar.set(yamlDict[name])
+
+    def save(self):
+        valueDict = {name: tkVar.get() for name, tkVar in self.parameterFramesVarsDict.items()}
+        myFuncs.create_yaml_file_from_dict(valueDict)
+
     def initialize_environment_and_agent(self):
         self.environment = Environment(X=self.X, Y=self.Y, isXtorusVar=self.xTorusFrame.get_var(),
                                        isYtorusVar=self.yTorusFrame.get_var(),
@@ -329,9 +359,13 @@ class GridworldSandbox:
 
     def freeze_episodetime_parameters(self):
         self.discountFrame.freeze()
+        self.loadButton.config(state=tk.DISABLED)
+        self.saveButton.config(state=tk.DISABLED)
 
     def unfreeze_episodetime_parameters(self):
         self.discountFrame.unfreeze()
+        self.loadButton.config(state=tk.NORMAL)
+        self.saveButton.config(state=tk.NORMAL)
 
     def toggle_alpha_freeze(self):
         if self.dynamicAlphaFrame.get_value():
