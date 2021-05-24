@@ -5,14 +5,14 @@ from Tile import Tile
 
 
 class Tilemap(tk.Frame):
-    def __init__(self, master, X, Y, interactionAllowed, font="calibri 14 bold", indicateNumericalValueChange=False, tileWidth=2, height=2, anchor=tk.CENTER, **kwargs):
+    def __init__(self, master, X, Y, interactionAllowed, font="calibri 14 bold", indicateNumericalValueChange=False, tileWidth=2, tileHeight=2, tileBd=2, **kwargs):
         super().__init__(master, **kwargs)
         self.interactionAllowed = interactionAllowed
         self.tiles = np.empty((X,Y), dtype=Tile)
         for x in range(X):
             for y in range(Y):
                 self.tiles[x,y] = Tile(self, indicateNumericalValueChange=indicateNumericalValueChange,
-                                       width=tileWidth, height=height, anchor=anchor, font=font)
+                                       bd=tileBd, labelWidth=tileWidth, labelHeight=tileHeight, font=font)
                 self.tiles[x,y].grid(row=y, column=x)
 
     def protect_text_and_color(self, x, y):
@@ -25,10 +25,10 @@ class Tilemap(tk.Frame):
         self.interactionAllowed = value
 
     def get_tile_background_color(self, x, y):
-        return self.tiles[x,y].cget("bg")
+        return self.tiles[x,y].label.cget("bg") # todo: distinguish between frame bg and label bg!
 
     def get_tile_text(self, x, y):
-        return self.tiles[x,y].cget("text")
+        return self.tiles[x,y].label.cget("text")
 
     def get_tile_arrival_reward(self, x, y):
         return self.tiles[x,y].get_arrivalReward()

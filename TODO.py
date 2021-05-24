@@ -18,7 +18,6 @@
 #   TODO -> Nice once {timestep: map} is implemented
 # TODO: Dynamically change tilesizes w.r.t. grid dimensions on initialize
 # TODO: Flags for debug stuff and prints, own print function
-# TODO: Yaml config instead of pseudoconstant statics
 
 # TODO: Implement Double Learning
 # TODO: Implement Statevalue-Based TD

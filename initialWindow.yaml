@@ -1,5 +1,5 @@
-"skip config window": 1
-"default configfile": default
+"skip config window": true
+"default configfile": default #.yaml
 
 "GUI Scale": 1.35
 "Dim 1 Size": 9

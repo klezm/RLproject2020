@@ -1,5 +1,6 @@
 import tkinter as tk
 import numpy as np
+import random
 
 from functools import cache
 
@@ -7,7 +8,7 @@ from Agent import Agent
 import myFuncs
 
 
-class Tile(tk.Label):
+class Tile(tk.Frame):
     BLANK_COLOR = "white"
     WALL_COLOR = "black"
     LETTER_COLOR = "black"
@@ -77,14 +78,17 @@ class Tile(tk.Label):
                 symbol = cls.GREEDYCHARS_3_4[index]
         return {"text": symbol, "fg": color}
 
-    def __init__(self, master, indicateNumericalValueChange: bool, **kwargs):
-        super().__init__(master, bd=1, relief=self.DEFAULT_RELIEF, **kwargs)
+    def __init__(self, master, indicateNumericalValueChange, labelWidth, labelHeight, font="calibri 14 bold", **kwargs):
+        super().__init__(master, relief=self.DEFAULT_RELIEF, bg=random.choice(["blue", "red", "white"]), **kwargs)
+        self.label = tk.Label(self, bd=0, height=labelHeight, width=labelWidth, font=font)
+        self.label.pack(fill=tk.BOTH, expand=True)
         self.arrivalReward = 0  # TODO: set this in GUI
         self.cycleIndex = 0
         self.protectedAttributes = set()
-        self.bind("<Enter>", lambda *bindArgs: self.focus_set())
-        self.bind("<Button-1>", lambda _: self.cycle_type(direction=1))
-        self.bind("<Button-3>", lambda _: self.cycle_type(direction=-1))
+        for widget in [self, self.label]:
+            widget.bind("<Enter>", lambda *bindArgs: widget.focus_set())
+            widget.bind("<Button-1>", lambda _: self.cycle_type(direction=1))
+            widget.bind("<Button-3>", lambda _: self.cycle_type(direction=-1))
         self.indicateNumericalValueChange = indicateNumericalValueChange
         self.update_appearance(**self.tileBlank)
 
@@ -107,7 +111,7 @@ class Tile(tk.Label):
         if self.indicateNumericalValueChange and "fg" not in self.protectedAttributes:
             # TODO: Make the color proportional to relative value change
             try:
-                oldValue = float(self.cget("text"))
+                oldValue = float(self.label.cget("text"))
                 newValue = float(kwargs["text"])
                 if newValue > oldValue:
                     kwargs["fg"] = self.VALUE_INCREASE_COLOR
@@ -117,6 +121,6 @@ class Tile(tk.Label):
                     kwargs["fg"] = self.LETTER_COLOR
             except:
                 kwargs["fg"] = self.LETTER_COLOR
-        kwargs = {key: value for key, value in kwargs.items() if self.cget(key) != value}
+        kwargs = {key: value for key, value in kwargs.items() if self.label.cget(key) != value}
         if kwargs:
-            self.config(**kwargs)
+            self.label.config(**kwargs)

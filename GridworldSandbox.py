@@ -74,7 +74,8 @@ class GridworldSandbox:
         self.mainWindow.protocol("WM_DELETE_WINDOW", self.guiProcess.quit)
 
         # window:
-        self.gridworldFrame = Tilemap(self.mainWindow, X=self.X, Y=self.Y, interactionAllowed=True, font=fontWorldtiles, bd=5, height=sizesDict["worldtiles height"], relief=tk.GROOVE)
+        self.gridworldFrame = Tilemap(self.mainWindow, X=self.X, Y=self.Y, interactionAllowed=True, font=fontWorldtiles, relief=tk.GROOVE,
+                                      bd=5, tileHeight=sizesDict["worldtiles height"], tileWidth=sizesDict["worldtiles width"], tileBd=sizesDict["worldtiles borderwidth"])
         self.valueVisualizationFrame = tk.Frame(self.mainWindow, bd=5, relief=tk.GROOVE)
         self.settingsFrame = tk.Frame(self.mainWindow, bd=5, relief=tk.GROOVE)
 
@@ -86,11 +87,11 @@ class GridworldSandbox:
             for action in (Agent.EXTENDED_ACTIONSPACE if self.allow_kingMoves else Agent.DEFAULT_ACTIONSPACE):
                 self.qValueFrames[action] = Tilemap(self.valueVisualizationFrame, X=self.X, Y=self.Y, interactionAllowed=False,
                                                     indicateNumericalValueChange=True, font=fontQvalues, tileWidth=self.QVALUES_WIDTH,
-                                                    bd=sizesDict["qvalues borderwidth"], relief=self.VALUE_TILEMAPS_RELIEF_DEFAULT,
-                                                    bg=Tile.direction_to_hsvHexString(action), height=sizesDict["qvalues height"])
+                                                    bd=sizesDict["targetmarker width"], relief=self.VALUE_TILEMAPS_RELIEF_DEFAULT,
+                                                    bg=Tile.direction_to_hsvHexString(action), tileHeight=sizesDict["qvalues height"], tileBd=sizesDict["qvalues borderwidth"])
                 self.qValueFrames[action].grid(row=action[1]+1, column=action[0]+1)  # maps the Tilemaps corresponding to the actions (which are actually 2D "vectors")  to coordinates inside the valueVisualizationFrame
             self.greedyPolicyFrame = Tilemap(self.valueVisualizationFrame, X=self.X, Y=self.Y, interactionAllowed=False, font=fontQvalues,
-                                             tileWidth=self.QVALUES_WIDTH, bd=sizesDict["qvalues borderwidth"], height=sizesDict["qvalues height"], relief=tk.GROOVE)
+                                             tileWidth=self.QVALUES_WIDTH, bd=sizesDict["targetmarker width"], tileHeight=sizesDict["qvalues height"], tileBd=sizesDict["qvalues borderwidth"], relief=tk.GROOVE)
             self.greedyPolicyFrame.grid(row=1, column=1)
 
         if True:  # settingsFrame:
@@ -134,8 +135,8 @@ class GridworldSandbox:
                 self.nPlanFrame = EntryFrame(self.algorithmSettingsFrame, text="Dyna-Q n", font=fontMiddle, targetType=int)
                 self.onPolicyFrame = CheckbuttonFrame(self.algorithmSettingsFrame, text="On-Policy", font=fontMiddle)
                 self.updateByExpectationFrame = CheckbuttonFrame(self.algorithmSettingsFrame, text="Update by Expectation", font=fontMiddle)
-                self.behaviorPolicyFrame = tk.LabelFrame(self.algorithmSettingsFrame, text="Behavior Policy", font=fontBig, fg=self.LABELFRAME_TEXTCOLOR)
-                self.targetPolicyFrame = tk.LabelFrame(self.algorithmSettingsFrame, text="Target Policy", font=fontBig)
+                self.behaviorPolicyFrame = tk.LabelFrame(self.algorithmSettingsFrame, text="Behavior Policy", bd=3, font=fontBig, fg=self.LABELFRAME_TEXTCOLOR)
+                self.targetPolicyFrame = tk.LabelFrame(self.algorithmSettingsFrame, text="Target Policy", bd=3, font=fontBig)
 
                 myFuncs.arrange_children(self.algorithmSettingsFrame, rowDiff=1)
 
