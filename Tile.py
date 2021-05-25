@@ -90,7 +90,9 @@ class Tile(tk.Frame):
         for widget in [self, self.label]:
             widget.bind("<Enter>", lambda *bindArgs: widget.focus_set())
             widget.bind("<Button-1>", lambda _: self.cycle_type(direction=1))
+            widget.bind("<Control-Button-1>", lambda _: self.cycle_type(direction=-1))
             widget.bind("<Button-3>", lambda _: self.cycle_borderColor(direction=1))
+            widget.bind("<Control-Button-3>", lambda _: self.cycle_borderColor(direction=-1))
         self.indicateNumericalValueChange = indicateNumericalValueChange
         self.update_appearance(borderColor=self.BORDER_COLORS[0], **self.TYPES[0])
 
@@ -113,7 +115,6 @@ class Tile(tk.Frame):
     def update_appearance(self, borderColor=None, **kwargs):
         kwargs = {key: value for key, value in kwargs.items() if key not in self.protectedAttributes}
         if self.indicateNumericalValueChange and "fg" not in self.protectedAttributes:
-            # TODO: Make the color proportional to relative value change
             try:
                 oldValue = float(self.label.cget("text"))
                 newValue = float(kwargs["text"])

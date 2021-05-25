@@ -29,7 +29,7 @@ class Agent:
 
     def __init__(self, environment, use_kingMoves, learningRateVar, dynamicAlphaVar, discountVar, nStepVar, nPlanVar, onPolicyVar,
                  updateByExpectationVar, behaviorEpsilonVar, behaviorEpsilonDecayRateVar, targetEpsilonVar, targetEpsilonDecayRateVar,
-                 initialActionvalueMean=0, initialActionvalueSigma=0, predefinedAlgorithm=None, actionPlan=[]):
+                 decayEpsilonEpisodeWiseVar, initialActionvalueMean, initialActionvalueSigma, predefinedAlgorithm=None, actionPlan=[]):
         self.environment = environment
         if use_kingMoves:
             self.actionspace = self.EXTENDED_ACTIONSPACE
@@ -43,6 +43,7 @@ class Agent:
         self.discountVar = discountVar
         self.behaviorPolicy = EpsilonGreedyPolicy(self, behaviorEpsilonVar, behaviorEpsilonDecayRateVar)
         self.targetPolicy = EpsilonGreedyPolicy(self, targetEpsilonVar, targetEpsilonDecayRateVar)
+        self.decayEpsilonEpisodeWiseVar = decayEpsilonEpisodeWiseVar
         self.onPolicyVar = onPolicyVar
         self.updateByExpectationVar = updateByExpectationVar
         self.nStepVar = nStepVar
@@ -58,7 +59,6 @@ class Agent:
         # But to avoid technical details in implementation that would anyway not change the Agent behavior at all,
         # the agent will be given that the states can be structured in a matrix that has the same shape as the environment
         # and that the actionspace is constant for all possible states.
-        self.episodicTask = None  # TODO: not used so far
         self.state = None
         self.episodeFinished = False
         self.return_ = None  # underscore to avoid naming conflict with return keyword
@@ -133,8 +133,9 @@ class Agent:
         self.state = successorState  # must happen after memorize and before generate_target!
         self.stateAbsenceCounts[self.state] = 0
         self.generate_target()
-        self.behaviorPolicy.decay_epsilon()
-        self.targetPolicy.decay_epsilon()
+        if not self.decayEpsilonEpisodeWiseVar.get() or self.episodeFinished:
+            self.behaviorPolicy.decay_epsilon()
+            self.targetPolicy.decay_epsilon()
         # self.actionHistory.append(behaviorAction)  TODO: Dont forget debug stuff here
         # print(self.actionHistory)
 

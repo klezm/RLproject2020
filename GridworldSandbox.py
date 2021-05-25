@@ -104,6 +104,8 @@ class GridworldSandbox:
             self.dataButtonsFrame.grid_configure(sticky="")
 
             if True:  # visualizationSettingsFrame
+                self.initialActionvalueMeanFrame = EntryFrame(self.visualizationSettingsFrame, text="Initial Q-Values Mean", font=fontMiddle, targetType=float)
+                self.initialActionvalueSigmaFrame = EntryFrame(self.visualizationSettingsFrame, text="Initial Q-Values Sigma", font=fontMiddle, targetType=float)
                 self.operationsLeftFrame = EntryFrame(self.visualizationSettingsFrame, text="Operations Left", font=fontMiddle, targetType=int)
                 self.msDelayFrame = EntryFrame(self.visualizationSettingsFrame, text="Min Refresh Rate [ms]", font=fontMiddle, targetType=int)
                 self.visualizeMemoryFrame = CheckbuttonFrame(self.visualizationSettingsFrame, text="Visualize Memory", font=fontMiddle)
@@ -126,6 +128,7 @@ class GridworldSandbox:
                     self.nextButton.grid(row=0, column=1)
 
             if True:  # algorithmSettingsFrame
+                self.iceFloorFrame = CheckbuttonFrame(self.algorithmSettingsFrame, text="Ice Floor", font=fontMiddle)
                 self.xTorusFrame = CheckbuttonFrame(self.algorithmSettingsFrame, text="X-Torus", font=fontMiddle)
                 self.yTorusFrame = CheckbuttonFrame(self.algorithmSettingsFrame, text="Y-Torus", font=fontMiddle)
                 self.rewardFrames = OrderedDict([(color, EntryFrame(self.algorithmSettingsFrame, text=f"Reward {color.capitalize()}", entryColor=color, font=fontMiddle, targetType=int)) for color in Tile.BORDER_COLORS])
@@ -136,6 +139,7 @@ class GridworldSandbox:
                 self.nPlanFrame = EntryFrame(self.algorithmSettingsFrame, text="Dyna-Q n", font=fontMiddle, targetType=int)
                 self.onPolicyFrame = CheckbuttonFrame(self.algorithmSettingsFrame, text="On-Policy", font=fontMiddle)
                 self.updateByExpectationFrame = CheckbuttonFrame(self.algorithmSettingsFrame, text="Update by Expectation", font=fontMiddle)
+                self.decayEpsilonEpisodeWiseFrame = CheckbuttonFrame(self.algorithmSettingsFrame, text="Decay \u03B5 Episode-wise", font=fontMiddle)
                 self.behaviorPolicyFrame = tk.LabelFrame(self.algorithmSettingsFrame, text="Behavior Policy", bd=3, font=fontBig, fg=self.LABELFRAME_TEXTCOLOR)
                 self.targetPolicyFrame = tk.LabelFrame(self.algorithmSettingsFrame, text="Target Policy", bd=3, font=fontBig)
 
@@ -193,8 +197,8 @@ class GridworldSandbox:
         myFuncs.create_yaml_file_from_dict(valueDict, initialdir=self.SAFEFILE_FOLDER)
 
     def initialize_environment_and_agent(self):
-        self.environment = Environment(X=self.X, Y=self.Y, isXtorusVar=self.xTorusFrame.get_var(),
-                                       isYtorusVar=self.yTorusFrame.get_var())
+        self.environment = Environment(X=self.X, Y=self.Y, hasIceFloorVar=self.iceFloorFrame.get_var(),
+                                       isXtorusVar=self.xTorusFrame.get_var(), isYtorusVar=self.yTorusFrame.get_var())
         # Agent needs an environment to exist, but environment doesnt need an agent
         self.agent = Agent(environment=self.environment, use_kingMoves=self.allow_kingMoves, learningRateVar=self.learningRateFrame.get_var(),
                            dynamicAlphaVar=self.dynamicAlphaFrame.get_var(),
@@ -204,7 +208,10 @@ class GridworldSandbox:
                            behaviorEpsilonVar=self.behaviorEpsilonFrame.get_var(),
                            behaviorEpsilonDecayRateVar=self.behaviorEpsilonDecayRateFrame.get_var(),
                            targetEpsilonVar=self.targetEpsilonFrame.get_var(),
-                           targetEpsilonDecayRateVar=self.targetEpsilonDecayRateFrame.get_var())
+                           targetEpsilonDecayRateVar=self.targetEpsilonDecayRateFrame.get_var(),
+                           decayEpsilonEpisodeWiseVar=self.decayEpsilonEpisodeWiseFrame.get_var(),
+                           initialActionvalueMean=self.initialActionvalueMeanFrame.get_value(),
+                           initialActionvalueSigma=self.initialActionvalueSigmaFrame.get_value())
 
     def update_gridworldPlayground_environment(self):
         tileData = np.empty((self.X,self.Y), dtype=dict)
@@ -361,9 +368,13 @@ class GridworldSandbox:
 
     def freeze_lifetime_parameters(self):
         self.dynamicAlphaFrame.freeze()
+        self.initialActionvalueMeanFrame.freeze()
+        self.initialActionvalueSigmaFrame.freeze()
 
     def unfreeze_lifetime_parameters(self):
         self.dynamicAlphaFrame.unfreeze()
+        self.initialActionvalueMeanFrame.unfreeze()
+        self.initialActionvalueSigmaFrame.unfreeze()
 
     def freeze_episodetime_parameters(self):
         self.discountFrame.freeze()

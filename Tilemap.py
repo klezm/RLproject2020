@@ -25,7 +25,7 @@ class Tilemap(tk.Frame):
         self.interactionAllowed = value
 
     def get_tile_background_color(self, x, y):
-        return self.tiles[x,y].label.cget("bg") # todo: distinguish between frame bg and label bg!
+        return self.tiles[x,y].label.cget("bg")
 
     def get_tile_text(self, x, y):
         return self.tiles[x,y].label.cget("text")
