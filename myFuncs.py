@@ -5,7 +5,9 @@ import numpy as np
 import tkinter as tk
 from tkinter import filedialog
 from tkinter import simpledialog
+from tkinter import messagebox
 import yaml
+import os
 
 
 @cache
@@ -74,19 +76,23 @@ def arrange_children(frame, rowDiff=0, columnDiff=0, useSticky=True, **kwargs):
 
 def get_dict_from_yaml_file(filename=None, initialdir="."):
     if not filename:
-        filename = filedialog.askopenfilename(initialdir=initialdir, filetypes=[("", "*.yaml")])
+        filename = filedialog.askopenfilename(initialdir=initialdir, title="Load")
+        if not filename:
+            return {}
     else:
         filename += ".yaml"
     with open(filename, "r") as file:
         return yaml.safe_load(file)
 
 
-def create_yaml_file_from_dict(inputDict, filename=None):
+def create_yaml_file_from_dict(inputDict, filename=None, initialdir="."):
     if filename is None:
-        filename = simpledialog.askstring("Name", "Please enter name.")
-    with open(filename + ".yaml", "w") as file:
+        filename = filedialog.asksaveasfilename(initialdir=initialdir, title="Save")
+        if not filename:
+            return {}
+    filename += ".yaml"
+    with open(filename, "w") as file:
         yaml.dump(inputDict, file)
-
 
 def create_font(size, family= "calibri", weight="bold"):
     return f"{family} {size} {weight}"

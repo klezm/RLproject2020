@@ -5,11 +5,10 @@ from Cell import Cell
 
 
 class Environment:
-    def __init__(self, X, Y, isXtorusVar, isYtorusVar, globalActionRewardVar):
+    def __init__(self, X, Y, isXtorusVar, isYtorusVar):
         # TODO: self.grid.dtype should be int to increase performance drastically! (affects self.greedyActions in Agent.py as well)
         self.grid = np.empty((X,Y), dtype=Cell)
         self.isTorusVars = (isXtorusVar, isYtorusVar)
-        self.globalActionRewardVar = globalActionRewardVar
         self.agentPosition = None
         # In a gridworld, position and agent state can be treated equivalent, but not in general! i.e. snake
 
@@ -33,7 +32,7 @@ class Environment:
         # Then check if this cell is a valid place to stay
         if not self.grid[destinationEstimate].isWall:
             self.agentPosition = destinationEstimate
-        reward = self.globalActionRewardVar.get() + self.grid[self.agentPosition].get_arrivalReward()
+        reward = self.grid[self.agentPosition].get_arrivalReward()
         episodeFinished = self.grid[self.agentPosition].terminates_episode()
         return reward, self.agentPosition, episodeFinished
 

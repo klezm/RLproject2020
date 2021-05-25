@@ -1,10 +1,10 @@
 class Cell:
-    def __init__(self, position, isWall, isStart, isGoal, arrivalReward):
+    def __init__(self, position, isWall, isStart, isGoal, arrivalRewardVar):
         self.position = position
         self.isWall = isWall
         self.isStart = isStart
         self.isGoal = isGoal
-        self.arrivalReward = arrivalReward
+        self.arrivalRewardVar = arrivalRewardVar
 
     def is_suitable_start(self):
         return not any([self.isWall, self.isGoal])
@@ -16,4 +16,4 @@ class Cell:
         return self.position
 
     def get_arrivalReward(self):
-        return self.arrivalReward
+        return self.arrivalRewardVar.get()

@@ -11,7 +11,9 @@
 
 "X-Torus": false
 "Y-Torus": false
-"Global Action Reward": -1
+"Reward Black": -1
+"Reward Cyan": -10
+"Reward Brown": -100
 "Discount \u03B3": 1
 "Learning Rate \u03B1": 0.1
 "\u03B1 = 1/count((S,A))": false

@@ -24,11 +24,13 @@ class Tile(tk.Frame):
     AGENTCOLOR_PLANNING_DEFAULT = "green"
     AGENTCOLOR_PLANNING_LIGHT = "#BBFFBB"  # light green
 
-    tileBlank = {"text": "", "fg": LETTER_COLOR, "bg": BLANK_COLOR}
-    tileWall = {"text": "", "fg": LETTER_COLOR, "bg": WALL_COLOR}
-    tileStart = {"text": START_CHAR, "fg": LETTER_COLOR, "bg": BLANK_COLOR}
-    tileGoal = {"text": GOAL_CHAR, "fg": LETTER_COLOR, "bg": BLANK_COLOR}
-    tileCycleTypes = [tileBlank, tileWall, tileStart, tileGoal]
+    TYPE_BLANK = {"text": "", "fg": LETTER_COLOR, "bg": BLANK_COLOR}
+    TYPE_WALL = {"text": "", "fg": LETTER_COLOR, "bg": WALL_COLOR}
+    TYPE_START = {"text": START_CHAR, "fg": LETTER_COLOR, "bg": BLANK_COLOR}
+    TYPE_GOAL = {"text": GOAL_CHAR, "fg": LETTER_COLOR, "bg": BLANK_COLOR}
+    TYPES = [TYPE_BLANK, TYPE_WALL, TYPE_START, TYPE_GOAL]
+
+    BORDER_COLORS = ["black", "cyan", "brown"]
 
     GREEDYCHARS_1_2 = np.array([['┛','↑','┗'],
                                 ['←',' ','→'],
@@ -79,18 +81,18 @@ class Tile(tk.Frame):
         return {"text": symbol, "fg": color}
 
     def __init__(self, master, indicateNumericalValueChange, labelWidth, labelHeight, font="calibri 14 bold", **kwargs):
-        super().__init__(master, relief=self.DEFAULT_RELIEF, bg=random.choice(["blue", "red", "white"]), **kwargs)
+        super().__init__(master, relief=self.DEFAULT_RELIEF, **kwargs)
         self.label = tk.Label(self, bd=0, height=labelHeight, width=labelWidth, font=font)
         self.label.pack(fill=tk.BOTH, expand=True)
-        self.arrivalReward = 0  # TODO: set this in GUI
-        self.cycleIndex = 0
+        self.typeCycleIndex = 0
+        self.borderColorCycleIndex = 0
         self.protectedAttributes = set()
         for widget in [self, self.label]:
             widget.bind("<Enter>", lambda *bindArgs: widget.focus_set())
             widget.bind("<Button-1>", lambda _: self.cycle_type(direction=1))
-            widget.bind("<Button-3>", lambda _: self.cycle_type(direction=-1))
+            widget.bind("<Button-3>", lambda _: self.cycle_borderColor(direction=1))
         self.indicateNumericalValueChange = indicateNumericalValueChange
-        self.update_appearance(**self.tileBlank)
+        self.update_appearance(borderColor=self.BORDER_COLORS[0], **self.TYPES[0])
 
     def protect_attributes(self, *args):
         self.protectedAttributes |= set(args)  # fancy new operator in python 3.9
@@ -98,15 +100,17 @@ class Tile(tk.Frame):
     def unprotect_attributes(self, *args):
         self.protectedAttributes -= set(args)
 
-    def get_arrivalReward(self):
-        return self.arrivalReward
-
     def cycle_type(self, direction):
         if self.master.interactionAllowed:
-            self.cycleIndex = (self.cycleIndex + direction) % len(self.tileCycleTypes)
-            self.update_appearance(**self.tileCycleTypes[self.cycleIndex])
+            self.typeCycleIndex = (self.typeCycleIndex + direction) % len(self.TYPES)
+            self.update_appearance(**self.TYPES[self.typeCycleIndex])
 
-    def update_appearance(self, **kwargs):
+    def cycle_borderColor(self, direction):
+        if self.master.interactionAllowed:
+            self.borderColorCycleIndex = (self.borderColorCycleIndex + direction) % len(self.BORDER_COLORS)
+            self.update_appearance(borderColor=self.BORDER_COLORS[self.borderColorCycleIndex])
+
+    def update_appearance(self, borderColor=None, **kwargs):
         kwargs = {key: value for key, value in kwargs.items() if key not in self.protectedAttributes}
         if self.indicateNumericalValueChange and "fg" not in self.protectedAttributes:
             # TODO: Make the color proportional to relative value change
@@ -124,3 +128,5 @@ class Tile(tk.Frame):
         kwargs = {key: value for key, value in kwargs.items() if self.label.cget(key) != value}
         if kwargs:
             self.label.config(**kwargs)
+        if borderColor:
+            self.config(bg=borderColor)

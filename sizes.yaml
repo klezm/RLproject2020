@@ -1,15 +1,15 @@
-fontsize big: 15            # fontsize
-fontsize middle: 14         # fontsize
-fontsize small: 10          # fontsize
+fontsize big: 15
+fontsize middle: 14
+fontsize small: 10
 
-worldtiles fontsize: 35     # fontsize
+worldtiles fontsize: 35
 worldtiles height: 1        # characters
 worldtiles width: 2         # characters
-worldtiles borderwidth: 3   # pixels
+worldtiles borderwidth: 4   # pixels
 
-qvalues fontsize: 11        # fontsize
+qvalues fontsize: 11
 qvalues height: 1           # characters
 qvalues width: 4            # characters
-qvalues borderwidth: 1      # pixels
+qvalues borderwidth: 2      # pixels
 
 targetmarker width: 10      # pixels

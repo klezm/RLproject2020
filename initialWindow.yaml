@@ -1,7 +1,7 @@
-"skip config window": true
-"default configfile": default #.yaml
+skip config window: true
+default configfile: default #.yaml
 
-"GUI Scale": 1.35
-"Dim 1 Size": 9
-"Dim 2 Size": 9
-"King-Moves": false
+GUI Scale: 1.3
+Dim 1 Size: 9
+Dim 2 Size: 9
+King-Moves: false

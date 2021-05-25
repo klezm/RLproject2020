@@ -17,6 +17,7 @@ class GridworldSandbox:
     LABELFRAME_TEXTCOLOR = "blue"
     VALUE_TILEMAPS_RELIEF_DEFAULT = tk.FLAT
     VALUE_TILEMAPS_RELIEF_TARGET_ACTION = tk.GROOVE
+    SAFEFILE_FOLDER = "worldfiles"
 
     def __init__(self, guiProcess):
         # RL objects:
@@ -127,7 +128,7 @@ class GridworldSandbox:
             if True:  # algorithmSettingsFrame
                 self.xTorusFrame = CheckbuttonFrame(self.algorithmSettingsFrame, text="X-Torus", font=fontMiddle)
                 self.yTorusFrame = CheckbuttonFrame(self.algorithmSettingsFrame, text="Y-Torus", font=fontMiddle)
-                self.globalActionRewardFrame = EntryFrame(self.algorithmSettingsFrame, text="Global Action Reward", font=fontMiddle, targetType=float)
+                self.rewardFrames = OrderedDict([(color, EntryFrame(self.algorithmSettingsFrame, text=f"Reward {color.capitalize()}", entryColor=color, font=fontMiddle, targetType=int)) for color in Tile.BORDER_COLORS])
                 self.discountFrame = EntryFrame(self.algorithmSettingsFrame, text="Discount \u03B3", font=fontMiddle, targetType=float)  # gamma
                 self.learningRateFrame = EntryFrame(self.algorithmSettingsFrame, text="Learning Rate \u03B1", font=fontMiddle, targetType=float)  # alpha
                 self.dynamicAlphaFrame = CheckbuttonFrame(self.algorithmSettingsFrame, text="\u03B1 = 1/count((S,A))", font=fontMiddle)  # alpha
@@ -159,7 +160,7 @@ class GridworldSandbox:
                 myFuncs.arrange_children(self.dataButtonsFrame, columnDiff=1)
 
         self.parameterFramesVarsDict = self.recursiveGather_parameterFrameVars(self.mainWindow)
-        self.load(initialWindowDict["default configfile"])
+        self.load(f"{self.SAFEFILE_FOLDER}/{initialWindowDict['default configfile']}")
 
         self.relevantOperations = set()
         self.showEveryNoperationsFrame.set_and_call_trace(self.reset_agentOperationCounts)
@@ -182,18 +183,18 @@ class GridworldSandbox:
         return collection
 
     def load(self, filename=None):
-        yamlDict = myFuncs.get_dict_from_yaml_file(filename)
-        for name, tkVar in self.parameterFramesVarsDict.items():
-            tkVar.set(yamlDict[name])
+        yamlDict = myFuncs.get_dict_from_yaml_file(filename, initialdir=self.SAFEFILE_FOLDER)
+        if yamlDict:
+            for name, tkVar in self.parameterFramesVarsDict.items():
+                tkVar.set(yamlDict[name])
 
     def save(self):
         valueDict = {name: tkVar.get() for name, tkVar in self.parameterFramesVarsDict.items()}
-        myFuncs.create_yaml_file_from_dict(valueDict)
+        myFuncs.create_yaml_file_from_dict(valueDict, initialdir=self.SAFEFILE_FOLDER)
 
     def initialize_environment_and_agent(self):
         self.environment = Environment(X=self.X, Y=self.Y, isXtorusVar=self.xTorusFrame.get_var(),
-                                       isYtorusVar=self.yTorusFrame.get_var(),
-                                       globalActionRewardVar=self.globalActionRewardFrame.get_var())
+                                       isYtorusVar=self.yTorusFrame.get_var())
         # Agent needs an environment to exist, but environment doesnt need an agent
         self.agent = Agent(environment=self.environment, use_kingMoves=self.allow_kingMoves, learningRateVar=self.learningRateFrame.get_var(),
                            dynamicAlphaVar=self.dynamicAlphaFrame.get_var(),
@@ -212,18 +213,21 @@ class GridworldSandbox:
             for y in range(self.Y):
                 newText = self.gridworldFrame.get_tile_text(x,y)
                 newBackground = self.gridworldFrame.get_tile_background_color(x, y)
+                newBordercolor = self.gridworldFrame.get_tile_border_color(x, y)
+                updateKwargs = {"fg": Tile.LETTER_COLOR, "borderColor": newBordercolor, "bg": newBackground}
                 for tilemap in valueVisualizationTilemaps:
-                    tilemap.unprotect_text_and_color(x,y)  # needed to set / remove Goalchar properly
+                    tilemap.unprotect_text_and_textColor(x, y)  # needed to set / remove Goalchar properly
                     if newText == Tile.GOAL_CHAR:
-                        tilemap.update_tile_appearance(x, y, text=newText, fg=Tile.LETTER_COLOR)
+                        tilemap.update_tile_appearance(x, y, text=newText, **updateKwargs)
                         tilemap.protect_text_and_color(x, y)
-                    if newBackground == Tile.WALL_COLOR:
-                        tilemap.update_tile_appearance(x, y, bg=Tile.WALL_COLOR, fg=Tile.LETTER_COLOR)
+                    else:
+                        tilemap.update_tile_appearance(x, y, **updateKwargs)
+                arrivalRewardVarName = "Reward " + newBordercolor.capitalize()
                 tileData[x,y] = {"position": (x,y),
                                  "isWall": newBackground == Tile.WALL_COLOR,
                                  "isStart": newText == Tile.START_CHAR,
                                  "isGoal": newText == Tile.GOAL_CHAR,
-                                 "arrivalReward": self.gridworldFrame.get_tile_arrival_reward(x, y)}
+                                 "arrivalRewardVar": self.parameterFramesVarsDict[arrivalRewardVarName]}
         self.environment.update(tileData)
         # TODO: Everytime a Tile is changed to an episode terminator, change its Qvalues to 0 explicitly. NO! Agent cant know this beforehand, thats the point!
 
@@ -283,11 +287,14 @@ class GridworldSandbox:
 
     def pause_flow(self):
         self.flowPaused = True
-        self.stopAtNextVisualization = False
+        #self.stopAtNextVisualization = False
         self.goButton.grid()
         #self.pauseButton.grid_remove()  # use this again if Pause appears over Go! when it shouldnt
         self.nextButton.config(state=tk.NORMAL)
-        if self.agent is None or self.latestAgentOperation == Agent.FINISHED_EPISODE:
+        if self.agent is None or self.latestAgentOperation == Agent.FINISHED_EPISODE or self.relevantOperations == {Agent.FINISHED_EPISODE}:
+            # Last case catches if the pause button was clicked when only "Episode Finish" is a relevant operation BUT at the very moment the button was clicked, latestAgentOperation had a different value than "Episode Finish".
+            # Not perfect, but should catch most situations where the map cannot be edited after the pause button was clicked although "Episode Finish" was the last operation before visualization.
+            # First case is for safety (dunno if really needed)
             self.unfreeze_episodetime_parameters()
             self.gridworldFrame.set_interactionAllowed(True)
 
