@@ -22,7 +22,7 @@ cd RLproject2020
 Run:
 
 ```bash
-python RLproject.py --grid-shape 9 --steps 1000000 --refresh-rate 1 --show-rate 100 --off-policy --grid-world-template 15
+python main.py --grid-shape 9 --steps 1000000 --refresh-rate 1 --show-rate 100 --off-policy --grid-world-template 15
 ```
 
 which will result in:

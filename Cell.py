@@ -6,7 +6,7 @@ class Cell:
         self.isGoal = isGoal
         self.arrivalRewardVar = arrivalRewardVar
 
-    def is_suitable_start(self):
+    def is_suitable_start(self):  # TODO: Anpassen für Teleporter
         return not any([self.isWall, self.isGoal])
 
     def terminates_episode(self):

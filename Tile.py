@@ -33,6 +33,8 @@ class Tile(tk.Frame):
     BORDER_COLORS = ["black", "cyan", "brown"]
 
     TELEPORTERS = [str(i) for i in range(0,10)]  # 0-9
+    TELEPORTER_SOURCE_ONLY_CHAR = "+"
+    TELEPORTER_SINK_ONLY_CHAR = "-"
 
     GREEDYCHARS_1_2 = np.array([['┛','↑','┗'],
                                 ['←',' ','→'],
@@ -97,10 +99,10 @@ class Tile(tk.Frame):
             widget.bind("<Enter>", lambda _: widget.focus_set())  # focus is needed to toggle teleport
             for char in self.TELEPORTERS:
                 widget.bind(char, lambda _, char_=char: self.toggle_teleport(char=char_))
-            for button in ["<Up>", "w"]:
-                widget.bind(button, lambda _: self.specify_teleport(char="+"))
-            for button in ["<Down>", "s"]:
-                widget.bind(button, lambda _: self.specify_teleport(char="-"))
+            for button in ["<Up>", "w", "+"]:
+                widget.bind(button, lambda _: self.specify_teleport(char=self.TELEPORTER_SOURCE_ONLY_CHAR))
+            for button in ["<Down>", "s", "-"]:
+                widget.bind(button, lambda _: self.specify_teleport(char=self.TELEPORTER_SINK_ONLY_CHAR))
         self.indicateNumericalValueChange = indicateNumericalValueChange
         self.update_appearance(borderColor=self.BORDER_COLORS[0], **self.TYPES[0])
 

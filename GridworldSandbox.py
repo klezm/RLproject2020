@@ -224,7 +224,7 @@ class GridworldSandbox:
                 updateKwargs = {"fg": Tile.LETTER_COLOR, "borderColor": newBordercolor, "bg": newBackground}
                 for tilemap in valueVisualizationTilemaps:
                     tilemap.unprotect_text_and_textColor(x, y)  # needed to set / remove Goalchar properly
-                    if newText == Tile.GOAL_CHAR:
+                    if newText and newText[-1] in [Tile.GOAL_CHAR, Tile.TELEPORTER_SINK_ONLY_CHAR]:
                         tilemap.update_tile_appearance(x, y, text=newText, **updateKwargs)
                         tilemap.protect_text_and_color(x, y)
                     else:
