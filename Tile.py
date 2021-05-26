@@ -23,6 +23,7 @@ class Tile(tk.Frame):
     AGENTCOLOR_EXPLORATORY_LIGHT = "#FFBBBB"  # light red
     AGENTCOLOR_PLANNING_DEFAULT = "green"
     AGENTCOLOR_PLANNING_LIGHT = "#BBFFBB"  # light green
+    AGENTCOLOR_DEAD = "grey"
 
     TYPE_BLANK = {"text": "", "fg": LETTER_COLOR, "bg": BLANK_COLOR}
     TYPE_WALL = {"text": "", "fg": LETTER_COLOR, "bg": WALL_COLOR}

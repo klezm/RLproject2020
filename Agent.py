@@ -62,7 +62,7 @@ class Agent:
         self.state = None
         self.episodeFinished = False
         self.return_ = None  # underscore to avoid naming conflict with return keyword
-        self.episodeReturns = []
+        self.episodeReturns = [0]
         self.memory = Memory(self)
         self.hasChosenExploratoryMove = None
         self.hasMadeExploratoryMove = None

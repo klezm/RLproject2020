@@ -262,6 +262,9 @@ class GridworldSandbox:
         # Without the following condition, another iteration would resolve before a return statement would be reached,
         # resulting in freezing after processing the subsequent state of the one that the user wanted to freeze instead.
         # (This would even happen if the flow_iteration call would be skipped completely.)
+        if self.operationsLeftFrame.get_value() <= 0:
+            self.apply_pause(end=True)
+            return
         if self.pauseDemanded:
             if self.latestAgentOperation in self.relevantOperations:
                 self.apply_pause()
@@ -273,14 +276,6 @@ class GridworldSandbox:
         self.latestAgentOperation = self.agent.operate()  # This is where all the RL-Stuff happens
         self.agentOperationCounts[self.latestAgentOperation] += 1
         self.operationsLeftFrame.set_value(self.operationsLeftFrame.get_value() - 1)
-        #if self.operationsLeftFrame.get_value() <= 0:
-        #    if self.agent.get_episodeReturns():
-        #        self.visualize()
-        #        self.plot()
-        #    del self.agent
-        #    self.agent = None
-        #    self.pause_flow()
-        #    self.unfreeze_lifetime_parameters()
         if self.latestAgentOperation in self.relevantOperations:
             totalRelevantCount = 0
             for operation in self.relevantOperations:
@@ -309,24 +304,24 @@ class GridworldSandbox:
     def demand_pause(self):
         self.pauseDemanded = True
 
-    def apply_pause(self):
+    def apply_pause(self, end=False):
         self.pauseDemanded = False
         self.demandPauseAtNextVisualization = False
-        # self.flowPaused = True
-        #self.stopAtNextVisualization = False
         self.goButton.grid()
         #self.pauseButton.grid_remove()  # use this again if Pause appears over Go! when it shouldnt
         self.nextButton.config(state=tk.NORMAL)
-        if self.agent is None or self.latestAgentOperation == Agent.FINISHED_EPISODE:# or self.relevantOperations == {Agent.FINISHED_EPISODE}:
-            # Last case catches if the pause button was clicked when only "Episode Finish" is a relevant operation BUT at the very moment the button was clicked, latestAgentOperation had a different value than "Episode Finish".
-            # Not perfect, but should catch most situations where the map cannot be edited after the pause button was clicked although "Episode Finish" was the last operation before visualization.
-            # First case is for safety (dunno if really needed)
+        if end:
+            self.plot()
+            self.unfreeze_lifetime_parameters()
+            self.visualize()
+            del self.agent
+            self.agent = None
+        if self.agent is None or self.latestAgentOperation == Agent.FINISHED_EPISODE:
             self.unfreeze_episodetime_parameters()
             self.gridworldFrame.set_interactionAllowed(True)
 
     def visualize(self):
         # TODO: Qlearning doesnt update some tiles after a while. THATS THE POINT! Because its off-policy. This shows that it works! Great for presentation! Example with no walls and Start/Goal in the edges.
-        greedyActions: np.ndarray = self.agent.get_greedyActions()
         if self.visualizeMemoryFrame.get_value():
             agentcolorDefaultHue, agentcolorDefaultSaturation, agentcolorDefaultValue = myFuncs.rgbHexString_to_hsv(Tile.AGENTCOLOR_DEFAULT_LIGHT)
             traceCandidates = {state for state, _, _ in self.agent.get_memory()}
@@ -345,7 +340,10 @@ class GridworldSandbox:
                     newSaturation = (0.75 - 0.4 * self.agent.get_absence((x,y)) / (memorySize+1)) * agentcolorDefaultSaturation
                     valueVisualizationFrame_Color = myFuncs.hsv_to_rgbHexString(agentcolorDefaultHue, newSaturation, agentcolorDefaultValue)
                 if (x,y) == self.agent.get_state():
-                    if self.latestAgentOperation == Agent.UPDATED_BY_PLANNING:
+                    if self.operationsLeftFrame.get_value() <= 0:
+                        gridworldFrame_Color = Tile.AGENTCOLOR_DEAD
+                        valueVisualizationFrame_Color = Tile.AGENTCOLOR_DEAD
+                    elif self.latestAgentOperation == Agent.UPDATED_BY_PLANNING:
                         gridworldFrame_Color = Tile.AGENTCOLOR_PLANNING_DEFAULT
                         valueVisualizationFrame_Color = Tile.AGENTCOLOR_PLANNING_LIGHT
                     elif self.agent.hasMadeExploratoryMove:
@@ -358,7 +356,7 @@ class GridworldSandbox:
                 for action, Qvalue in self.agent.get_Qvalues()[x,y].items():
                     self.qValueFrames[action].update_tile_appearance(x, y, text=f"{Qvalue:< 3.2f}"[:self.QVALUES_WIDTH + 1], bg=valueVisualizationFrame_Color)
 
-                greedyReprKwargs = Tile.get_greedy_actions_representation(tuple(greedyActions[x,y]))  # tuple cast because a cached function needs mutable args
+                greedyReprKwargs = Tile.get_greedy_actions_representation(tuple(self.agent.get_greedyActions()[x,y]))  # tuple cast because a cached function needs mutable args
                 self.greedyPolicyFrame.update_tile_appearance(x, y, bg=valueVisualizationFrame_Color, **greedyReprKwargs)
 
         for action, tilemap in self.qValueFrames.items():
@@ -372,14 +370,14 @@ class GridworldSandbox:
         self.guiProcess.update_idletasks()
 
     def toggle_operation_relevance(self, operation):
-        #  This could also happen in check_flow_status in a similar way, but this way the stuff which must be computed at every check_flow_status call is minimized, since this function is only called after a checkbutton flip
+        #  This could also be implemented in check_flow_status in a similar way, but this way the stuff which must be computed at every check_flow_status call is minimized, since this function is only called after a checkbutton flip
         if self.operationFrames[operation].get_value():
             self.relevantOperations.add(operation)
         else:
             try:
                 self.relevantOperations.remove(operation)
             except:
-                pass
+                print("I thought this should work...")
         self.reset_agentOperationCounts()
 
     def reset_agentOperationCounts(self):
