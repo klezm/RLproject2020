@@ -1,6 +1,6 @@
 import tkinter as tk
 import numpy as np
-import random
+import re
 
 from functools import cache
 
@@ -31,6 +31,8 @@ class Tile(tk.Frame):
     TYPES = [TYPE_BLANK, TYPE_WALL, TYPE_START, TYPE_GOAL]
 
     BORDER_COLORS = ["black", "cyan", "brown"]
+
+    TELEPORTERS = [str(i) for i in range(0,10)]  # 0-9
 
     GREEDYCHARS_1_2 = np.array([['┛','↑','┗'],
                                 ['←',' ','→'],
@@ -88,11 +90,17 @@ class Tile(tk.Frame):
         self.borderColorCycleIndex = 0
         self.protectedAttributes = set()
         for widget in [self, self.label]:
-            widget.bind("<Enter>", lambda *bindArgs: widget.focus_set())
-            widget.bind("<Button-1>", lambda _: self.cycle_type(direction=1))
-            widget.bind("<Control-Button-1>", lambda _: self.cycle_type(direction=-1))
-            widget.bind("<Button-3>", lambda _: self.cycle_borderColor(direction=1))
-            widget.bind("<Control-Button-3>", lambda _: self.cycle_borderColor(direction=-1))
+            widget.bind("<Button-1>", lambda _: self.cycle_type(direction=1))  # left click
+            widget.bind("<Control-Button-1>", lambda _: self.cycle_type(direction=-1))  # ctrl + left click
+            widget.bind("<Button-3>", lambda _: self.cycle_borderColor(direction=1))  # right click
+            widget.bind("<Control-Button-3>", lambda _: self.cycle_borderColor(direction=-1))  # ctrl + right click
+            widget.bind("<Enter>", lambda _: widget.focus_set())  # focus is needed to toggle teleport
+            for char in self.TELEPORTERS:
+                widget.bind(char, lambda _, char_=char: self.toggle_teleport(char=char_))
+            for button in ["<Up>", "w"]:
+                widget.bind(button, lambda _: self.specify_teleport(char="+"))
+            for button in ["<Down>", "s"]:
+                widget.bind(button, lambda _: self.specify_teleport(char="-"))
         self.indicateNumericalValueChange = indicateNumericalValueChange
         self.update_appearance(borderColor=self.BORDER_COLORS[0], **self.TYPES[0])
 
@@ -101,6 +109,22 @@ class Tile(tk.Frame):
 
     def unprotect_attributes(self, *args):
         self.protectedAttributes -= set(args)
+
+    def toggle_teleport(self, char):
+        if self.master.interactionAllowed:
+            if char in self.label.cget("text"):
+                char = ""
+            self.update_appearance(text=char, bg=self.BLANK_COLOR)  # without bg, if toggled on a wall tile, teleport number would hide behind the black color and cause unwanted behavior during run
+
+    def specify_teleport(self, char):
+        text = self.label.cget("text")
+        if self.master.interactionAllowed:
+            if text.endswith(char):  # tile already is a teleporter specified in the given way
+                text = text[:-1]  # delete specification
+            elif re.match("[1-9]", text):  # match checks beginning of string, search would check whole string
+                text = text[0]+char  # specify teleporter independent from previous specification
+            self.update_appearance(text=text)
+
 
     def cycle_type(self, direction):
         if self.master.interactionAllowed:
