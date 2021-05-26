@@ -27,8 +27,9 @@ class GridworldSandbox:
         # Flow control variables
         self.latestAgentOperation = None
         self.agentOperationCounts = None
-        self.flowPaused = True
-        self.stopAtNextVisualization = False
+        #self.flowPaused = True
+        self.demandPauseAtNextVisualization = False
+        self.pauseDemanded = False
 
         # Setting up the GUI
         self.guiProcess = guiProcess
@@ -118,9 +119,9 @@ class GridworldSandbox:
 
                 if True:  # flowButtonsFrame:
                     # pause is only hidden behind go because of the order of lines below. If this somehow fails, uncomment all lines that say "use this again if Pause appears over Go! when it shouldnt" as a comment
-                    self.pauseButton = tk.Button(self.flowButtonsFrame, text="Pause", font=fontBig, bd=5, width=5, command=self.pause_flow)
-                    self.goButton = tk.Button(self.flowButtonsFrame, text="Go!", font=fontBig, bd=5, width=5, command=lambda: self.start_flow(stopAtNextVisualization=False))
-                    self.nextButton = tk.Button(self.flowButtonsFrame, text="Next", font=fontBig, bd=5, width=5, command=lambda: self.start_flow(stopAtNextVisualization=True))
+                    self.pauseButton = tk.Button(self.flowButtonsFrame, text="Pause", font=fontBig, bd=5, width=5, command=self.demand_pause)
+                    self.goButton = tk.Button(self.flowButtonsFrame, text="Go!", font=fontBig, bd=5, width=5, command=lambda: self.start_flow(demandPauseAtNextVisualization=False))
+                    self.nextButton = tk.Button(self.flowButtonsFrame, text="Next", font=fontBig, bd=5, width=5, command=lambda: self.start_flow(demandPauseAtNextVisualization=True))
 
                     self.goButton.grid(row=0, column=0)
                     self.pauseButton.grid(row=0, column=0)
@@ -238,9 +239,10 @@ class GridworldSandbox:
         self.environment.update(tileData)
         # TODO: Everytime a Tile is changed to an episode terminator, change its Qvalues to 0 explicitly. NO! Agent cant know this beforehand, thats the point!
 
-    def start_flow(self, stopAtNextVisualization):
-        self.flowPaused = False
-        self.stopAtNextVisualization = stopAtNextVisualization
+    def start_flow(self, demandPauseAtNextVisualization):
+        # self.flowPaused = False
+        self.pauseDemanded = False
+        self.demandPauseAtNextVisualization = demandPauseAtNextVisualization
         #self.pauseButton.grid()  # use this again if Pause appears over Go! when it shouldnt
         self.goButton.grid_remove()
         self.nextButton.config(state=tk.DISABLED)
@@ -260,41 +262,58 @@ class GridworldSandbox:
         # Without the following condition, another iteration would resolve before a return statement would be reached,
         # resulting in freezing after processing the subsequent state of the one that the user wanted to freeze instead.
         # (This would even happen if the flow_iteration call would be skipped completely.)
-        if self.flowPaused:
-            return
+        if self.pauseDemanded:
+            if self.latestAgentOperation in self.relevantOperations:
+                self.apply_pause()
+                return
+            else:  # clicked too late!
+                self.pauseDemanded = False
+                self.demandPauseAtNextVisualization = True
         next_msDelay = 0
         self.latestAgentOperation = self.agent.operate()  # This is where all the RL-Stuff happens
         self.agentOperationCounts[self.latestAgentOperation] += 1
         self.operationsLeftFrame.set_value(self.operationsLeftFrame.get_value() - 1)
-        if self.operationsLeftFrame.get_value() <= 0:
-            if self.agent.get_episodeReturns():
-                self.visualize()
-                self.plot()
-            del self.agent
-            self.agent = None
-            self.pause_flow()
-            self.unfreeze_lifetime_parameters()
-        elif self.latestAgentOperation in self.relevantOperations:
+        #if self.operationsLeftFrame.get_value() <= 0:
+        #    if self.agent.get_episodeReturns():
+        #        self.visualize()
+        #        self.plot()
+        #    del self.agent
+        #    self.agent = None
+        #    self.pause_flow()
+        #    self.unfreeze_lifetime_parameters()
+        if self.latestAgentOperation in self.relevantOperations:
             totalRelevantCount = 0
             for operation in self.relevantOperations:
                 totalRelevantCount += self.agentOperationCounts[operation]
             if totalRelevantCount % self.showEveryNoperationsFrame.get_value() == 0:
+                self.pauseDemanded = self.demandPauseAtNextVisualization
                 self.visualize()
                 next_msDelay = self.msDelayFrame.get_value()
-                if self.stopAtNextVisualization:
-                    self.pause_flow()
-        # Following condition is needed if the PAUSE state was set in the flow_iteration method.
-        # The Pause and the visualization, and especially disabling the Go and the Next button should happen
-        # immediately after the processing.
-        # Without the following condition, the user would have another next_msDelay amount of time to trigger
-        # Next or Go again and therefore call this function again, which would cause undefined behavior.
-        if self.flowPaused:
-            return
+                #if self.stopAtNextVisualization:
+                #    self.apply_pause()
+            # Following condition is needed if the PAUSE state was set in the flow_iteration method.
+            # The Pause and the visualization, and especially disabling the Go and the Next button should happen
+            # immediately after the processing.
+            # Without the following condition, the user would have another next_msDelay amount of time to trigger
+            # Next or Go again and therefore call this function again, which would cause undefined behavior.
+            # Additionally, latest operation must be a relevant operation, when "return" is executed
+            # in the self.flow_paused cases. Because if the latest operation would not be a relevant one and
+            # "Episode Finished" would be the only relevant operation and the user clicked pause "too late",
+            # meaning not in the Min-Refresh-Rate Timeframe, but in the processing time afterwards, following would happen:
+            # return would be executed in the next iteration, so the flow would halt without a visualization
+            # and regardless of its state. The
+            #if self.flowPaused:
+            #    return
         self.guiProcess.after(next_msDelay, self.iterate_flow)  # Queued GUI interactions will be resolved only during (?) the wait process of this call.
 
-    def pause_flow(self):
-        self.flowPaused = True
-        self.stopAtNextVisualization = False
+    def demand_pause(self):
+        self.pauseDemanded = True
+
+    def apply_pause(self):
+        self.pauseDemanded = False
+        self.demandPauseAtNextVisualization = False
+        # self.flowPaused = True
+        #self.stopAtNextVisualization = False
         self.goButton.grid()
         #self.pauseButton.grid_remove()  # use this again if Pause appears over Go! when it shouldnt
         self.nextButton.config(state=tk.NORMAL)
