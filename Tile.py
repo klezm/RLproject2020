@@ -33,8 +33,9 @@ class Tile(tk.Frame):
     BORDER_COLORS = ["black", "cyan", "brown"]
 
     TELEPORTERS = [str(i) for i in range(0,10)]  # 0-9
-    TELEPORTER_SOURCE_ONLY_CHAR = "+"
-    TELEPORTER_SINK_ONLY_CHAR = "-"
+    TELEPORTER_SOURCE_ONLY_SUFFIX = "+"
+    TELEPORTER_SINK_ONLY_SUFFIX = "-"
+    TELEPORTER_DEFAULT_SUFFIX = " "
 
     GREEDYCHARS_1_2 = np.array([['┛','↑','┗'],
                                 ['←',' ','→'],
@@ -98,11 +99,11 @@ class Tile(tk.Frame):
             widget.bind("<Control-Button-3>", lambda _: self.cycle_borderColor(direction=-1))  # ctrl + right click
             widget.bind("<Enter>", lambda _: widget.focus_set())  # focus is needed to toggle teleport
             for char in self.TELEPORTERS:
-                widget.bind(char, lambda _, char_=char: self.toggle_teleport(char=char_))
+                widget.bind(char, lambda _, char_=char: self.toggle_teleport(number=char_))
             for button in ["<Up>", "w", "+"]:
-                widget.bind(button, lambda _: self.specify_teleport(char=self.TELEPORTER_SOURCE_ONLY_CHAR))
+                widget.bind(button, lambda _: self.specify_teleport(suffix=self.TELEPORTER_SOURCE_ONLY_SUFFIX))
             for button in ["<Down>", "s", "-"]:
-                widget.bind(button, lambda _: self.specify_teleport(char=self.TELEPORTER_SINK_ONLY_CHAR))
+                widget.bind(button, lambda _: self.specify_teleport(suffix=self.TELEPORTER_SINK_ONLY_SUFFIX))
         self.indicateNumericalValueChange = indicateNumericalValueChange
         self.update_appearance(borderColor=self.BORDER_COLORS[0], **self.TYPES[0])
 
@@ -112,21 +113,22 @@ class Tile(tk.Frame):
     def unprotect_attributes(self, *args):
         self.protectedAttributes -= set(args)
 
-    def toggle_teleport(self, char):
+    def toggle_teleport(self, number: str):
         if self.master.interactionAllowed:
-            if char in self.label.cget("text"):
-                char = ""
-            self.update_appearance(text=char, bg=self.BLANK_COLOR)  # without bg, if toggled on a wall tile, teleport number would hide behind the black color and cause unwanted behavior during run
+            if number in self.label.cget("text"):
+                number = ""
+            else:
+                number += self.TELEPORTER_DEFAULT_SUFFIX
+            self.update_appearance(text=number, bg=self.BLANK_COLOR)  # without bg, if toggled on a wall tile, teleport number would hide behind the black color and cause unwanted behavior during run
 
-    def specify_teleport(self, char):
+    def specify_teleport(self, suffix):
         text = self.label.cget("text")
-        if self.master.interactionAllowed:
-            if text.endswith(char):  # tile already is a teleporter specified in the given way
-                text = text[:-1]  # delete specification
-            elif re.match("[1-9]", text):  # match checks beginning of string, search would check whole string
-                text = text[0]+char  # specify teleporter independent from previous specification
+        if self.master.interactionAllowed and text and (text[0] in self.TELEPORTERS):
+            if text.endswith(suffix):
+                text = text[0] + self.TELEPORTER_DEFAULT_SUFFIX
+            else:
+                text = text[0] + suffix
             self.update_appearance(text=text)
-
 
     def cycle_type(self, direction):
         if self.master.interactionAllowed:

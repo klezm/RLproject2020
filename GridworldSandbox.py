@@ -224,7 +224,7 @@ class GridworldSandbox:
                 updateKwargs = {"fg": Tile.LETTER_COLOR, "borderColor": newBordercolor, "bg": newBackground}
                 for tilemap in valueVisualizationTilemaps:
                     tilemap.unprotect_text_and_textColor(x, y)  # needed to set / remove Goalchar properly
-                    if newText and newText[-1] in [Tile.GOAL_CHAR, Tile.TELEPORTER_SINK_ONLY_CHAR]:
+                    if newText and (newText[-1] in [Tile.GOAL_CHAR, Tile.TELEPORTER_SINK_ONLY_SUFFIX]):
                         tilemap.update_tile_appearance(x, y, text=newText, **updateKwargs)
                         tilemap.protect_text_and_color(x, y)
                     else:
@@ -294,11 +294,11 @@ class GridworldSandbox:
 
     def pause_flow(self):
         self.flowPaused = True
-        #self.stopAtNextVisualization = False
+        self.stopAtNextVisualization = False
         self.goButton.grid()
         #self.pauseButton.grid_remove()  # use this again if Pause appears over Go! when it shouldnt
         self.nextButton.config(state=tk.NORMAL)
-        if self.agent is None or self.latestAgentOperation == Agent.FINISHED_EPISODE or self.relevantOperations == {Agent.FINISHED_EPISODE}:
+        if self.agent is None or self.latestAgentOperation == Agent.FINISHED_EPISODE:# or self.relevantOperations == {Agent.FINISHED_EPISODE}:
             # Last case catches if the pause button was clicked when only "Episode Finish" is a relevant operation BUT at the very moment the button was clicked, latestAgentOperation had a different value than "Episode Finish".
             # Not perfect, but should catch most situations where the map cannot be edited after the pause button was clicked although "Episode Finish" was the last operation before visualization.
             # First case is for safety (dunno if really needed)
