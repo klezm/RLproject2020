@@ -4,10 +4,7 @@ import webcolors
 import numpy as np
 import tkinter as tk
 from tkinter import filedialog
-from tkinter import simpledialog
-from tkinter import messagebox
 import yaml
-import os
 
 
 @cache
@@ -37,6 +34,10 @@ def rgbHexString_to_hsv(string):
     hsvTripleInteger = webcolors.hex_to_rgb(string)
     hsvTripleNormalized = tuple(value / 255 for value in hsvTripleInteger)
     return colorsys.rgb_to_hsv(*hsvTripleNormalized)
+
+
+def get_light_color(color: str, lightness: str):
+    return color.replace("0", lightness)
 
 
 def center(window):
@@ -76,7 +77,7 @@ def arrange_children(frame, rowDiff=0, columnDiff=0, useSticky=True, **kwargs):
 
 def get_dict_from_yaml_file(filename=None, initialdir="."):
     if not filename:
-        filename = filedialog.askopenfilename(initialdir=initialdir, title="Load")
+        filename = filedialog.askopenfilename(initialdir=initialdir, title="Load", filetypes=[("", "*.yaml")])
         if not filename:
             return {}
     else:
@@ -85,12 +86,12 @@ def get_dict_from_yaml_file(filename=None, initialdir="."):
         return yaml.safe_load(file)
 
 
-def create_yaml_file_from_dict(inputDict, filename=None, initialdir="."):
-    if filename is None:
-        filename = filedialog.asksaveasfilename(initialdir=initialdir, title="Save")
-        if not filename:
-            return {}
-    filename += ".yaml"
+def create_yaml_file_from_dict(inputDict, initialdir="."):
+    filename = filedialog.asksaveasfilename(initialdir=initialdir, title="Save", filetypes=[("", "*.yaml")])
+    if not filename:
+        return
+    if not filename.endswith(".yaml"):
+        filename += ".yaml"
     with open(filename, "w") as file:
         yaml.dump(inputDict, file)
 

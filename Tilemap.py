@@ -35,3 +35,6 @@ class Tilemap(tk.Frame):
 
     def update_tile_appearance(self, x, y, **kwargs):
         self.tiles[x,y].update_appearance(**kwargs)
+
+    def get_yaml_list(self):
+        return [[tile.get_yaml_dict() for tile in row] for row in self.tiles]

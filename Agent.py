@@ -27,7 +27,7 @@ class Agent:
     STARTED_EPISODE = "Episode Start"
     OPERATIONS = [UPDATED_BY_PLANNING, UPDATED_BY_EXPERIENCE, TOOK_ACTION, FINISHED_EPISODE, STARTED_EPISODE]  # for iteration purposes
 
-    def __init__(self, environment, use_kingMoves, learningRateVar, dynamicAlphaVar, discountVar, nStepVar, nPlanVar, onPolicyVar,
+    def __init__(self, environment, use_kingMoves, currentReturnVar, learningRateVar, dynamicAlphaVar, discountVar, nStepVar, nPlanVar, onPolicyVar,
                  updateByExpectationVar, behaviorEpsilonVar, behaviorEpsilonDecayRateVar, targetEpsilonVar, targetEpsilonDecayRateVar,
                  decayEpsilonEpisodeWiseVar, initialActionvalueMean, initialActionvalueSigma, predefinedAlgorithm=None, actionPlan=[]):
         self.environment = environment
@@ -38,6 +38,7 @@ class Agent:
         if predefinedAlgorithm:
             # TODO: set missing params accordingly
             pass
+        self.currentReturnVar = currentReturnVar
         self.learningRateVar = learningRateVar
         self.dynamicAlphaVar = dynamicAlphaVar
         self.discountVar = discountVar
@@ -61,7 +62,6 @@ class Agent:
         # and that the actionspace is constant for all possible states.
         self.state = None
         self.episodeFinished = False
-        self.return_ = None  # underscore to avoid naming conflict with return keyword
         self.episodeReturns = [0]
         self.memory = Memory(self)
         self.hasChosenExploratoryMove = None
@@ -96,7 +96,7 @@ class Agent:
             self.process_earliest_memory()
             return self.UPDATED_BY_EXPERIENCE
         elif self.episodeFinished:
-            self.episodeReturns.append(self.return_)
+            self.episodeReturns.append(self.currentReturnVar.get())
             self.hasMadeExploratoryMove = False  # So at the next start the agent isnt colored exploratory anymore
             self.state = self.environment.remove_agent()
             self.memory.yield_lastForgottenState()  # for correct trace visualization
@@ -115,7 +115,7 @@ class Agent:
 
     def start_episode(self):
         self.targetAction = None
-        self.return_ = 0
+        self.currentReturnVar.set(0)
         self.iSuccessivePlannings = 0
         self.stateAbsenceCounts *= 0  # is this faster then re-initializing the whole array?
         self.state = self.environment.give_initial_position()
@@ -129,7 +129,7 @@ class Agent:
         reward, successorState, self.episodeFinished = self.environment.apply_action(behaviorAction)  # This is the only place where the agent exchanges information with the environment
         self.hasMadeExploratoryMove = self.hasChosenExploratoryMove  # if hasChosenExploratoryMove would be the only indicator for changing the agent color in the next visualization, then in the on-policy case, if the target was chosen to be an exploratory move in the last step-call, the coloring would happen BEFORE the move was taken, since in this line, the behavior action would already be determined and just copied from that target action with no chance to track if it was exploratory or not.
         self.memory.memorize(self.state, behaviorAction, reward)
-        self.return_ += reward  # underscore at the end because "return" is a python keyword
+        self.currentReturnVar.set(self.currentReturnVar.get() + reward)
         self.state = successorState  # must happen after memorize and before generate_target!
         self.stateAbsenceCounts[self.state] = 0
         self.generate_target()

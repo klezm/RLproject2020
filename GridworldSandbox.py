@@ -1,4 +1,5 @@
 ﻿import tkinter as tk
+from tkinter import messagebox
 import numpy as np
 from collections import OrderedDict
 import matplotlib.pyplot as plt
@@ -11,6 +12,7 @@ from Tile import Tile
 from Tilemap import Tilemap
 from EntryFrame import EntryFrame
 from CheckbuttonFrame import CheckbuttonFrame
+from InformationFrame import InformationFrame
 
 
 class GridworldSandbox:
@@ -27,7 +29,6 @@ class GridworldSandbox:
         # Flow control variables
         self.latestAgentOperation = None
         self.agentOperationCounts = None
-        #self.flowPaused = True
         self.demandPauseAtNextVisualization = False
         self.pauseDemanded = False
 
@@ -107,6 +108,7 @@ class GridworldSandbox:
             if True:  # visualizationSettingsFrame
                 self.initialActionvalueMeanFrame = EntryFrame(self.visualizationSettingsFrame, text="Initial Q-Values Mean", font=fontMiddle, targetType=float)
                 self.initialActionvalueSigmaFrame = EntryFrame(self.visualizationSettingsFrame, text="Initial Q-Values Sigma", font=fontMiddle, targetType=float)
+                self.currentReturnFrame = InformationFrame(self.visualizationSettingsFrame, text="Current Reward", font=fontMiddle, targetType=int)
                 self.operationsLeftFrame = EntryFrame(self.visualizationSettingsFrame, text="Operations Left", font=fontMiddle, targetType=int)
                 self.msDelayFrame = EntryFrame(self.visualizationSettingsFrame, text="Min Refresh Rate [ms]", font=fontMiddle, targetType=int)
                 self.visualizeMemoryFrame = CheckbuttonFrame(self.visualizationSettingsFrame, text="Visualize Memory", font=fontMiddle)
@@ -181,30 +183,48 @@ class GridworldSandbox:
     def recursiveGather_parameterFrameVars(self, frame):
         collection = dict()
         for child in frame.winfo_children():
-            try:
-                collection[child.get_text()] = child.get_var()
-            except:
-                collection |= self.recursiveGather_parameterFrameVars(child)
+            if not isinstance(child, InformationFrame):  # InformationFrame must be excluded, otherwise return would ne loaded and saved like any other parameter
+                try:
+                    collection[child.get_text()] = child.get_var()
+                except:
+                    collection |= self.recursiveGather_parameterFrameVars(child)
         return collection
 
     def load(self, filename=None):
         yamlDict = myFuncs.get_dict_from_yaml_file(filename, initialdir=self.SAFEFILE_FOLDER)
-        if yamlDict:
+        if yamlDict:  # get_dict_from_yaml_file could have returned None if dialog was canceled
+            tileDictMatrix = yamlDict.pop("world")
+            if tileDictMatrix is not None:
+                if len(tileDictMatrix) == self.X and len(tileDictMatrix[0]) == self.Y:
+                    for x in range(self.X):
+                        for y in range(self.Y):
+                            self.gridworldFrame.update_tile_appearance(x,y, **tileDictMatrix[x][y])
+                else:
+                    messagebox.showerror("World Error", "World shape does not match.")
             for name, tkVar in self.parameterFramesVarsDict.items():
                 tkVar.set(yamlDict[name])
 
     def save(self):
         valueDict = {name: tkVar.get() for name, tkVar in self.parameterFramesVarsDict.items()}
+        valueDict["world"] = self.gridworldFrame.get_yaml_list()
         myFuncs.create_yaml_file_from_dict(valueDict, initialdir=self.SAFEFILE_FOLDER)
 
     def initialize_environment_and_agent(self):
-        self.environment = Environment(X=self.X, Y=self.Y, hasIceFloorVar=self.iceFloorFrame.get_var(),
-                                       isXtorusVar=self.xTorusFrame.get_var(), isYtorusVar=self.yTorusFrame.get_var())
+        self.environment = Environment(X=self.X,
+                                       Y=self.Y,
+                                       hasIceFloorVar=self.iceFloorFrame.get_var(),
+                                       isXtorusVar=self.xTorusFrame.get_var(),
+                                       isYtorusVar=self.yTorusFrame.get_var())
         # Agent needs an environment to exist, but environment doesnt need an agent
-        self.agent = Agent(environment=self.environment, use_kingMoves=self.allow_kingMoves, learningRateVar=self.learningRateFrame.get_var(),
+        self.agent = Agent(environment=self.environment,
+                           use_kingMoves=self.allow_kingMoves,
+                           currentReturnVar=self.currentReturnFrame.get_var(),
+                           learningRateVar=self.learningRateFrame.get_var(),
                            dynamicAlphaVar=self.dynamicAlphaFrame.get_var(),
-                           discountVar=self.discountFrame.get_var(), nStepVar=self.nStepFrame.get_var(),
-                           nPlanVar=self.nPlanFrame.get_var(), onPolicyVar=self.onPolicyFrame.get_var(),
+                           discountVar=self.discountFrame.get_var(),
+                           nStepVar=self.nStepFrame.get_var(),
+                           nPlanVar=self.nPlanFrame.get_var(),
+                           onPolicyVar=self.onPolicyFrame.get_var(),
                            updateByExpectationVar=self.updateByExpectationFrame.get_var(),
                            behaviorEpsilonVar=self.behaviorEpsilonFrame.get_var(),
                            behaviorEpsilonDecayRateVar=self.behaviorEpsilonDecayRateFrame.get_var(),
@@ -230,17 +250,25 @@ class GridworldSandbox:
                         tilemap.protect_text_and_color(x, y)
                     else:
                         tilemap.update_tile_appearance(x, y, **updateKwargs)
+                teleportSource = None
+                teleportSink = None
+                if newText and newText[0] in Tile.TELEPORTERS:
+                    if newText[1] != Tile.TELEPORTER_SINK_ONLY_SUFFIX:
+                        teleportSource = newText[0]
+                    if newText[1] != Tile.TELEPORTER_SOURCE_ONLY_SUFFIX:
+                        teleportSink = newText[0]
                 arrivalRewardVarName = "Reward " + newBordercolor.capitalize()
                 tileData[x,y] = {"position": (x,y),
                                  "isWall": newBackground == Tile.WALL_COLOR,
                                  "isStart": newText == Tile.START_CHAR,
                                  "isGoal": newText == Tile.GOAL_CHAR,
-                                 "arrivalRewardVar": self.parameterFramesVarsDict[arrivalRewardVarName]}
+                                 "arrivalRewardVar": self.parameterFramesVarsDict[arrivalRewardVarName],
+                                 "teleportSource": teleportSource,
+                                 "teleportSink": teleportSink}
         self.environment.update(tileData)
         # TODO: Everytime a Tile is changed to an episode terminator, change its Qvalues to 0 explicitly. NO! Agent cant know this beforehand, thats the point!
 
     def start_flow(self, demandPauseAtNextVisualization):
-        # self.flowPaused = False
         self.pauseDemanded = False
         self.demandPauseAtNextVisualization = demandPauseAtNextVisualization
         #self.pauseButton.grid()  # use this again if Pause appears over Go! when it shouldnt
@@ -256,12 +284,6 @@ class GridworldSandbox:
         self.iterate_flow()
 
     def iterate_flow(self):
-        # Following condition is needed if the PAUSE State was set by pressing the Pause button, which will be resolved
-        # as part of the after function, immediately before the recursive call.
-        # The PAUSE should happen as soon as possible then, since the user wants to freeze what he sees at that time.
-        # Without the following condition, another iteration would resolve before a return statement would be reached,
-        # resulting in freezing after processing the subsequent state of the one that the user wanted to freeze instead.
-        # (This would even happen if the flow_iteration call would be skipped completely.)
         if self.operationsLeftFrame.get_value() <= 0:
             self.apply_pause(end=True)
             return
@@ -269,7 +291,7 @@ class GridworldSandbox:
             if self.latestAgentOperation in self.relevantOperations:
                 self.apply_pause()
                 return
-            else:  # clicked too late!
+            else:  # clicked too late! Refresh time was over and iterate flow was already running again in the background. Now wait for the next relevant operation and visualization to enter the block above.
                 self.pauseDemanded = False
                 self.demandPauseAtNextVisualization = True
         next_msDelay = 0
@@ -284,22 +306,7 @@ class GridworldSandbox:
                 self.pauseDemanded = self.demandPauseAtNextVisualization
                 self.visualize()
                 next_msDelay = self.msDelayFrame.get_value()
-                #if self.stopAtNextVisualization:
-                #    self.apply_pause()
-            # Following condition is needed if the PAUSE state was set in the flow_iteration method.
-            # The Pause and the visualization, and especially disabling the Go and the Next button should happen
-            # immediately after the processing.
-            # Without the following condition, the user would have another next_msDelay amount of time to trigger
-            # Next or Go again and therefore call this function again, which would cause undefined behavior.
-            # Additionally, latest operation must be a relevant operation, when "return" is executed
-            # in the self.flow_paused cases. Because if the latest operation would not be a relevant one and
-            # "Episode Finished" would be the only relevant operation and the user clicked pause "too late",
-            # meaning not in the Min-Refresh-Rate Timeframe, but in the processing time afterwards, following would happen:
-            # return would be executed in the next iteration, so the flow would halt without a visualization
-            # and regardless of its state. The
-            #if self.flowPaused:
-            #    return
-        self.guiProcess.after(next_msDelay, self.iterate_flow)  # Queued GUI interactions will be resolved only during (?) the wait process of this call.
+        self.guiProcess.after(next_msDelay, self.iterate_flow)
 
     def demand_pause(self):
         self.pauseDemanded = True
@@ -311,9 +318,9 @@ class GridworldSandbox:
         #self.pauseButton.grid_remove()  # use this again if Pause appears over Go! when it shouldnt
         self.nextButton.config(state=tk.NORMAL)
         if end:
-            self.plot()
             self.unfreeze_lifetime_parameters()
             self.visualize()
+            self.plot()
             del self.agent
             self.agent = None
         if self.agent is None or self.latestAgentOperation == Agent.FINISHED_EPISODE:
@@ -321,9 +328,10 @@ class GridworldSandbox:
             self.gridworldFrame.set_interactionAllowed(True)
 
     def visualize(self):
+        lightness = "9"
         # TODO: Qlearning doesnt update some tiles after a while. THATS THE POINT! Because its off-policy. This shows that it works! Great for presentation! Example with no walls and Start/Goal in the edges.
         if self.visualizeMemoryFrame.get_value():
-            agentcolorDefaultHue, agentcolorDefaultSaturation, agentcolorDefaultValue = myFuncs.rgbHexString_to_hsv(Tile.AGENTCOLOR_DEFAULT_LIGHT)
+            agentcolorDefaultHue, agentcolorDefaultSaturation, agentcolorDefaultValue = myFuncs.rgbHexString_to_hsv(myFuncs.get_light_color(Tile.AGENTCOLOR_DEFAULT, lightness))
             traceCandidates = {state for state, _, _ in self.agent.get_memory()}
             traceTail = self.agent.get_memory().yield_lastForgottenState()
             memorySize = self.agent.get_memory_size() + int(bool(traceTail))
@@ -344,14 +352,17 @@ class GridworldSandbox:
                         gridworldFrame_Color = Tile.AGENTCOLOR_DEAD
                         valueVisualizationFrame_Color = Tile.AGENTCOLOR_DEAD
                     elif self.latestAgentOperation == Agent.UPDATED_BY_PLANNING:
-                        gridworldFrame_Color = Tile.AGENTCOLOR_PLANNING_DEFAULT
-                        valueVisualizationFrame_Color = Tile.AGENTCOLOR_PLANNING_LIGHT
+                        gridworldFrame_Color = Tile.AGENTCOLOR_PLANNING
+                        valueVisualizationFrame_Color = myFuncs.get_light_color(Tile.AGENTCOLOR_PLANNING, lightness)
                     elif self.agent.hasMadeExploratoryMove:
-                        gridworldFrame_Color = Tile.AGENTCOLOR_EXPLORATORY_DEFAULT
-                        valueVisualizationFrame_Color = Tile.AGENTCOLOR_EXPLORATORY_LIGHT
+                        gridworldFrame_Color = Tile.AGENTCOLOR_EXPLORATORY
+                        valueVisualizationFrame_Color = myFuncs.get_light_color(Tile.AGENTCOLOR_EXPLORATORY, lightness)
                     else:
-                        gridworldFrame_Color = Tile.AGENTCOLOR_DEFAULT_DEFAULT
-                        valueVisualizationFrame_Color = Tile.AGENTCOLOR_DEFAULT_LIGHT
+                        gridworldFrame_Color = Tile.AGENTCOLOR_DEFAULT
+                        valueVisualizationFrame_Color = myFuncs.get_light_color(Tile.AGENTCOLOR_DEFAULT, lightness)
+                elif (x,y) == self.environment.get_teleportJustUsed():
+                    gridworldFrame_Color = Tile.TELEPORT_JUST_USED_COLOR
+                    valueVisualizationFrame_Color = myFuncs.get_light_color(Tile.TELEPORT_JUST_USED_COLOR, lightness)
                 self.gridworldFrame.update_tile_appearance(x, y, bg=gridworldFrame_Color)
                 for action, Qvalue in self.agent.get_Qvalues()[x,y].items():
                     self.qValueFrames[action].update_tile_appearance(x, y, text=f"{Qvalue:< 3.2f}"[:self.QVALUES_WIDTH + 1], bg=valueVisualizationFrame_Color)
@@ -374,10 +385,7 @@ class GridworldSandbox:
         if self.operationFrames[operation].get_value():
             self.relevantOperations.add(operation)
         else:
-            try:
-                self.relevantOperations.remove(operation)
-            except:
-                print("I thought this should work...")
+            self.relevantOperations.remove(operation)
         self.reset_agentOperationCounts()
 
     def reset_agentOperationCounts(self):

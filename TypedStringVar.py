@@ -10,5 +10,5 @@ class TypedStringVar(tk.StringVar):
     def get(self):
         try:
             return self.targetType(super().get())
-        except ValueError as e:
-            messagebox.showinfo("Value Error", e)
+        except:
+            return None

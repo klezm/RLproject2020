@@ -1,6 +1,5 @@
 import tkinter as tk
 import numpy as np
-import re
 
 from functools import cache
 
@@ -17,13 +16,14 @@ class Tile(tk.Frame):
     DEFAULT_RELIEF = tk.GROOVE
     START_CHAR = "S"
     GOAL_CHAR = "G"
-    AGENTCOLOR_DEFAULT_DEFAULT = "blue"
+    AGENTCOLOR_DEFAULT = "#0000FF"  # blue
     AGENTCOLOR_DEFAULT_LIGHT = "#BBBBFF"  # light blue
-    AGENTCOLOR_EXPLORATORY_DEFAULT = "red"
+    AGENTCOLOR_EXPLORATORY = "#FF0000"  # red
     AGENTCOLOR_EXPLORATORY_LIGHT = "#FFBBBB"  # light red
-    AGENTCOLOR_PLANNING_DEFAULT = "green"
+    AGENTCOLOR_PLANNING = "#00FF00"  # green
     AGENTCOLOR_PLANNING_LIGHT = "#BBFFBB"  # light green
     AGENTCOLOR_DEAD = "grey"
+    TELEPORT_JUST_USED_COLOR = "#FFFF00"  # yellow
 
     TYPE_BLANK = {"text": "", "fg": LETTER_COLOR, "bg": BLANK_COLOR}
     TYPE_WALL = {"text": "", "fg": LETTER_COLOR, "bg": WALL_COLOR}
@@ -160,3 +160,9 @@ class Tile(tk.Frame):
             self.label.config(**kwargs)
         if borderColor:
             self.config(bg=borderColor)
+
+    def get_yaml_dict(self):
+        yamlDict = {"text": self.label.cget("text"),
+                    "bg": self.label.cget("bg"),
+                    "borderColor": self.cget("bg")}
+        return yamlDict
