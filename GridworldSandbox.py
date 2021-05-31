@@ -35,11 +35,16 @@ class GridworldSandbox:
         # Setting up the GUI
         self.guiProcess = guiProcess
         initialWindowDict = myFuncs.get_dict_from_yaml_file("initialWindow")
-        sizesDict = myFuncs.get_dict_from_yaml_file("sizes")
+        sizesDict = myFuncs.get_dict_from_yaml_file("visualSettings")
+        
         fontQvalues = myFuncs.create_font(sizesDict["qvalues fontsize"])
         fontWorldtiles = myFuncs.create_font(sizesDict["worldtiles fontsize"])
+        fontSmall = myFuncs.create_font(sizesDict["fontsize small"])
         fontMiddle = myFuncs.create_font(sizesDict["fontsize middle"])
         fontBig = myFuncs.create_font(sizesDict["fontsize big"])
+        self.agentLightnessQvalueFrames = str(sizesDict["agent qValueFrames lightness"])
+        self.minLightnessAgentTrace = sizesDict["agent trace min saturation rate"]
+        self.maxLightnessAgentTrace = sizesDict["agent trace max saturation rate"]
 
         if initialWindowDict["skip config window"]:
             guiScale = initialWindowDict["GUI Scale"]
@@ -77,7 +82,7 @@ class GridworldSandbox:
         self.mainWindow.protocol("WM_DELETE_WINDOW", self.guiProcess.quit)
 
         # window:
-        self.gridworldFrame = Tilemap(self.mainWindow, X=self.X, Y=self.Y, interactionAllowed=True, font=fontWorldtiles, relief=tk.GROOVE,
+        self.gridworldFrame = Tilemap(self.mainWindow, X=self.X, Y=self.Y, windEntrysFont=fontMiddle, interactionAllowed=True, font=fontWorldtiles, relief=tk.GROOVE,
                                       bd=5, tileHeight=sizesDict["worldtiles height"], tileWidth=sizesDict["worldtiles width"], tileBd=sizesDict["worldtiles borderwidth"])
         self.valueVisualizationFrame = tk.Frame(self.mainWindow, bd=5, relief=tk.GROOVE)
         self.settingsFrame = tk.Frame(self.mainWindow, bd=5, relief=tk.GROOVE)
@@ -328,10 +333,9 @@ class GridworldSandbox:
             self.gridworldFrame.set_interactionAllowed(True)
 
     def visualize(self):
-        lightness = "9"
         # TODO: Qlearning doesnt update some tiles after a while. THATS THE POINT! Because its off-policy. This shows that it works! Great for presentation! Example with no walls and Start/Goal in the edges.
         if self.visualizeMemoryFrame.get_value():
-            agentcolorDefaultHue, agentcolorDefaultSaturation, agentcolorDefaultValue = myFuncs.rgbHexString_to_hsv(myFuncs.get_light_color(Tile.AGENTCOLOR_DEFAULT, lightness))
+            agentcolorDefaultHue, agentcolorDefaultSaturation, agentcolorDefaultValue = myFuncs.rgbHexString_to_hsv(myFuncs.get_light_color(Tile.AGENTCOLOR_DEFAULT, self.agentLightnessQvalueFrames))
             traceCandidates = {state for state, _, _ in self.agent.get_memory()}
             traceTail = self.agent.get_memory().yield_lastForgottenState()
             memorySize = self.agent.get_memory_size() + int(bool(traceTail))
@@ -345,7 +349,7 @@ class GridworldSandbox:
                 gridworldFrame_Color = Tile.BLANK_COLOR
                 valueVisualizationFrame_Color = Tile.BLANK_COLOR
                 if self.visualizeMemoryFrame.get_value() and (x,y) in traceCandidates:
-                    newSaturation = (0.75 - 0.4 * self.agent.get_absence((x,y)) / (memorySize+1)) * agentcolorDefaultSaturation
+                    newSaturation = (self.maxLightnessAgentTrace - self.minLightnessAgentTrace * self.agent.get_absence((x,y)) / (memorySize+1)) * agentcolorDefaultSaturation
                     valueVisualizationFrame_Color = myFuncs.hsv_to_rgbHexString(agentcolorDefaultHue, newSaturation, agentcolorDefaultValue)
                 if (x,y) == self.agent.get_state():
                     if self.operationsLeftFrame.get_value() <= 0:
@@ -353,16 +357,16 @@ class GridworldSandbox:
                         valueVisualizationFrame_Color = Tile.AGENTCOLOR_DEAD
                     elif self.latestAgentOperation == Agent.UPDATED_BY_PLANNING:
                         gridworldFrame_Color = Tile.AGENTCOLOR_PLANNING
-                        valueVisualizationFrame_Color = myFuncs.get_light_color(Tile.AGENTCOLOR_PLANNING, lightness)
+                        valueVisualizationFrame_Color = myFuncs.get_light_color(Tile.AGENTCOLOR_PLANNING, self.agentLightnessQvalueFrames)
                     elif self.agent.hasMadeExploratoryMove:
                         gridworldFrame_Color = Tile.AGENTCOLOR_EXPLORATORY
-                        valueVisualizationFrame_Color = myFuncs.get_light_color(Tile.AGENTCOLOR_EXPLORATORY, lightness)
+                        valueVisualizationFrame_Color = myFuncs.get_light_color(Tile.AGENTCOLOR_EXPLORATORY, self.agentLightnessQvalueFrames)
                     else:
                         gridworldFrame_Color = Tile.AGENTCOLOR_DEFAULT
-                        valueVisualizationFrame_Color = myFuncs.get_light_color(Tile.AGENTCOLOR_DEFAULT, lightness)
+                        valueVisualizationFrame_Color = myFuncs.get_light_color(Tile.AGENTCOLOR_DEFAULT, self.agentLightnessQvalueFrames)
                 elif (x,y) == self.environment.get_teleportJustUsed():
                     gridworldFrame_Color = Tile.TELEPORT_JUST_USED_COLOR
-                    valueVisualizationFrame_Color = myFuncs.get_light_color(Tile.TELEPORT_JUST_USED_COLOR, lightness)
+                    valueVisualizationFrame_Color = myFuncs.get_light_color(Tile.TELEPORT_JUST_USED_COLOR, self.agentLightnessQvalueFrames)
                 self.gridworldFrame.update_tile_appearance(x, y, bg=gridworldFrame_Color)
                 for action, Qvalue in self.agent.get_Qvalues()[x,y].items():
                     self.qValueFrames[action].update_tile_appearance(x, y, text=f"{Qvalue:< 3.2f}"[:self.QVALUES_WIDTH + 1], bg=valueVisualizationFrame_Color)
@@ -430,8 +434,10 @@ class GridworldSandbox:
     def toggle_offPolicy_nStep_warning(self):
         if self.nStepFrame.get_value() > 1 and not self.onPolicyFrame.get_value():
             self.onPolicyFrame.set_color("red")
+            self.nStepFrame.set_color("red")
         else:
             self.onPolicyFrame.set_color("black")
+            self.nStepFrame.set_color("black")
 
     def plot(self):
         # print("Episode returns of the agent:", self.agent.get_episodeReturns())

@@ -17,11 +17,8 @@ class Tile(tk.Frame):
     START_CHAR = "S"
     GOAL_CHAR = "G"
     AGENTCOLOR_DEFAULT = "#0000FF"  # blue
-    AGENTCOLOR_DEFAULT_LIGHT = "#BBBBFF"  # light blue
     AGENTCOLOR_EXPLORATORY = "#FF0000"  # red
-    AGENTCOLOR_EXPLORATORY_LIGHT = "#FFBBBB"  # light red
     AGENTCOLOR_PLANNING = "#00FF00"  # green
-    AGENTCOLOR_PLANNING_LIGHT = "#BBFFBB"  # light green
     AGENTCOLOR_DEAD = "grey"
     TELEPORT_JUST_USED_COLOR = "#FFFF00"  # yellow
 
@@ -33,7 +30,7 @@ class Tile(tk.Frame):
 
     BORDER_COLORS = ["black", "cyan", "brown"]
 
-    TELEPORTERS = [str(i) for i in range(0,10)]  # 0-9
+    TELEPORTERS = [str(i) for i in range(1,10)]  # 1-9
     TELEPORTER_SOURCE_ONLY_SUFFIX = "+"
     TELEPORTER_SINK_ONLY_SUFFIX = "-"
     TELEPORTER_DEFAULT_SUFFIX = " "
@@ -162,7 +159,6 @@ class Tile(tk.Frame):
             self.config(bg=borderColor)
 
     def get_yaml_dict(self):
-        yamlDict = {"text": self.label.cget("text"),
-                    "bg": self.label.cget("bg"),
-                    "borderColor": self.cget("bg")}
-        return yamlDict
+        return {"text": self.label.cget("text"),
+                "bg": self.label.cget("bg"),
+                "borderColor": self.cget("bg")}

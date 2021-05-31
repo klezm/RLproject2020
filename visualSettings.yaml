@@ -1,0 +1,19 @@
+fontsize big: 15
+fontsize middle: 14
+fontsize small: 10
+
+worldtiles fontsize: 35
+worldtiles height: 1        # characters
+worldtiles width: 2         # characters
+worldtiles borderwidth: 4   # pixels
+
+qvalues fontsize: 11
+qvalues height: 1           # characters
+qvalues width: 4            # characters
+qvalues borderwidth: 2      # pixels
+
+targetmarker width: 10      # pixels
+
+agent qValueFrames lightness: 9           # hex digit (0 to F)
+agent trace min saturation rate: 0.4      # ration between saturations of first trace tile and agent itself in qValueFrames
+agent trace max saturation rate: 0.75     # ration between saturations of last  trace tile and agent itself in qValueFrames
