@@ -5,10 +5,11 @@ from Cell import Cell
 
 
 class Environment:
-    def __init__(self, X, Y, hasIceFloorVar, isXtorusVar, isYtorusVar):
+    def __init__(self, X, Y, hasIceFloorVar, isXtorusVar, isYtorusVar, xWindVars, yWindVars):
         self.grid = np.empty((X,Y), dtype=Cell)
         self.hasIceFloorVar = hasIceFloorVar
         self.isTorusVars = (isXtorusVar, isYtorusVar)
+        self.windVars = (xWindVars, yWindVars)
         self.agentPosition = None
         self.teleportJustUsed = None
         # In a gridworld, position and agent state can be treated equivalent, but not in general! i.e. snake
@@ -39,33 +40,55 @@ class Environment:
         return random.choice(candidates)
 
     def apply_action(self, action):
+        oldEstimate = self.agentPosition
         while True:
-            destinationEstimate = self.get_destination_estimate(self.agentPosition, action)
-            if self.grid[destinationEstimate].isWall or destinationEstimate == self.agentPosition:
+            destinationEstimate = self.get_step_destination(oldEstimate, action)  # processes world edge / torus / wall
+            destinationEstimate = self.get_wind_destination(destinationEstimate)
+            if not self.hasIceFloorVar.get() or destinationEstimate == oldEstimate:
                 break
-            self.agentPosition = destinationEstimate
-            if not self.hasIceFloorVar.get():
-                break
-        reward = self.grid[self.agentPosition].get_arrivalReward()
+            oldEstimate = destinationEstimate
+        self.agentPosition = destinationEstimate
+        reward = self.gather_reward()
         if self.grid[self.agentPosition].is_teleport_entry():
             self.teleportJustUsed = self.agentPosition
             self.agentPosition = self.get_teleport_destination(self.grid[self.agentPosition])
-            reward += self.grid[self.agentPosition].get_arrivalReward()
+            reward += self.gather_reward()
         else:
             self.teleportJustUsed = None
         episodeFinished = self.grid[self.agentPosition].terminates_episode()
         return reward, self.agentPosition, episodeFinished
 
-    def get_destination_estimate(self, position, action):
+    def get_step_destination(self, position, step):
         estimate = [-1, -1]
-        for iDim in range(2):
-            rawEstimate = position[iDim] + action[iDim]
+        for iDim in [0,1]:
+            rawEstimate = position[iDim] + step[iDim]
             dimSize = self.grid.shape[iDim]
             if self.isTorusVars[iDim].get():
                 estimate[iDim] = rawEstimate % dimSize
             else:
                 estimate[iDim] = min(max(rawEstimate, 0), dimSize-1)
-        return tuple(estimate)
+        estimate = tuple(estimate)
+        if self.grid[estimate].isWall:
+            return position
+        return estimate
+
+    def get_wind_destination(self, position):
+        wind = [0,0]
+        for iDim in [0,1]:
+            wind[iDim] = self.windVars[iDim][position[not iDim]].get()
+        absWind = np.abs(wind)
+        if any(wind) and (0 in wind or absWind[0] == absWind[1]):   # only apply wind if one wind dim is zero or both are equally nonzero strong
+            maxWindStrength = np.max(absWind)
+            windDirection = np.sign(wind)
+            for i in range(maxWindStrength):
+                afterWindEstimate = self.get_step_destination(position=position, step=windDirection)
+                if afterWindEstimate == position:  # no more movement
+                    break
+                position = afterWindEstimate
+        return position
+
+    def gather_reward(self):
+        return self.grid[self.agentPosition].get_arrivalReward()
 
     def remove_agent(self):
         self.agentPosition = None

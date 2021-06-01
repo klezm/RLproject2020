@@ -63,6 +63,7 @@ class Agent:
         self.state = None
         self.episodeFinished = False
         self.episodeReturns = [0]
+        self.stepReturns = [0]
         self.memory = Memory(self)
         self.hasChosenExploratoryMove = None
         self.hasMadeExploratoryMove = None
@@ -111,6 +112,7 @@ class Agent:
             return self.UPDATED_BY_PLANNING
         else:
             self.take_action()
+            self.stepReturns.append(self.currentReturnVar.get())
             return self.TOOK_ACTION
 
     def start_episode(self):
@@ -191,6 +193,9 @@ class Agent:
 
     def get_episodeReturns(self):
         return self.episodeReturns
+
+    def get_stepReturns(self):
+        return self.stepReturns
 
     def get_state(self):
         return self.state

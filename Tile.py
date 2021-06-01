@@ -95,7 +95,7 @@ class Tile(tk.Frame):
             widget.bind("<Control-Button-1>", lambda _: self.cycle_type(direction=-1))  # ctrl + left click
             widget.bind("<Button-3>", lambda _: self.cycle_borderColor(direction=1))  # right click
             widget.bind("<Control-Button-3>", lambda _: self.cycle_borderColor(direction=-1))  # ctrl + right click
-            widget.bind("<Enter>", lambda _: widget.focus_set())  # focus is needed to toggle teleport
+            widget.bind("<Button-2>", lambda _: widget.focus_set())  # focus is needed to toggle teleport
             for char in self.TELEPORTERS:
                 widget.bind(char, lambda _, char_=char: self.toggle_teleport(number=char_))
             for button in ["<Up>", "w", "+"]:

@@ -95,5 +95,20 @@ def create_yaml_file_from_dict(inputDict, initialdir="."):
     with open(filename, "w") as file:
         yaml.dump(inputDict, file)
 
+
 def create_font(size, family= "calibri", weight="bold"):
     return f"{family} {size} {weight}"
+
+
+def set_and_call_trace(tkVar, inputFunc, passTraceargs=False, callFunc=True):
+    def traceFunc(*traceArgs):
+        try:  # one never wants to leave an entry empty
+            if passTraceargs:
+                inputFunc(*traceArgs)
+            else:
+                inputFunc()
+        except:
+            return
+    tkVar.trace_add("write", traceFunc)
+    if callFunc:
+        traceFunc()
