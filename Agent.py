@@ -1,4 +1,5 @@
 import numpy as np
+from functools import cache
 
 from Memory import Memory
 from EpsilonGreedyPolicy import EpsilonGreedyPolicy
@@ -11,15 +12,14 @@ class Agent:
     DOWN = (0,1)
     LEFT = (-1,0)
     RIGHT = (1,0)
+    DEFAULT_ACTIONSPACE = [UP, DOWN, LEFT, RIGHT]  # for iteration purposes
     UPLEFT = (-1,-1)
     UPRIGHT = (1,-1)
     DOWNLEFT = (-1,1)
     DOWNRIGHT = (1,1)
-    IDLE = (0,0)
-    DEFAULT_ACTIONSPACE = [UP, DOWN, LEFT, RIGHT]  # for iteration purposes
     KING_EXCLUSIVE_ACTIONSPACE = [UPLEFT, UPRIGHT, DOWNLEFT, DOWNRIGHT]
+    IDLE = (0,0)
     IDLE_ACTIONSPACE = [IDLE]
-    EXTENDED_ACTIONSPACE = DEFAULT_ACTIONSPACE + KING_EXCLUSIVE_ACTIONSPACE
 
     # Flow control variables to pass to an external GUI:
     UPDATED_BY_PLANNING = "Planning Update"
@@ -29,14 +29,23 @@ class Agent:
     STARTED_EPISODE = "Episode Start"
     OPERATIONS = [UPDATED_BY_PLANNING, UPDATED_BY_EXPERIENCE, TOOK_ACTION, FINISHED_EPISODE, STARTED_EPISODE]  # for iteration purposes
 
-    def __init__(self, environment, use_kingMoves, currentReturnVar, learningRateVar, dynamicAlphaVar, discountVar, nStepVar, nPlanVar, onPolicyVar,
+    @classmethod
+    @cache
+    def create_actionspace(cls, default=True, king=True, idle=True):
+        actionspace = []
+        if default:
+            actionspace += cls.DEFAULT_ACTIONSPACE
+        if king:
+            actionspace += cls.KING_EXCLUSIVE_ACTIONSPACE
+        if idle:
+            actionspace += cls.IDLE_ACTIONSPACE
+        return actionspace
+
+    def __init__(self, environment, use_defaultActions, use_kingActions, use_idleActions, currentReturnVar, learningRateVar, dynamicAlphaVar, discountVar, nStepVar, nPlanVar, onPolicyVar,
                  updateByExpectationVar, behaviorEpsilonVar, behaviorEpsilonDecayRateVar, targetEpsilonVar, targetEpsilonDecayRateVar,
                  decayEpsilonEpisodeWiseVar, initialActionvalueMean, initialActionvalueSigma, predefinedAlgorithm=None, actionPlan=[]):
         self.environment = environment
-        if use_kingMoves:
-            self.actionspace = self.EXTENDED_ACTIONSPACE
-        else:
-            self.actionspace = self.DEFAULT_ACTIONSPACE
+        self.actionspace = self.create_actionspace(use_defaultActions, use_kingActions, use_idleActions)
         if predefinedAlgorithm:
             # TODO: set missing params accordingly
             pass
@@ -67,8 +76,8 @@ class Agent:
         self.episodeReturns = [0]
         self.stepReturns = [0]
         self.memory = Memory(self)
-        self.hasChosenExploratoryMove = None
-        self.hasMadeExploratoryMove = None
+        self.hasChosenExploratoryAction = None
+        self.hasMadeExploratoryAction = None
         self.targetAction = None
         self.targetActionvalue = None
         self.iSuccessivePlannings = None
@@ -100,7 +109,7 @@ class Agent:
             return self.UPDATED_BY_EXPERIENCE
         elif self.episodeFinished:
             self.episodeReturns.append(self.currentReturnVar.get())
-            self.hasMadeExploratoryMove = False  # So at the next start the agent isnt colored exploratory anymore
+            self.hasMadeExploratoryAction = False  # So at the next start the agent isnt colored exploratory anymore
             self.state = self.environment.remove_agent()
             self.memory.yield_lastForgottenState()  # for correct trace visualization
             self.episodeFinished = False
@@ -131,7 +140,7 @@ class Agent:
         self.iSuccessivePlannings = 0
         behaviorAction = self.generate_behavior_action()
         reward, successorState, self.episodeFinished = self.environment.apply_action(behaviorAction)  # This is the only place where the agent exchanges information with the environment
-        self.hasMadeExploratoryMove = self.hasChosenExploratoryMove  # if hasChosenExploratoryMove would be the only indicator for changing the agent color in the next visualization, then in the on-policy case, if the target was chosen to be an exploratory move in the last step-call, the coloring would happen BEFORE the move was taken, since in this line, the behavior action would already be determined and just copied from that target action with no chance to track if it was exploratory or not.
+        self.hasMadeExploratoryAction = self.hasChosenExploratoryAction  # if hasChosenExploratoryAction would be the only indicator for changing the agent color in the next visualization, then in the on-policy case, if the target was chosen to be an exploratory move in the last step-call, the coloring would happen BEFORE the move was taken, since in this line, the behavior action would already be determined and just copied from that target action with no chance to track if it was exploratory or not.
         self.memory.memorize(self.state, behaviorAction, reward)
         self.currentReturnVar.set(self.currentReturnVar.get() + reward)
         self.state = successorState  # must happen after memorize and before generate_target!

@@ -43,15 +43,17 @@ class Tile(tk.Frame):
     GREEDYCHARS_3_4 = np.array([[' ','┴',' '],
                                 ['┤','┼','├'],
                                 [' ','┬',' ']])
-    GREEDYCHARS_SINGLE_KINGMOVE = np.array([['↖','↑','↗'],  # todo rename to single nondefault
-                                            ['←',' ','→'],  # todo insert circle in middle
-                                            ['↙','↓','↘']])
-    GREEDYCHAR_KINGMOVE_MIX = ' '  # todo rename to nondefaultmix
+    GREEDYCHARS_SINGLE_NONDEFAULT_ACTION = np.array([['↖','↑','↗'],
+                                                     ['←','◯','→'],
+                                                     ['↙','↓','↘']])
+    GREEDYCHAR_NONDEFAULT_ACTION_MIX = ' '
     DEFAULT_HSV_VALUE = 0.75
 
     @classmethod
     @cache
     def direction_to_hsvHexString(cls, direction):
+        if direction == (0,0):
+            return "#000000"  # black
         angle = myFuncs.angle_between(Agent.UP, direction)
         if direction[0] < 0:
             angle += 180
@@ -63,22 +65,22 @@ class Tile(tk.Frame):
         actionSum = np.sum(greedyActions, axis=0)  # i.e. UP + RIGHT = (0,-1) + (1,0) = (1,-1)
         index = (actionSum[1]+1, actionSum[0]+1)
         color = "black"
-        if bool(set(greedyActions) & set(Agent.KING_EXCLUSIVE_ACTIONSPACE)):  # greedyActions contains king-exclusive action
+        if bool(set(greedyActions) & set(Agent.create_actionspace(default=False))):  # greedyActions contains nondefault action
             if len(greedyActions) == 1:
                 color = cls.direction_to_hsvHexString(tuple(actionSum))  # tuple cast because a cached function needs mutable args
-                symbol = cls.GREEDYCHARS_SINGLE_KINGMOVE[index]
+                symbol = cls.GREEDYCHARS_SINGLE_NONDEFAULT_ACTION[index]
             else:
-                symbol = cls.GREEDYCHAR_KINGMOVE_MIX
-        else:  # no king-exclusive actions
+                symbol = cls.GREEDYCHAR_NONDEFAULT_ACTION_MIX
+        else:  # greedyActions contains only default actions
             if len(greedyActions) <= 2:
+                color = cls.direction_to_hsvHexString(tuple(actionSum))  # tuple cast because a cached function needs mutable args
                 if actionSum.any():  # Other than opposing directions
-                    color = cls.direction_to_hsvHexString(tuple(actionSum))  # tuple cast because a cached function needs mutable args
                     symbol = cls.GREEDYCHARS_1_2[index]
                 else:
-                    if greedyActions[0][0]:
-                        symbol = cls.GREEDYCHAR_UP_DOWN
-                    else:
+                    if greedyActions[0][0]:  # x value of arbitrary greedy action is nonzero
                         symbol = cls.GREEDYCHAR_LEFT_RIGHT
+                    else:
+                        symbol = cls.GREEDYCHAR_UP_DOWN
             else:
                 symbol = cls.GREEDYCHARS_3_4[index]
         return {"text": symbol, "fg": color}

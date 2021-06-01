@@ -52,18 +52,23 @@ class GridworldSandbox:
             guiScale = initialWindowDict["GUI Scale"]
             dim1 = initialWindowDict["Dim 1 Size"]
             dim2 = initialWindowDict["Dim 2 Size"]
-            self.allow_kingMoves = initialWindowDict["King-Moves"]
+            self.allow_defaultActions = initialWindowDict["Default-Actions"]
+            self.allow_kingActions = initialWindowDict["King-Actions"]
+            self.allow_idleActions = initialWindowDict["Idle-Actions"]
         else:
             configWindow = tk.Toplevel(self.guiProcess, pady=5, padx=5)
-            configWindow.title("Config")
+            configWindow.title("")
             configWindow.iconbitmap("./blank.ico")
 
             scaleVar = tk.DoubleVar(value=initialWindowDict["GUI Scale"])
             tk.Scale(configWindow, label="GUI Scale:", variable=scaleVar, from_=1.0, to=1.5, resolution=0.05, font=fontMiddle, orient=tk.HORIZONTAL, width=15, sliderlength=20)
-            dim1Frame = EntryFrame(configWindow, text="Dim 1 Size", font=fontMiddle, defaultValue=initialWindowDict["Dim 1 Size"], TkVarType=tk.IntVar, labelWidth=10, entryWidth=2)
-            dim2Frame = EntryFrame(configWindow, text="Dim 2 Size", font=fontMiddle, defaultValue=initialWindowDict["Dim 2 Size"], TkVarType=tk.IntVar, labelWidth=10, entryWidth=2)
-            kingMovesFrame = CheckbuttonFrame(configWindow, text="King-Moves", font=fontMiddle, defaultValue=initialWindowDict["King-Moves"], labelWidth=10)
-            tk.Button(configWindow, text="Ok", height=1, font=fontBig, command=configWindow.destroy)
+            labelWidth = 15
+            dim1Frame = EntryFrame(configWindow, text="Dim 1 Size", font=fontMiddle, defaultValue=initialWindowDict["Dim 1 Size"], TkVarType=tk.IntVar, labelWidth=labelWidth, entryWidth=2)
+            dim2Frame = EntryFrame(configWindow, text="Dim 2 Size", font=fontMiddle, defaultValue=initialWindowDict["Dim 2 Size"], TkVarType=tk.IntVar, labelWidth=labelWidth, entryWidth=2)
+            defaultActionsFrame = CheckbuttonFrame(configWindow, text="Default-Actions", font=fontMiddle, defaultValue=initialWindowDict["Default-Actions"], labelWidth=labelWidth)
+            kingActionsFrame = CheckbuttonFrame(configWindow, text="King-Actions", font=fontMiddle, defaultValue=initialWindowDict["King-Actions"], labelWidth=labelWidth)
+            idleActionsFrame = CheckbuttonFrame(configWindow, text="Idle-Actions", font=fontMiddle, defaultValue=initialWindowDict["Idle-Actions"], labelWidth=labelWidth)
+            tk.Button(configWindow, text="Ok", height=1, font=fontBig, bd=5, command=configWindow.destroy)
 
             myFuncs.arrange_children(configWindow, rowDiff=1)
 
@@ -73,7 +78,9 @@ class GridworldSandbox:
             guiScale = scaleVar.get()
             dim1 = dim1Frame.get_value()
             dim2 = dim2Frame.get_value()
-            self.allow_kingMoves = kingMovesFrame.get_value()
+            self.allow_defaultActions = defaultActionsFrame.get_value()
+            self.allow_kingActions = kingActionsFrame.get_value()
+            self.allow_idleActions = idleActionsFrame.get_value()
         self.guiProcess.call('tk', 'scaling', guiScale)
         self.X = min(dim1, dim2)
         self.Y = max(dim1, dim2)
@@ -94,7 +101,7 @@ class GridworldSandbox:
         if True:  # valueVisualizationFrame:
             self.QVALUES_WIDTH = sizesDict["qvalues width"]
             self.qValueTilemaps = {}
-            for action in (Agent.EXTENDED_ACTIONSPACE if self.allow_kingMoves else Agent.DEFAULT_ACTIONSPACE):
+            for action in Agent.create_actionspace(default=self.allow_defaultActions, king=self.allow_kingActions, idle=self.allow_idleActions):
                 self.qValueTilemaps[action] = Tilemap(self.valueVisualizationFrame, X=self.X, Y=self.Y, interactionAllowed=False,
                                                       indicateNumericalValueChange=True, font=fontQvalues, tileWidth=self.QVALUES_WIDTH,
                                                       bd=sizesDict["targetmarker width"], relief=self.VALUE_TILEMAPS_RELIEF_DEFAULT,
@@ -103,6 +110,8 @@ class GridworldSandbox:
             self.greedyPolicyTilemap = Tilemap(self.valueVisualizationFrame, X=self.X, Y=self.Y, interactionAllowed=False, font=fontQvalues,
                                                tileWidth=self.QVALUES_WIDTH, bd=sizesDict["targetmarker width"], tileHeight=sizesDict["qvalues height"], tileBd=sizesDict["qvalues borderwidth"], relief=tk.GROOVE)
             self.greedyPolicyTilemap.grid(row=1, column=1)
+            self.guiProcess.bind_all("<space>", lambda _: self.toggle_idleActionValues())
+            self.idleActionValues_visible = False
 
         if True:  # settingsFrame:
             self.visualizationSettingsFrame = tk.Frame(self.settingsFrame, bd=3, relief=tk.GROOVE)
@@ -189,6 +198,19 @@ class GridworldSandbox:
         self.iceFloorFrame.set_and_call_trace(self.toggle_ice_and_crosswind_warning)
 
         myFuncs.center(self.mainWindow)
+        if self.allow_idleActions and initialWindowDict["show idle action warning"]:
+            messagebox.showinfo("Idle Action Available", "You have chosen to include (0,0) in the agents actionspace.\nPress space to toggle the view between the Q-values of that action and the agents greedy choices.")
+
+    def toggle_idleActionValues(self):
+        if self.allow_idleActions:
+            if self.idleActionValues_visible:
+                self.greedyPolicyTilemap.grid()
+                self.qValueTilemaps[Agent.IDLE].grid_remove()
+                self.idleActionValues_visible = False
+            else:
+                self.greedyPolicyTilemap.grid_remove()
+                self.qValueTilemaps[Agent.IDLE].grid()
+                self.idleActionValues_visible = True
 
     def recursiveGather_parameterFrameVars(self, frame):
         collection = dict()
@@ -229,7 +251,9 @@ class GridworldSandbox:
                                        yWindVars=self.gridworldTilemap.get_yWindVars())
         # Agent needs an environment to exist, but environment doesnt need an agent
         self.agent = Agent(environment=self.environment,
-                           use_kingMoves=self.allow_kingMoves,
+                           use_defaultActions=self.allow_defaultActions,
+                           use_kingActions=self.allow_kingActions,
+                           use_idleActions=self.allow_idleActions,
                            currentReturnVar=self.currentReturnFrame.get_var(),
                            learningRateVar=self.learningRateFrame.get_var(),
                            dynamicAlphaVar=self.dynamicAlphaFrame.get_var(),
@@ -365,7 +389,7 @@ class GridworldSandbox:
                     elif self.latestAgentOperation == Agent.UPDATED_BY_PLANNING:
                         gridworldFrame_Color = Tile.AGENTCOLOR_PLANNING
                         valueVisualizationFrame_Color = myFuncs.get_light_color(Tile.AGENTCOLOR_PLANNING, self.agentLightnessQvalueFrames)
-                    elif self.agent.hasMadeExploratoryMove:
+                    elif self.agent.hasMadeExploratoryAction:
                         gridworldFrame_Color = Tile.AGENTCOLOR_EXPLORATORY
                         valueVisualizationFrame_Color = myFuncs.get_light_color(Tile.AGENTCOLOR_EXPLORATORY, self.agentLightnessQvalueFrames)
                     else:

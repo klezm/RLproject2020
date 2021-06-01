@@ -15,10 +15,10 @@ class EpsilonGreedyPolicy(Policy):
         #if self.agent.actionPlan:
         #    return self.agent.actionPlan.pop(0)
         if self.epsilonVar.get() and random.random() < self.epsilonVar.get():  # only use rng if necessary
-            self.agent.hasChosenExploratoryMove = True
+            self.agent.hasChosenExploratoryAction = True
             return self.sample_random_action()
         else:
-            self.agent.hasChosenExploratoryMove = False
+            self.agent.hasChosenExploratoryAction = False
             return self.give_greedy_action(state)
         
     def get_expected_actionvalue(self, state):
