@@ -12,6 +12,7 @@ class ParameterFrame(tk.Frame):
         self.tkVar = None
         self.varWidget = None
         self.make_var_widget()
+        self.varWidgetDefaultBg = self.varWidget.cget("bg")
         self.varWidget.grid(row=0, column=1)
         if defaultValue is not None:
             self.set_value(defaultValue)
@@ -33,7 +34,7 @@ class ParameterFrame(tk.Frame):
         self.nameLabel.config(fg=color)
 
     def normalize(self):
-        self.varWidget.config(bg="white")
+        self.varWidget.config(bg=self.varWidgetDefaultBg)
         self.nameLabel.config(fg="black")
 
     def get_text(self):
