@@ -15,8 +15,10 @@ class Agent:
     UPRIGHT = (1,-1)
     DOWNLEFT = (-1,1)
     DOWNRIGHT = (1,1)
+    IDLE = (0,0)
     DEFAULT_ACTIONSPACE = [UP, DOWN, LEFT, RIGHT]  # for iteration purposes
     KING_EXCLUSIVE_ACTIONSPACE = [UPLEFT, UPRIGHT, DOWNLEFT, DOWNRIGHT]
+    IDLE_ACTIONSPACE = [IDLE]
     EXTENDED_ACTIONSPACE = DEFAULT_ACTIONSPACE + KING_EXCLUSIVE_ACTIONSPACE
 
     # Flow control variables to pass to an external GUI:

@@ -43,10 +43,10 @@ class Tile(tk.Frame):
     GREEDYCHARS_3_4 = np.array([[' ','┴',' '],
                                 ['┤','┼','├'],
                                 [' ','┬',' ']])
-    GREEDYCHARS_SINGLE_KINGMOVE = np.array([['↖','↑','↗'],
-                                            ['←',' ','→'],
+    GREEDYCHARS_SINGLE_KINGMOVE = np.array([['↖','↑','↗'],  # todo rename to single nondefault
+                                            ['←',' ','→'],  # todo insert circle in middle
                                             ['↙','↓','↘']])
-    GREEDYCHAR_KINGMOVE_MIX = ' '
+    GREEDYCHAR_KINGMOVE_MIX = ' '  # todo rename to nondefaultmix
     DEFAULT_HSV_VALUE = 0.75
 
     @classmethod
@@ -63,7 +63,7 @@ class Tile(tk.Frame):
         actionSum = np.sum(greedyActions, axis=0)  # i.e. UP + RIGHT = (0,-1) + (1,0) = (1,-1)
         index = (actionSum[1]+1, actionSum[0]+1)
         color = "black"
-        if bool(set(greedyActions) & set(Agent.KING_EXCLUSIVE_ACTIONSPACE)):  # greedyActions contain king-exclusive action
+        if bool(set(greedyActions) & set(Agent.KING_EXCLUSIVE_ACTIONSPACE)):  # greedyActions contains king-exclusive action
             if len(greedyActions) == 1:
                 color = cls.direction_to_hsvHexString(tuple(actionSum))  # tuple cast because a cached function needs mutable args
                 symbol = cls.GREEDYCHARS_SINGLE_KINGMOVE[index]
