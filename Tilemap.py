@@ -2,6 +2,7 @@ import tkinter as tk
 import numpy as np
 
 from Tile import Tile
+from NonEmptyIntVar import NonEmptyIntVar
 
 
 class Tilemap(tk.Frame):
@@ -17,8 +18,8 @@ class Tilemap(tk.Frame):
                                                bd=tileBd, labelWidth=tileWidth, labelHeight=tileHeight, font=font)
                 self.tiles[xCorr,yCorr].grid(row=yCorr, column=xCorr)
         if self.displayWind:
-            self.xWindVars = [tk.IntVar() for _ in range(Y)]
-            self.yWindVars = [tk.IntVar() for _ in range(X)]
+            self.xWindVars = [NonEmptyIntVar() for _ in range(Y)]
+            self.yWindVars = [NonEmptyIntVar() for _ in range(X)]
             self.xWindEntries = [tk.Entry(self, textvariable=intVar, width=2, font=windFont) for intVar in self.xWindVars]
             self.yWindEntries = [tk.Entry(self, textvariable=intVar, width=2, font=windFont) for intVar in self.yWindVars]
             self.windLabel = tk.Label(self, text="W.", font=windFont)

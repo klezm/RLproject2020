@@ -1,5 +1,6 @@
 # TODO: Return sum für non episodic tasks (muss sie discounted werden?)
-# TODO: Implement planning (Dyna-Q, Dyna-Q+)
+# TODO: Implement planning (Dyna-Q, Dyna-Q+) -> update funktion braucht zusätzlich noch quelle als argument: memory oder model
+#   TODO -> Visualize Model?
 # TODO: Plot all parameters vs timestep -> Give the paramframes names as identifier, then put them into a dict with key equal to name, makes  plotting of params in the end easier
 
 # Wind:

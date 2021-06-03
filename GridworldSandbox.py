@@ -4,6 +4,8 @@ import numpy as np
 from collections import OrderedDict
 import matplotlib.pyplot as plt
 from pprint import pprint
+from random import random
+
 
 import myFuncs
 from Environment import Environment
@@ -86,7 +88,7 @@ class GridworldSandbox:
         self.Y = max(dim1, dim2)
 
         self.mainWindow = tk.Toplevel(self.guiProcess)
-        self.mainWindow.title("Gridworld Playground")
+        self.mainWindow.title("Gridworld Sandbox")
         self.mainWindow.iconbitmap("./blank.ico")
         self.mainWindow.protocol("WM_DELETE_WINDOW", self.guiProcess.quit)
 
@@ -225,6 +227,7 @@ class GridworldSandbox:
     def load(self, filename=None):
         yamlDict = myFuncs.get_dict_from_yaml_file(filename, initialdir=self.SAFEFILE_FOLDER)
         if yamlDict:  # get_dict_from_yaml_file could have returned None if dialog was canceled
+            throwWorldShapeError = False
             tileDictMatrix = yamlDict.pop("world")
             if tileDictMatrix is not None:
                 if len(tileDictMatrix) == self.X and len(tileDictMatrix[0]) == self.Y:
@@ -232,13 +235,32 @@ class GridworldSandbox:
                         for y in range(self.Y):
                             self.gridworldTilemap.update_tile_appearance(x, y, **tileDictMatrix[x][y])
                 else:
-                    messagebox.showerror("World Error", "World shape does not match.")
-            for name, tkVar in self.parameterFramesVarsDict.items():
+                    throwWorldShapeError = True
+            xWindValues = yamlDict.pop("xWind")
+            if xWindValues is not None:
+                if len(xWindValues) == self.Y:
+                    for tkVar, value in zip(self.gridworldTilemap.get_xWindVars(), xWindValues):
+                        tkVar.set(value)
+                else:
+                    throwWorldShapeError = True
+            yWindValues = yamlDict.pop("yWind")
+            if yWindValues is not None:
+                if len(xWindValues) == self.X:
+                    for tkVar, value in zip(self.gridworldTilemap.get_yWindVars(), yWindValues):
+                        tkVar.set(value)
+                else:
+                    throwWorldShapeError = True
+            if throwWorldShapeError:
+                messagebox.showerror("Error", "World shape does not match.")
+
+            for name, tkVar in self.parameterFramesVarsDict.items():  # must be executed only after world and wind was popped
                 tkVar.set(yamlDict[name])
 
     def save(self):
         valueDict = {name: tkVar.get() for name, tkVar in self.parameterFramesVarsDict.items()}
         valueDict["world"] = self.gridworldTilemap.get_yaml_list()
+        valueDict["xWind"] = [tkVar.get(forUse=True) for tkVar in self.gridworldTilemap.get_xWindVars()]
+        valueDict["yWind"] = [tkVar.get(forUse=True) for tkVar in self.gridworldTilemap.get_yWindVars()]
         myFuncs.create_yaml_file_from_dict(valueDict, initialdir=self.SAFEFILE_FOLDER)
 
     def initialize_environment_and_agent(self):
@@ -471,6 +493,7 @@ class GridworldSandbox:
             self.nStepFrame.normalize()
 
     def toggle_ice_and_crosswind_warning(self):
+        print("warining", random())
         iceFloorValid = True
         if self.iceFloorFrame.get_value():
             windLabelColor = "black"
