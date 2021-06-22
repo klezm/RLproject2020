@@ -262,12 +262,12 @@ class GridworldSandbox:
             for name, tkVar in self.parameterFramesVarsDict.items():  # must be executed only after world and wind was popped
                 tkVar.set(yamlDict[name])
 
-    def save(self):
+    def save(self, filename=None):
         valueDict = {name: tkVar.get() for name, tkVar in self.parameterFramesVarsDict.items()}
         valueDict["world"] = self.gridworldTilemap.get_yaml_list()
         valueDict["xWind"] = [frame.get_value() for frame in self.xWindFrames]
         valueDict["yWind"] = [frame.get_value() for frame in self.yWindFrames]
-        myFuncs.create_yaml_file_from_dict(valueDict, initialdir=self.SAFEFILE_FOLDER)
+        myFuncs.create_yaml_file_from_dict(valueDict, filename, nameEmbedding=f"{{}}_{self.X}x{self.Y}", initialdir=self.SAFEFILE_FOLDER)
 
     def initialize_environment_and_agent(self):
         self.environment = Environment(X=self.X,

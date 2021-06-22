@@ -96,16 +96,19 @@ def get_dict_from_yaml_file(filename=None, initialdir="."):
         filename = filedialog.askopenfilename(initialdir=initialdir, title="Load", filetypes=[("", "*.yaml")])
         if not filename:
             return {}
-    else:
+    if not filename.endswith(".yaml"):
         filename += ".yaml"
     with open(filename, "r") as file:
         return yaml.safe_load(file)
 
 
-def create_yaml_file_from_dict(inputDict, initialdir="."):
-    filename = filedialog.asksaveasfilename(initialdir=initialdir, title="Save", filetypes=[("", "*.yaml")])
+def create_yaml_file_from_dict(inputDict, filename=None, nameEmbedding="{}", initialdir="."):
     if not filename:
-        return
+        filename = filedialog.asksaveasfilename(initialdir=initialdir, title="Save", filetypes=[("", "*.yaml")])
+        if not filename:
+            return
+    if not nameEmbedding.replace("{}", "") in filename:  # user has NOT chosen already existing file
+        filename = nameEmbedding.format(filename)
     if not filename.endswith(".yaml"):
         filename += ".yaml"
     with open(filename, "w") as file:
