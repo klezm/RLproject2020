@@ -72,6 +72,7 @@ def center(window):
 
 
 def arrange_children(frame, rowDiff=0, columnDiff=0, useSticky=True, **kwargs):
+    # TODO: does column-/rowdiff != 0/1 make any difference?
     sticky = ""
     if rowDiff:
         if useSticky:
