@@ -14,7 +14,7 @@ from Tile import Tile
 from Tilemap import Tilemap
 from MyEntryFrame import MyEntryFrame
 from CheckbuttonFrame import CheckbuttonFrame
-from InfoFrame import MyInfoFrame
+from InfoFrame import InfoFrame
 
 
 class GridworldSandbox:
@@ -93,12 +93,17 @@ class GridworldSandbox:
         self.mainWindow.protocol("WM_DELETE_WINDOW", self.guiProcess.quit)
 
         # window:
-        self.gridworldTilemap = Tilemap(self.mainWindow, X=self.X, Y=self.Y, windFont=fontMiddle, interactionAllowed=True, font=fontWorldtiles, relief=tk.GROOVE,
+        self.gridworldTilemap = Tilemap(self.mainWindow, X=self.X, Y=self.Y, interactionAllowed=True, font=fontWorldtiles, relief=tk.GROOVE, displayWind=True,
                                         bd=5, tileHeight=sizesDict["worldtiles height"], tileWidth=sizesDict["worldtiles width"], tileBd=sizesDict["worldtiles borderwidth"])
         self.valueVisualizationFrame = tk.Frame(self.mainWindow, bd=5, relief=tk.GROOVE)
         self.settingsFrame = tk.Frame(self.mainWindow, bd=5, relief=tk.GROOVE)
 
         myFuncs.arrange_children(self.mainWindow, columnDiff=1, useSticky=False)
+
+        if True:  # gridworldTilemap
+            self.xWindFrames = [MyEntryFrame(self.gridworldTilemap, font=fontMiddle, VarTargetType=int, varWidgetWidth=2, highlightthickness=4) for _ in range(self.Y)]
+            self.yWindFrames = [MyEntryFrame(self.gridworldTilemap, font=fontMiddle, VarTargetType=int, varWidgetWidth=2, highlightthickness=4) for _ in range(self.X)]
+            self.gridworldTilemap.add_wind(self.xWindFrames, self.yWindFrames)
 
         if True:  # valueVisualizationFrame:
             self.QVALUES_WIDTH = sizesDict["qvalues width"]
@@ -127,7 +132,7 @@ class GridworldSandbox:
             if True:  # visualizationSettingsFrame
                 self.initialActionvalueMeanFrame = MyEntryFrame(self.visualizationSettingsFrame, nameLabel="Initial Q-Values Mean", font=fontMiddle, VarTargetType=float)
                 self.initialActionvalueSigmaFrame = MyEntryFrame(self.visualizationSettingsFrame, nameLabel="Initial Q-Values Sigma", font=fontMiddle, VarTargetType=float, var_check_func=lambda x: x >= 0)
-                self.currentReturnFrame = MyInfoFrame(self.visualizationSettingsFrame, nameLabel="Current Reward", font=fontMiddle, VarTargetType=int)
+                self.currentReturnFrame = InfoFrame(self.visualizationSettingsFrame, nameLabel="Current Reward", font=fontMiddle, VarTargetType=int)
                 self.operationsLeftFrame = MyEntryFrame(self.visualizationSettingsFrame, nameLabel="Operations Left", font=fontMiddle, VarTargetType=int)
                 self.msDelayFrame = MyEntryFrame(self.visualizationSettingsFrame, nameLabel="Min Refresh Rate [ms]", font=fontMiddle, VarTargetType=int, var_check_func=lambda x: 1 <= x <= 9999, defaultValue=1)
                 self.visualizeMemoryFrame = CheckbuttonFrame(self.visualizationSettingsFrame, nameLabel="Visualize Memory", font=fontMiddle)
@@ -196,9 +201,9 @@ class GridworldSandbox:
         self.onPolicyFrame.set_and_call_trace(self.toggle_targetPolicyFrame)
         for frame in [self.onPolicyFrame, self.nStepFrame]:
             frame.set_and_call_trace(self.toggle_offPolicy_nStep_warning)
-        for intVar in self.gridworldTilemap.get_xWindVars() + self.gridworldTilemap.get_yWindVars():
-            myFuncs.set_and_call_trace(intVar, self.toggle_ice_and_crosswind_warning)
-        self.iceFloorFrame.set_and_call_trace(self.toggle_ice_and_crosswind_warning)
+        for frame in self.xWindFrames + self.yWindFrames + [self.iceFloorFrame]:
+            frame.set_and_call_trace(self.toggle_ice_and_crosswind_warning)
+        #self.iceFloorFrame.set_and_call_trace(self.toggle_ice_and_crosswind_warning)
 
         myFuncs.center(self.mainWindow)
         if self.allow_idleActions and initialWindowDict["show idle action warning"]:
@@ -218,7 +223,7 @@ class GridworldSandbox:
     def recursiveGather_parameterFrameVars(self, frame):
         collection = dict()
         for child in frame.winfo_children():
-            if not isinstance(child, MyInfoFrame):  # MyInfoFrame must be excluded, otherwise return would ne loaded and saved like any other parameter
+            if not isinstance(child, (Tilemap, InfoFrame)):  # InfoFrame must be excluded, otherwise return would ne loaded and saved like any other parameter
                 try:
                     collection[child.get_text()] = child.get_var()
                 except:
@@ -240,15 +245,15 @@ class GridworldSandbox:
             xWindValues = yamlDict.pop("xWind")
             if xWindValues is not None:
                 if len(xWindValues) == self.Y:
-                    for tkVar, value in zip(self.gridworldTilemap.get_xWindVars(), xWindValues):
-                        tkVar.set(value)
+                    for frame, value in zip(self.xWindFrames, xWindValues):
+                        frame.set_value(value)
                 else:
                     throwWorldShapeError = True
             yWindValues = yamlDict.pop("yWind")
             if yWindValues is not None:
                 if len(xWindValues) == self.X:
-                    for tkVar, value in zip(self.gridworldTilemap.get_yWindVars(), yWindValues):
-                        tkVar.set(value)
+                    for frame, value in zip(self.yWindFrames, yWindValues):
+                        frame.set_value(value)
                 else:
                     throwWorldShapeError = True
             if throwWorldShapeError:
@@ -260,8 +265,8 @@ class GridworldSandbox:
     def save(self):
         valueDict = {name: tkVar.get() for name, tkVar in self.parameterFramesVarsDict.items()}
         valueDict["world"] = self.gridworldTilemap.get_yaml_list()
-        valueDict["xWind"] = [tkVar.get(forUse=True) for tkVar in self.gridworldTilemap.get_xWindVars()]
-        valueDict["yWind"] = [tkVar.get(forUse=True) for tkVar in self.gridworldTilemap.get_yWindVars()]
+        valueDict["xWind"] = [frame.get_value() for frame in self.xWindFrames]
+        valueDict["yWind"] = [frame.get_value() for frame in self.yWindFrames]
         myFuncs.create_yaml_file_from_dict(valueDict, initialdir=self.SAFEFILE_FOLDER)
 
     def initialize_environment_and_agent(self):
@@ -270,9 +275,9 @@ class GridworldSandbox:
                                        hasIceFloorVar=self.iceFloorFrame.get_var(),
                                        isXtorusVar=self.xTorusFrame.get_var(),
                                        isYtorusVar=self.yTorusFrame.get_var(),
-                                       xWindVars=self.gridworldTilemap.get_xWindVars(),
-                                       yWindVars=self.gridworldTilemap.get_yWindVars())
-        # Agent needs an environment to exist, but environment doesnt need an agent
+                                       xWindVars=[frame.get_var() for frame in self.xWindFrames],
+                                       yWindVars=[frame.get_var() for frame in self.yWindFrames])
+        # Agent needs an environment to exist, but environment doesnt need an agent to exist
         self.agent = Agent(environment=self.environment,
                            use_defaultActions=self.allow_defaultActions,
                            use_kingActions=self.allow_kingActions,
@@ -330,7 +335,7 @@ class GridworldSandbox:
     def start_flow(self, demandPauseAtNextVisualization):
         self.pauseDemanded = False
         self.demandPauseAtNextVisualization = demandPauseAtNextVisualization
-        #self.pauseButton.grid()  # use this again if Pause appears over Go! when it shouldnt
+        #self.pauseButton.grid()  # use this again if Pause appears over Go when it shouldnt
         self.goButton.grid_remove()
         self.nextButton.config(state=tk.DISABLED)
         if self.agent is None:
@@ -494,25 +499,39 @@ class GridworldSandbox:
             self.nStepFrame.normalize()
 
     def toggle_ice_and_crosswind_warning(self):
-        #print("warining", random())
+        windLabelColor = "black"
         iceFloorValid = True
         if self.iceFloorFrame.get_value():
-            windLabelColor = "black"
-            for entry in self.gridworldTilemap.get_xWindEntries() + self.gridworldTilemap.get_yWindEntries():
-                if int(entry.get()):
-                    entry.config(bg=self.WARNING_COLOR)
+            for frame in self.xWindFrames + self.yWindFrames:
+                if frame.get_value():
+                    frame.highlight(self.WARNING_COLOR)
                     windLabelColor = self.WARNING_COLOR
                     iceFloorValid = False
                 else:
-                    entry.config(bg="white")
-            self.gridworldTilemap.set_windLabel_color(windLabelColor)
+                    frame.normalize()
         else:
-            self.gridworldTilemap.toggle_crosswind_warning()
-
+            yWindAbsNonzeroValues = {abs(frame.get_value()) for frame in self.yWindFrames if frame.get_value()}
+            for xWindFrame in self.xWindFrames:  # use indices
+                xValue = xWindFrame.get_value()
+                if not xValue or yWindAbsNonzeroValues in [set(), {abs(xValue)}]:
+                    xWindFrame.normalize()
+                else:
+                    xWindFrame.highlight("orange")
+                    windLabelColor = "orange"
+            xWindAbsNonzeroValues = {abs(frame.get_value()) for frame in self.xWindFrames if frame.get_value()}
+            for yWindFrame in self.yWindFrames:  # use indices
+                yValue = yWindFrame.get_value()
+                if not yValue or xWindAbsNonzeroValues in [set(), {abs(yValue)}]:
+                    yWindFrame.normalize()
+                else:
+                    yWindFrame.highlight("orange")
+                    windLabelColor = "orange"
+        self.gridworldTilemap.set_windLabel_color(windLabelColor)
         if iceFloorValid:
             self.iceFloorFrame.normalize()
         else:
             self.iceFloorFrame.highlight(self.WARNING_COLOR)
+
 
     def plot(self):
         print("call")

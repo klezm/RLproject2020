@@ -2,7 +2,7 @@ import tkinter as tk
 from SafeVarFrame import SafeVarFrame
 
 
-class MyInfoFrame(SafeVarFrame):
+class InfoFrame(SafeVarFrame):
     highlightAttributes = ["bg"]
 
     def make_varWidget(self):

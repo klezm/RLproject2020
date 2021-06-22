@@ -5,8 +5,6 @@ from SafeVar import MyVar
 
 
 class SafeVarFrame(ParameterFrame):
-    tkVar: MyVar
-
     def __init__(self, *args, defaultValue=None, VarTargetType=None, var_check_func=lambda arg: True, varWidgetWidth=8, varWidgetFg="black", varWidgetJustify=tk.LEFT, **kwargs):
         if defaultValue is None:
             self.defaultValue = VarTargetType()  # creating a dummy value by calling the default ctor of the targetType if no explicit default value is passed should satisfy the security check during the SafeVar Init

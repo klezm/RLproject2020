@@ -50,8 +50,7 @@ class ParameterFrame(tk.Frame):
 
     def get_text(self):
         if self.nameLabel:
-            r = self.nameLabel.cget("text")
-            return r
+            return self.nameLabel.cget("text")
         else:
             return ""
 
@@ -60,6 +59,9 @@ class ParameterFrame(tk.Frame):
 
     def get_value(self):
         return self.get_var().get()
+
+    def get_font(self):
+        return self.font
 
     def set_value(self, value):
         return self.get_var().set(value)

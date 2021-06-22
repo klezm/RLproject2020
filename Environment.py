@@ -75,7 +75,7 @@ class Environment:
     def get_wind_destination(self, position):
         wind = [0,0]
         for iDim in [0,1]:
-            wind[iDim] = self.windVars[iDim][position[not iDim]].get(forUse=True)
+            wind[iDim] = self.windVars[iDim][position[not iDim]].get()
         absWind = np.abs(wind)
         if any(wind) and (0 in wind or absWind[0] == absWind[1]):   # only apply wind if one wind dim is zero or both are equally nonzero strong
             maxWindStrength = np.max(absWind)
