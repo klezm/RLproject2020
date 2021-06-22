@@ -97,7 +97,7 @@ class Agent:
         maxActionValue = max(self.Qvalues[state].values())
         self.greedyActions[state] = [action for action, value in self.Qvalues[state].items() if value == maxActionValue]
 
-    #def set_Q(self, S: Tuple, A: tuple, value: float):  # TODO: import Tuple from typing
+    #def set_Q(self, S: Tuple, A: tuple, _value: float):  # TODO: import Tuple from typing
     def set_Q(self, S: tuple, A: tuple, value: float):
         self.Qvalues[S][A] = value
         self.update_greedy_actions(state=S)
@@ -158,7 +158,7 @@ class Agent:
             return self.targetAction
         else:  # This will be executed if one of the following applies:
             # ...the updates are off policy, so the behavior action will NOT be copied from a previously chosen target action.
-            # ...there is no recent target action because: the value used for the latest update was an expectation OR no update happened in this episode so far.
+            # ...there is no recent target action because: the _value used for the latest update was an expectation OR no update happened in this episode so far.
             return self.behaviorPolicy.generate_action(self.state)
 
     def generate_target(self):

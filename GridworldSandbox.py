@@ -12,9 +12,9 @@ from Environment import Environment
 from Agent import Agent
 from Tile import Tile
 from Tilemap import Tilemap
-from EntryFrame import EntryFrame
+from MyEntryFrame import MyEntryFrame
 from CheckbuttonFrame import CheckbuttonFrame
-from InformationFrame import InformationFrame
+from InfoFrame import MyInfoFrame
 
 
 class GridworldSandbox:
@@ -65,8 +65,8 @@ class GridworldSandbox:
             scaleVar = tk.DoubleVar(value=initialWindowDict["GUI Scale"])
             tk.Scale(configWindow, label="GUI Scale:", variable=scaleVar, from_=1.0, to=1.5, resolution=0.05, font=fontMiddle, orient=tk.HORIZONTAL, width=15, sliderlength=20)
             labelWidth = 15
-            dim1Frame = EntryFrame(configWindow, text="Dim 1 Size", font=fontMiddle, defaultValue=initialWindowDict["Dim 1 Size"], TkVarType=tk.IntVar, labelWidth=labelWidth, entryWidth=2)
-            dim2Frame = EntryFrame(configWindow, text="Dim 2 Size", font=fontMiddle, defaultValue=initialWindowDict["Dim 2 Size"], TkVarType=tk.IntVar, labelWidth=labelWidth, entryWidth=2)
+            dim1Frame = MyEntryFrame(configWindow, text="Dim 1 Size", font=fontMiddle, defaultValue=initialWindowDict["Dim 1 Size"], TkVarType=tk.IntVar, labelWidth=labelWidth, entryWidth=2)
+            dim2Frame = MyEntryFrame(configWindow, text="Dim 2 Size", font=fontMiddle, defaultValue=initialWindowDict["Dim 2 Size"], TkVarType=tk.IntVar, labelWidth=labelWidth, entryWidth=2)
             defaultActionsFrame = CheckbuttonFrame(configWindow, text="Default-Actions", font=fontMiddle, defaultValue=initialWindowDict["Default-Actions"], labelWidth=labelWidth)
             kingActionsFrame = CheckbuttonFrame(configWindow, text="King-Actions", font=fontMiddle, defaultValue=initialWindowDict["King-Actions"], labelWidth=labelWidth)
             idleActionsFrame = CheckbuttonFrame(configWindow, text="Idle-Actions", font=fontMiddle, defaultValue=initialWindowDict["Idle-Actions"], labelWidth=labelWidth)
@@ -123,16 +123,17 @@ class GridworldSandbox:
             myFuncs.arrange_children(self.settingsFrame, rowDiff=1, ipadx=3, ipady=3)
             self.dataButtonsFrame.grid_configure(sticky="")
 
+            # Default values below are meanlingless, since they will be read from the yaml default file later. One just needs to pass an arbitrary value here that passes the SafeVar check_func to avoid an error.
             if True:  # visualizationSettingsFrame
-                self.initialActionvalueMeanFrame = EntryFrame(self.visualizationSettingsFrame, text="Initial Q-Values Mean", font=fontMiddle, TkVarType=tk.DoubleVar)
-                self.initialActionvalueSigmaFrame = EntryFrame(self.visualizationSettingsFrame, text="Initial Q-Values Sigma", font=fontMiddle, TkVarType=tk.DoubleVar)
-                self.currentReturnFrame = InformationFrame(self.visualizationSettingsFrame, text="Current Reward", font=fontMiddle, TkVarType=tk.IntVar)
-                self.operationsLeftFrame = EntryFrame(self.visualizationSettingsFrame, text="Operations Left", font=fontMiddle, TkVarType=tk.IntVar)
-                self.msDelayFrame = EntryFrame(self.visualizationSettingsFrame, text="Min Refresh Rate [ms]", font=fontMiddle, TkVarType=tk.IntVar)
-                self.visualizeMemoryFrame = CheckbuttonFrame(self.visualizationSettingsFrame, text="Visualize Memory", font=fontMiddle)
+                self.initialActionvalueMeanFrame = MyEntryFrame(self.visualizationSettingsFrame, nameLabel="Initial Q-Values Mean", font=fontMiddle, VarTargetType=float)
+                self.initialActionvalueSigmaFrame = MyEntryFrame(self.visualizationSettingsFrame, nameLabel="Initial Q-Values Sigma", font=fontMiddle, VarTargetType=float, var_check_func=lambda x: x >= 0)
+                self.currentReturnFrame = MyInfoFrame(self.visualizationSettingsFrame, nameLabel="Current Reward", font=fontMiddle, VarTargetType=int)
+                self.operationsLeftFrame = MyEntryFrame(self.visualizationSettingsFrame, nameLabel="Operations Left", font=fontMiddle, VarTargetType=int)
+                self.msDelayFrame = MyEntryFrame(self.visualizationSettingsFrame, nameLabel="Min Refresh Rate [ms]", font=fontMiddle, VarTargetType=int, var_check_func=lambda x: 1 <= x <= 9999, defaultValue=1)
+                self.visualizeMemoryFrame = CheckbuttonFrame(self.visualizationSettingsFrame, nameLabel="Visualize Memory", font=fontMiddle)
                 self.flowButtonsFrame = tk.Frame(self.visualizationSettingsFrame)
-                self.showEveryNoperationsFrame = EntryFrame(self.visualizationSettingsFrame, text="Show Every...", font=fontMiddle, TkVarType=tk.IntVar)
-                self.operationFrames = OrderedDict([(operation, CheckbuttonFrame(self.visualizationSettingsFrame, text=f"...{operation}", font=fontMiddle)) for operation in Agent.OPERATIONS])
+                self.showEveryNoperationsFrame = MyEntryFrame(self.visualizationSettingsFrame, nameLabel="Show Every...", font=fontMiddle, VarTargetType=int, var_check_func=lambda x: x >= 1, defaultValue=1)
+                self.operationFrames = OrderedDict([(operation, CheckbuttonFrame(self.visualizationSettingsFrame, nameLabel=f"...{operation}", font=fontMiddle)) for operation in Agent.OPERATIONS])
 
                 myFuncs.arrange_children(self.visualizationSettingsFrame, rowDiff=1)
                 self.flowButtonsFrame.grid_configure(sticky="")
@@ -149,32 +150,32 @@ class GridworldSandbox:
                     self.nextButton.grid(row=0, column=1)
 
             if True:  # algorithmSettingsFrame
-                self.iceFloorFrame = CheckbuttonFrame(self.algorithmSettingsFrame, text="Ice Floor", font=fontMiddle)
-                self.xTorusFrame = CheckbuttonFrame(self.algorithmSettingsFrame, text="X-Torus", font=fontMiddle)
-                self.yTorusFrame = CheckbuttonFrame(self.algorithmSettingsFrame, text="Y-Torus", font=fontMiddle)
-                self.rewardFrames = OrderedDict([(color, EntryFrame(self.algorithmSettingsFrame, text=f"Reward {color.capitalize()}", entryColor=color, font=fontMiddle, TkVarType=tk.IntVar)) for color in Tile.BORDER_COLORS])
-                self.discountFrame = EntryFrame(self.algorithmSettingsFrame, text="Discount \u03B3", font=fontMiddle, TkVarType=tk.DoubleVar)  # gamma
-                self.learningRateFrame = EntryFrame(self.algorithmSettingsFrame, text="Learning Rate \u03B1", font=fontMiddle, TkVarType=tk.DoubleVar)  # alpha
-                self.dynamicAlphaFrame = CheckbuttonFrame(self.algorithmSettingsFrame, text="\u03B1 = 1/count((S,A))", font=fontMiddle)  # alpha
-                self.nStepFrame = EntryFrame(self.algorithmSettingsFrame, text="n-Step n", font=fontMiddle, TkVarType=tk.IntVar)
-                self.nPlanFrame = EntryFrame(self.algorithmSettingsFrame, text="Dyna-Q n", font=fontMiddle, TkVarType=tk.IntVar)
-                self.onPolicyFrame = CheckbuttonFrame(self.algorithmSettingsFrame, text="On-Policy", font=fontMiddle)
-                self.updateByExpectationFrame = CheckbuttonFrame(self.algorithmSettingsFrame, text="Update by Expectation", font=fontMiddle)
-                self.decayEpsilonEpisodeWiseFrame = CheckbuttonFrame(self.algorithmSettingsFrame, text="Decay \u03B5 Episode-wise", font=fontMiddle)
+                self.iceFloorFrame = CheckbuttonFrame(self.algorithmSettingsFrame, nameLabel="Ice Floor", font=fontMiddle)
+                self.xTorusFrame = CheckbuttonFrame(self.algorithmSettingsFrame, nameLabel="X-Torus", font=fontMiddle)
+                self.yTorusFrame = CheckbuttonFrame(self.algorithmSettingsFrame, nameLabel="Y-Torus", font=fontMiddle)
+                self.rewardFrames = OrderedDict([(color, MyEntryFrame(self.algorithmSettingsFrame, nameLabel=f"Reward {color.capitalize()}", varWidgetFg=color, font=fontMiddle, VarTargetType=int)) for color in Tile.BORDER_COLORS])
+                self.discountFrame = MyEntryFrame(self.algorithmSettingsFrame, nameLabel="Discount \u03B3", font=fontMiddle, VarTargetType=float)  # gamma
+                self.learningRateFrame = MyEntryFrame(self.algorithmSettingsFrame, nameLabel="Learning Rate \u03B1", font=fontMiddle, VarTargetType=float)  # alpha
+                self.dynamicAlphaFrame = CheckbuttonFrame(self.algorithmSettingsFrame, nameLabel="\u03B1 = 1/count((S,A))", font=fontMiddle)  # alpha
+                self.nStepFrame = MyEntryFrame(self.algorithmSettingsFrame, nameLabel="n-Step n", font=fontMiddle, VarTargetType=int)
+                self.nPlanFrame = MyEntryFrame(self.algorithmSettingsFrame, nameLabel="Dyna-Q n", font=fontMiddle, VarTargetType=int)
+                self.onPolicyFrame = CheckbuttonFrame(self.algorithmSettingsFrame, nameLabel="On-Policy", font=fontMiddle)
+                self.updateByExpectationFrame = CheckbuttonFrame(self.algorithmSettingsFrame, nameLabel="Update by Expectation", font=fontMiddle)
+                self.decayEpsilonEpisodeWiseFrame = CheckbuttonFrame(self.algorithmSettingsFrame, nameLabel="Decay \u03B5 Episode-wise", font=fontMiddle)
                 self.behaviorPolicyFrame = tk.LabelFrame(self.algorithmSettingsFrame, text="Behavior Policy", bd=3, font=fontBig, fg=self.LABELFRAME_ENABLED_COLOR)
                 self.targetPolicyFrame = tk.LabelFrame(self.algorithmSettingsFrame, text="Target Policy", bd=3, font=fontBig)
 
                 myFuncs.arrange_children(self.algorithmSettingsFrame, rowDiff=1)
 
                 if True:  # behaviorPolicyFrame
-                    self.behaviorEpsilonFrame = EntryFrame(self.behaviorPolicyFrame, text="Exploration Rate \u03B5 (b)", font=fontMiddle, TkVarType=tk.DoubleVar)  # epsilon
-                    self.behaviorEpsilonDecayRateFrame = EntryFrame(self.behaviorPolicyFrame, text="\u03B5-Decay Rate (b)", font=fontMiddle, TkVarType=tk.DoubleVar)  # epsilon
+                    self.behaviorEpsilonFrame = MyEntryFrame(self.behaviorPolicyFrame, nameLabel="Exploration Rate \u03B5 (b)", font=fontMiddle, VarTargetType=float, var_check_func=lambda x: x >= 0)  # epsilon
+                    self.behaviorEpsilonDecayRateFrame = MyEntryFrame(self.behaviorPolicyFrame, nameLabel="\u03B5-Decay Rate (b)", font=fontMiddle, VarTargetType=float, var_check_func=lambda x: x >= 0)  # epsilon
 
                     myFuncs.arrange_children(self.behaviorPolicyFrame, rowDiff=1)
 
                 if True:  # targetPolicyFrame
-                    self.targetEpsilonFrame = EntryFrame(self.targetPolicyFrame, text="Exploration Rate \u03B5 (t)", font=fontMiddle, TkVarType=tk.DoubleVar)  # epsilon
-                    self.targetEpsilonDecayRateFrame = EntryFrame(self.targetPolicyFrame, text="\u03B5-Decay Rate (t)", font=fontMiddle, TkVarType=tk.DoubleVar)  # epsilon
+                    self.targetEpsilonFrame = MyEntryFrame(self.targetPolicyFrame, nameLabel="Exploration Rate \u03B5 (t)", font=fontMiddle, VarTargetType=float, var_check_func=lambda x: x >= 0)  # epsilon
+                    self.targetEpsilonDecayRateFrame = MyEntryFrame(self.targetPolicyFrame, nameLabel="\u03B5-Decay Rate (t)", font=fontMiddle, VarTargetType=float, var_check_func=lambda x: x >= 0)  # epsilon
 
                     myFuncs.arrange_children(self.targetPolicyFrame, rowDiff=1)
 
@@ -217,7 +218,7 @@ class GridworldSandbox:
     def recursiveGather_parameterFrameVars(self, frame):
         collection = dict()
         for child in frame.winfo_children():
-            if not isinstance(child, InformationFrame):  # InformationFrame must be excluded, otherwise return would ne loaded and saved like any other parameter
+            if not isinstance(child, MyInfoFrame):  # MyInfoFrame must be excluded, otherwise return would ne loaded and saved like any other parameter
                 try:
                     collection[child.get_text()] = child.get_var()
                 except:
@@ -493,7 +494,7 @@ class GridworldSandbox:
             self.nStepFrame.normalize()
 
     def toggle_ice_and_crosswind_warning(self):
-        print("warining", random())
+        #print("warining", random())
         iceFloorValid = True
         if self.iceFloorFrame.get_value():
             windLabelColor = "black"
@@ -514,6 +515,7 @@ class GridworldSandbox:
             self.iceFloorFrame.highlight(self.WARNING_COLOR)
 
     def plot(self):
+        print("call")
         # print("Episode returns of the agent:", self.agent.get_episodeReturns())
         fig, ax = plt.subplots()
         ax.plot(self.agent.get_stepReturns())

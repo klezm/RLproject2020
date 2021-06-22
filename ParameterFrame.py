@@ -1,44 +1,59 @@
 import tkinter as tk
 
-import myFuncs
-
 
 class ParameterFrame(tk.Frame):
-    def __init__(self, *args, text="", defaultValue=None, font="calibri 14 bold", textColor="black", labelWidth=20, **kwargs):
-        super().__init__(*args, **kwargs)
+    highlightAttributes = []
+
+    def __init__(self, master, *args, tkVar=None, nameLabel=None, defaultValue=None, font="calibri 14 bold", textColor="black", labelWidth=20, inverse=False, **kwargs):
+        super().__init__(master, *args, **kwargs)
         self.font = font
-        self.nameLabel = tk.Label(self, text=text, fg=textColor, width=labelWidth, anchor=tk.W, font=self.font)
-        self.nameLabel.grid(row=0, column=0)
-        self.tkVar = None
-        self.varWidget = None
-        self.make_var_widget()
-        self.varWidgetDefaultBg = self.varWidget.cget("bg")
-        self.varWidget.grid(row=0, column=1)
+        self.defaultFrameBg = master.cget("bg")
+        self.nameLabel = nameLabel  # allows connecting labels of external Frames as nameLabels, if given as nameLabel arg
+        if isinstance(self.nameLabel, str):
+            self.nameLabel = tk.Label(self, text=nameLabel, fg=textColor, width=labelWidth, anchor=tk.W, font=self.font)
+        if self.nameLabel:  # argument None allows ParameterFrame without description
+            self.nameLabel.grid(row=0, column=int(inverse))
+        self.tkVar = tkVar
+        if tkVar is None:
+            self.tkVar = self.make_tkVar()
+        self.varWidget = self.make_varWidget()
+        self.varWidget.grid(row=0, column=int(not inverse))
+        self.normalize()
         if defaultValue is not None:
             self.set_value(defaultValue)
 
-    def set_and_call_trace(self, inputFunc):
-        myFuncs.set_and_call_trace(self.get_var(), inputFunc)
+    def set_and_call_trace(self, input_Func):
+        self.tkVar.trace_add("write", lambda *traceArgs: input_Func())
+        input_Func()
 
     def freeze(self, includeText=True):
-        self.varWidget.config(state=tk.DISABLED)
-        if includeText:
+        if includeText and self.nameLabel:
             self.nameLabel.config(state=tk.DISABLED)
+        self.varWidget.config(state=tk.DISABLED)
 
     def unfreeze(self):
+        if self.nameLabel:
+            self.nameLabel.config(state=tk.NORMAL)
         self.varWidget.config(state=tk.NORMAL)
-        self.nameLabel.config(state=tk.NORMAL)
 
     def highlight(self, color):
-        self.varWidget.config(bg=color)
-        self.nameLabel.config(fg=color)
+        if self.nameLabel:
+            self.nameLabel.config(fg=color)
+        for attribute in self.highlightAttributes:
+            self.varWidget[attribute] = color
 
     def normalize(self):
-        self.varWidget.config(bg=self.varWidgetDefaultBg)
-        self.nameLabel.config(fg="black")
+        if self.nameLabel:
+            self.nameLabel.config(fg="black")
+        for attribute in self.highlightAttributes:
+            self.varWidget[attribute] = self.defaultFrameBg
 
     def get_text(self):
-        return self.nameLabel.cget("text")
+        if self.nameLabel:
+            r = self.nameLabel.cget("text")
+            return r
+        else:
+            return ""
 
     def get_var(self):
         return self.tkVar
@@ -49,5 +64,8 @@ class ParameterFrame(tk.Frame):
     def set_value(self, value):
         return self.get_var().set(value)
 
-    def make_var_widget(self):
+    def make_tkVar(self) -> tk.Variable:
+        pass
+
+    def make_varWidget(self) -> tk.Widget:
         pass

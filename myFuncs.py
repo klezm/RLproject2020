@@ -5,6 +5,22 @@ import numpy as np
 import tkinter as tk
 from tkinter import filedialog
 import yaml
+import traceback
+import sys
+
+
+def custom_warning(condition, importance, message, hideNdeepestStackLines=1):
+    if condition and importance:
+        stack = traceback.format_stack()
+        if hideNdeepestStackLines:
+            stack = stack[:-hideNdeepestStackLines]
+        stack = "".join(stack)
+        header = ["", "\033[93mWARNING", "\033[91mERROR"]
+        print(f"\n{header[importance]}: {message}\nStack:\n{stack}\033[0m")
+        if importance == 2:
+            sys.exit(1)
+        return True
+    return False
 
 
 @cache
@@ -96,7 +112,7 @@ def create_yaml_file_from_dict(inputDict, initialdir="."):
         yaml.dump(inputDict, file)
 
 
-def create_font(size, family= "calibri", weight="bold"):
+def create_font(size, family="calibri", weight="bold"):
     return f"{family} {size} {weight}"
 
 
@@ -114,94 +130,94 @@ def set_and_call_trace(tkVar, inputFunc, passTraceargs=False, callFunc=True):
         traceFunc()
 
 
-class ToolTip:
-    """
-    Create a tooltip for a given widget
-    (inspired by https://stackoverflow.com/a/36221216)
-    This is an INTERNALLY USED only class.  Users should not refer to this class at all.
-    """
-
-    def __init__(self, widget, text, timeout=DEFAULT_TOOLTIP_TIME):
-        """
-        :param widget: The tkinter widget
-        :type widget: widget type varies
-        :param text: text for the tooltip. It can inslude \n
-        :type text: (str)
-        :param timeout: Time in milliseconds that mouse must remain still before tip is shown
-        :type timeout: (int)
-        """
-        self.widget = widget
-        self.text = text
-        self.timeout = timeout
-        # self.wraplength = wraplength if wraplength else widget.winfo_screenwidth() // 2
-        self.tipwindow = None
-        self.id = None
-        self.x = self.y = 0
-        self.widget.bind("<Enter>", self.enter)
-        self.widget.bind("<Leave>", self.leave)
-        self.widget.bind("<ButtonPress>", self.leave)
-
-    def enter(self, event=None):
-        """
-        Called by tkinter when mouse enters a widget
-        :param event:  from tkinter.  Has x,y coordinates of mouse
-
-        """
-        self.x = event.x
-        self.y = event.y
-        self.schedule()
-
-    def leave(self, event=None):
-        """
-        Called by tktiner when mouse exits a widget
-        :param event:  from tkinter.  Event info that's not used by function.
-
-        """
-        self.unschedule()
-        self.hidetip()
-
-    def schedule(self):
-        """
-        Schedule a timer to time how long mouse is hovering
-        """
-        self.unschedule()
-        self.id = self.widget.after(self.timeout, self.showtip)
-
-    def unschedule(self):
-        """
-        Cancel timer used to time mouse hover
-        """
-        if self.id:
-            self.widget.after_cancel(self.id)
-        self.id = None
-
-    def showtip(self):
-        """
-        Creates a topoltip window with the tooltip text inside of it
-        """
-        if self.tipwindow:
-            return
-        x = self.widget.winfo_rootx() + self.x + DEFAULT_TOOLTIP_OFFSET[0]
-        y = self.widget.winfo_rooty() + self.y + DEFAULT_TOOLTIP_OFFSET[1]
-        self.tipwindow = tk.Toplevel(self.widget)
-        # if not sys.platform.startswith('darwin'):
-        try:
-            self.tipwindow.wm_overrideredirect(True)
-        except:
-            print('* Error performing wm_overrideredirect *')
-        self.tipwindow.wm_geometry("+%d+%d" % (x, y))
-        self.tipwindow.wm_attributes("-topmost", 1)
-
-        label = ttk.Label(self.tipwindow, text=self.text, justify=tk.LEFT,
-                          background=TOOLTIP_BACKGROUND_COLOR, relief=tk.SOLID, borderwidth=1)
-        if TOOLTIP_FONT is not None:
-            label.config(font=TOOLTIP_FONT)
-        label.pack()
-
-    def hidetip(self):
-        """
-        Destroy the tooltip window
-        """
-        if self.tipwindow:
-            self.tipwindow.destroy()
-        self.tipwindow = None
+# class ToolTip:
+#     """
+#     Create a tooltip for a given widget
+#     (inspired by https://stackoverflow.com/a/36221216)
+#     This is an INTERNALLY USED only class.  Users should not refer to this class at all.
+#     """
+#
+#     def __init__(self, widget, text, timeout=DEFAULT_TOOLTIP_TIME):
+#         """
+#         :param widget: The tkinter widget
+#         :type widget: widget type varies
+#         :param text: text for the tooltip. It can inslude \n
+#         :type text: (str)
+#         :param timeout: Time in milliseconds that mouse must remain still before tip is shown
+#         :type timeout: (int)
+#         """
+#         self.widget = widget
+#         self.text = text
+#         self.timeout = timeout
+#         # self.wraplength = wraplength if wraplength else widget.winfo_screenwidth() // 2
+#         self.tipwindow = None
+#         self.id = None
+#         self.x = self.y = 0
+#         self.widget.bind("<Enter>", self.enter)
+#         self.widget.bind("<Leave>", self.leave)
+#         self.widget.bind("<ButtonPress>", self.leave)
+#
+#     def enter(self, event=None):
+#         """
+#         Called by tkinter when mouse enters a widget
+#         :param event:  from tkinter.  Has x,y coordinates of mouse
+#
+#         """
+#         self.x = event.x
+#         self.y = event.y
+#         self.schedule()
+#
+#     def leave(self, event=None):
+#         """
+#         Called by tktiner when mouse exits a widget
+#         :param event:  from tkinter.  Event info that's not used by function.
+#
+#         """
+#         self.unschedule()
+#         self.hidetip()
+#
+#     def schedule(self):
+#         """
+#         Schedule a timer to time how long mouse is hovering
+#         """
+#         self.unschedule()
+#         self.id = self.widget.after(self.timeout, self.showtip)
+#
+#     def unschedule(self):
+#         """
+#         Cancel timer used to time mouse hover
+#         """
+#         if self.id:
+#             self.widget.after_cancel(self.id)
+#         self.id = None
+#
+#     def showtip(self):
+#         """
+#         Creates a topoltip window with the tooltip text inside of it
+#         """
+#         if self.tipwindow:
+#             return
+#         x = self.widget.winfo_rootx() + self.x + DEFAULT_TOOLTIP_OFFSET[0]
+#         y = self.widget.winfo_rooty() + self.y + DEFAULT_TOOLTIP_OFFSET[1]
+#         self.tipwindow = tk.Toplevel(self.widget)
+#         # if not sys.platform.startswith('darwin'):
+#         try:
+#             self.tipwindow.wm_overrideredirect(True)
+#         except:
+#             print('* Error performing wm_overrideredirect *')
+#         self.tipwindow.wm_geometry("+%d+%d" % (x, y))
+#         self.tipwindow.wm_attributes("-topmost", 1)
+#
+#         label = ttk.Label(self.tipwindow, text=self.text, justify=tk.LEFT,
+#                           background=TOOLTIP_BACKGROUND_COLOR, relief=tk.SOLID, borderwidth=1)
+#         if TOOLTIP_FONT is not None:
+#             label.config(font=TOOLTIP_FONT)
+#         label.pack()
+#
+#     def hidetip(self):
+#         """
+#         Destroy the tooltip window
+#         """
+#         if self.tipwindow:
+#             self.tipwindow.destroy()
+#         self.tipwindow = None

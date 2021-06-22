@@ -77,7 +77,7 @@ class Tile(tk.Frame):
                 if actionSum.any():  # Other than opposing directions
                     symbol = cls.GREEDYCHARS_1_2[index]
                 else:
-                    if greedyActions[0][0]:  # x value of arbitrary greedy action is nonzero
+                    if greedyActions[0][0]:  # x _value of arbitrary greedy action is nonzero
                         symbol = cls.GREEDYCHAR_LEFT_RIGHT
                     else:
                         symbol = cls.GREEDYCHAR_UP_DOWN
