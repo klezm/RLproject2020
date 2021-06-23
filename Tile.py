@@ -105,6 +105,9 @@ class Tile(tk.Frame):
             for button in ["<Down>", "s", "-"]:
                 widget.bind(button, lambda _: self.specify_teleport(suffix=self.TELEPORTER_SINK_ONLY_SUFFIX))
         self.indicateNumericalValueChange = indicateNumericalValueChange
+        self.reset()
+
+    def reset(self):
         self.update_appearance(borderColor=self.BORDER_COLORS[0], **self.TYPES[0])
 
     def protect_attributes(self, *args):

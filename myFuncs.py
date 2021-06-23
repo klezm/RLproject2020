@@ -71,25 +71,14 @@ def center(window):
     window.geometry('{}x{}+{}+{}'.format(width, height, x, y))
 
 
-def arrange_children(frame, rowDiff=0, columnDiff=0, useSticky=True, **kwargs):
-    # TODO: does column-/rowdiff != 0/1 make any difference?
-    sticky = ""
-    if rowDiff:
-        if useSticky:
-            sticky = tk.W + tk.E
-        rowspan = rowDiff
-        columnspan = 1
-    if columnDiff:
-        if useSticky:
-            sticky = tk.N + tk.S
-        rowspan = 1
-        columnspan = columnDiff
-    row = 0
-    column = 0
-    for child in frame.winfo_children():
-        child.grid(row=row, column=column, rowspan=rowspan, columnspan=columnspan, sticky=sticky, **kwargs)
-        row += rowDiff
-        column += columnDiff
+def arrange_children(frame, order, useSticky=True, fillFrame=True, **kwargs):
+    stickyValues = {"row": (tk.W + tk.E) * useSticky, "column": (tk.N + tk.S) * useSticky}
+    kwargs = {"row": 0, "column": 0, "sticky": stickyValues[order]} | kwargs
+    for i, child in enumerate(frame.winfo_children()):
+        kwargs[order] = i
+        child.grid(**kwargs)
+        if fillFrame:
+            getattr(frame, f"grid_{order}configure")(i, weight=1)
 
 
 def get_dict_from_yaml_file(filename=None, initialdir="."):

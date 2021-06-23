@@ -1,4 +1,3 @@
-# TODO: Button: clear world (leftmost frame)
 # TODO: Return sum für non episodic tasks (muss sie discounted werden?)
 # TODO: Implement planning (Dyna-Q, Dyna-Q+) -> update funktion braucht zusätzlich noch quelle als argument: memory oder model
 #   TODO -> Visualize Model?
