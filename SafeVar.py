@@ -23,19 +23,20 @@ class MyEntry(tk.Entry):
 
 
 class MyVar(tk.Variable):
-    def __init__(self, value, *args, check_func=lambda arg: True, transform_func=lambda arg: arg, str_pre_transform_func=lambda arg: arg, backwards_cast_func=None, unstableValueImportance=1, invalidValueImportance=2, **kwargs):
+    def __init__(self, value, *args, check_func=lambda arg: True, main_transform_func=lambda arg: arg, gui_input_transform_func=lambda arg: arg, backwards_cast_func=None, unstableValueImportance=1, invalidValueImportance=2, **kwargs):
         super().__init__(*args, **kwargs)
         self._value = None  # Will never be accessed for code use, but updated when reset_to_stable is called.
         # Useful for debugger, since its not able to show the native _value in the tk.Variable container
         self._processingInit = True
         self._processingTrace = False
+        self._processingSuperSet = False
         self._processingSet = False
         super().trace_add("write", self._traceFunc_wrapper)
         self._custom_traces = []
         self._usedBy = []
         self._check_func = check_func
-        self._transform_func = transform_func
-        self._str_pre_transform_func = str_pre_transform_func
+        self._main_transform_func = main_transform_func
+        self._gui_input_transform_func = gui_input_transform_func
         self._default_backwards_cast_func = backwards_cast_func
         self._unstableValueImportance = unstableValueImportance
         self._invalidValueImportance = invalidValueImportance
@@ -60,13 +61,15 @@ class MyVar(tk.Variable):
         return self._lastStableValue
 
     def set(self, value):
+        self._processingSet = True
         self._process_new_value(value)
         self._reset_to_stable()
+        self._processingSet = False
 
     def _reset_to_stable(self):
-        self._processingSet = True
+        self._processingSuperSet = True
         super().set(self._lastStableValue)  # calls trace!
-        self._processingSet = False
+        self._processingSuperSet = False
         myFuncs.custom_warning(not self._isValid, self._invalidValueImportance, f"\n{self}: Value {self._lastProposedValue} is INVALID. The LAST VALID value {super().get()} has been set instead.", hideNdeepestStackLines=3)
         myFuncs.custom_warning(not self._isStable, self._unstableValueImportance, f"\n{self}: Value {self._lastProposedValue} was UNSTABLE. The TRANSFORMED value {super().get()} has been set instead.", hideNdeepestStackLines=3)
         self._isStable = True
@@ -77,26 +80,25 @@ class MyVar(tk.Variable):
         #self._isStable = True  # pretty sure this isn't needed anymore.
         # staySame might seem not well defined if _isValid is False, but there seems to be no case where this is an issue.
         self._lastProposedValue = value
-        tempValue = value  # original arg should not be overwritten since it may be needed to perform the equality check to determine _isStable.
+        # original arg should not be overwritten since it may be needed to perform the equality check to determine _isStable.
         try:
-            if isinstance(value, str):
-                tempValue = self._str_pre_transform_func(tempValue)
-            tempValue = self._transform_func(tempValue)
+            if not self._processingSet:  # called by trace after gui interaction
+                self._lastProposedValue = self._gui_input_transform_func(self._lastProposedValue)
+            tempValue = self._main_transform_func(self._lastProposedValue)
             self._isValid = self._check_func(tempValue)
+            self._lastStableValue = tempValue
         except:
             self._isValid = False
         if self._isValid:
-            self._lastStableValue = tempValue
             try:
                 if self._default_backwards_cast_func is None:
-                    backwards_cast_func = type(value)
+                    backwards_cast_func = type(self._lastProposedValue)
                 else:
                     backwards_cast_func = self._default_backwards_cast_func
                 backwardsCastedValue = backwards_cast_func(self._lastStableValue)
-                self._isStable = backwardsCastedValue in [value, self._lastStableValue]  # which of these?
-                #self._isStable = backwardsCastedValue == value  # which of these?
+                self._isStable = (backwardsCastedValue == self._lastProposedValue)
             except:  # backwards cast failed
-                self._isStable = value == self._lastStableValue
+                self._isStable = (self._lastStableValue == self._lastProposedValue)
         elif self._processingInit:
             raise ValueError(f"{value} is no valid initialization value for {self}.")
 
@@ -109,7 +111,7 @@ class MyVar(tk.Variable):
 
     def _traceFunc_wrapper(self, *traceArgs):
         self._processingTrace = True  # activate this here since it should stay activated also during the custom_traces call
-        if not self._processingSet:  # if self._processingSet would be true, the value has already been processed and reset to stable at this point
+        if not self._processingSuperSet:  # if self._processingSuperSet would be true, the value has already been processed and reset to stable at this point
             newValue = super().get()  # just calls super().get() here
             self._process_new_value(newValue)
             if not self._isValid:
@@ -171,11 +173,11 @@ if __name__ == "__main__":
     # 2 entries die beide in der gleichen trace benutzt werden!
     # var = SafeVar(tk.IntVar, defaultValue=1)  # check initialize with default and different vatTypes
     # var = SafeVar(tk.Variable, defaultValue=4.6)  # check initialize with default and different vatTypes
-    var = MyVar(12, check_func=lambda i: 0 < i < 20, transform_func=int, str_pre_transform_func=float)#, _invalidValueImportance=1)
-    #var = MyVar(12, check_func=lambda i: 0 < i < 21, transform_func=float)#, _invalidValueImportance=1)
-    #var = MyVar(12, check_func=lambda i: 0 < i < 20, transform_func=lambda _: 5, str_pre_transform_func=float)#, _invalidValueImportance=1)
-    #var = MyVar(1.2, check_func=lambda i: 0 < i < 20, transform_func=my_trafo, str_pre_transform_func=float)
-    #var = MyVar("1.2", _check_func=lambda i: isinstance(i, str))#, _transform_func=int, _str_pre_transform_func=float)
+    var = MyVar(12, check_func=lambda i: 0 < i < 20, main_transform_func=int, gui_input_transform_func=float)#, _invalidValueImportance=1)
+    #var = MyVar(12, check_func=lambda i: 0 < i < 21, main_transform_func=float)#, _invalidValueImportance=1)
+    #var = MyVar(12, check_func=lambda i: 0 < i < 20, main_transform_func=lambda _: 5, gui_input_transform_func=float)#, _invalidValueImportance=1)
+    #var = MyVar(1.2, check_func=lambda i: 0 < i < 20, main_transform_func=my_trafo, gui_input_transform_func=float)
+    #var = MyVar("1.2", _check_func=lambda i: isinstance(i, str))#, _main_transform_func=int, _gui_input_transform_func=float)
     #var = MyVar(0)
     #var.trace_add(varTraceFunc, callFunc=True)
     #var.trace_add(varTraceFunc2, callFunc=True)

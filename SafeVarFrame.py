@@ -18,8 +18,8 @@ class SafeVarFrame(ParameterFrame):
         super().__init__(*args, **kwargs)  # default value will not be passed to super init, so the setter at the end of super init will not be called. This avoids redundance.
 
     def make_tkVar(self):
-        return MyVar(self.defaultValue, check_func=self.var_check_func, transform_func=self.VarTargetType,
-                     str_pre_transform_func=float if self.VarTargetType == int else lambda arg: arg,
+        return MyVar(self.defaultValue, check_func=self.var_check_func, main_transform_func=self.VarTargetType,
+                     gui_input_transform_func=float if self.VarTargetType in (int, float) else lambda arg: arg,
                      unstableValueImportance=1, invalidValueImportance=1)
 
     def set_and_call_trace(self, input_func):

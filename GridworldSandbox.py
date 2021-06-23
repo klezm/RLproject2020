@@ -134,12 +134,13 @@ class GridworldSandbox:
 
             myFuncs.arrange_children(self.settingsFrame, columnDiff=1, ipadx=3, ipady=3)
 
-            # Default values below are meanlingless, since they will be read from the yaml default file later. One just needs to pass an arbitrary value here that passes the SafeVar check_func to avoid an error.
+            # Default values below are meaningless, since they will be read from the yaml default file later. One just needs to pass an arbitrary value here that passes the SafeVar check_func to avoid an error.
             if True:  # miscSettingsFrame:
                 self.initialActionvalueMeanFrame = MyEntryFrame(self.miscSettingsFrame, nameLabel="Initial Q-Values Mean", font=fontMiddle, VarTargetType=float)
                 self.initialActionvalueSigmaFrame = MyEntryFrame(self.miscSettingsFrame, nameLabel="Initial Q-Values Sigma", font=fontMiddle, VarTargetType=float, var_check_func=lambda x: x >= 0)
                 self.currentReturnFrame = InfoFrame(self.miscSettingsFrame, nameLabel="Current Reward", font=fontMiddle, VarTargetType=int)
                 self.operationsLeftFrame = MyEntryFrame(self.miscSettingsFrame, nameLabel="Operations Left", font=fontMiddle, VarTargetType=int)
+                self.msDelayFrame=MyEntryFrame(self.miscSettingsFrame, nameLabel="Min Refresh Rate [ms]", font=fontMiddle, VarTargetType=int, var_check_func=lambda x: 1 <= x <= 9999, defaultValue=1)
                 self.visualizeMemoryFrame = CheckbuttonFrame(self.miscSettingsFrame, nameLabel="Visualize Memory", font=fontMiddle)
                 self.dataButtonsFrame = tk.Frame(self.miscSettingsFrame)
 
@@ -153,7 +154,6 @@ class GridworldSandbox:
                     myFuncs.arrange_children(self.dataButtonsFrame, columnDiff=1)  # this is a correction after the arrange_children() call, since the children of dataButtonsFrame should not be sticky
 
             if True:  # flowControlFrame
-                self.msDelayFrame=MyEntryFrame(self.flowControlFrame, nameLabel="Min Refresh Rate [ms]", font=fontMiddle, VarTargetType=int, var_check_func=lambda x: 1<=x<=9999, defaultValue=1)
                 self.showEveryNoperationsFrame = MyEntryFrame(self.flowControlFrame, nameLabel="Show Every...", font=fontMiddle, VarTargetType=int, var_check_func=lambda x: x >= 1, defaultValue=1)
                 self.operationFrames = OrderedDict([(operation, CheckbuttonFrame(self.flowControlFrame, nameLabel=f"...{operation}", font=fontMiddle)) for operation in Agent.OPERATIONS])
                 self.flowButtonsFrame = tk.Frame(self.flowControlFrame)
