@@ -1,5 +1,6 @@
 import numpy as np
 from functools import cache
+import random
 
 from Memory import Memory
 from EpsilonGreedyPolicy import EpsilonGreedyPolicy
@@ -82,7 +83,7 @@ class Agent:
         self.hasChosenExploratoryAction = None
         self.hasMadeExploratoryAction = None
         self.targetAction = None
-        self.targetActionValue = None
+        self.targetActionvalue = None
         self.iSuccessivePlannings = None
         # Debug variables:
         self.actionPlan = actionPlan
@@ -120,7 +121,7 @@ class Agent:
         elif self.state is None:
             self.start_episode()
             return self.STARTED_EPISODE
-        elif self.iSuccessivePlannings < self.nPlanVar.get():
+        elif self.iSuccessivePlannings < self.nPlanVar.get() and self.visitedStateActionPairs:
             self.plan()  # TODO: Model Algo needs no Memory and doesnt need to pass a target action to the behavior action. Nevertheless, expected version is possible.
             self.iSuccessivePlannings += 1
             return self.UPDATED_BY_PLANNING
@@ -145,7 +146,7 @@ class Agent:
         reward, successorState, self.episodeFinished = self.environment.apply_action(behaviorAction)  # This is the only place where the agent exchanges information with the environment
         self.hasMadeExploratoryAction = self.hasChosenExploratoryAction  # if hasChosenExploratoryAction would be the only indicator for changing the agent color in the next visualization, then in the on-policy case, if the target was chosen to be an exploratory move in the last step-call, the coloring would happen BEFORE the move was taken, since in this line, the behavior action would already be determined and just copied from that target action with no chance to track if it was exploratory or not.
         self.memory.memorize(self.state, behaviorAction, reward)
-        self.model[self.state][behaviorAction] = (reward, successorState)
+        self.model[self.state][behaviorAction] = (successorState, reward)
         self.visitedStateActionPairs.add((self.state, behaviorAction))  # enables efficient random choice of already visited state-action-pairs for Dyna-Q
         self.currentReturnVar.set(self.currentReturnVar.get() + reward)
         self.state = successorState  # must happen after memorize and before generate_target!
@@ -169,7 +170,7 @@ class Agent:
     def generate_target(self):
         if self.episodeFinished:
             self.targetAction = None
-            self.targetActionValue = 0  # per definition
+            self.targetActionvalue = 0  # per definition
             return
         if self.onPolicyVar.get():
             policy = self.behaviorPolicy
@@ -177,21 +178,21 @@ class Agent:
             policy = self.targetPolicy
         if self.updateByExpectationVar.get():
             self.targetAction = None  # Otherwise, if switched dynamically to expectation during an episode, in the On-Policy case, the action selected in the else-block below would be copied and used as the behavior action in every following turn, resulting in an agent that cannot change its direction anymore
-            self.targetActionValue = policy.get_expected_actionvalue(self.state)
+            self.targetActionvalue = policy.get_expected_actionvalue(self.state)
         else:
             self.targetAction = policy.generate_action(self.state)
-            self.targetActionValue = self.get_Q(S=self.state, A=self.targetAction)
+            self.targetActionvalue = self.get_Q(S=self.state, A=self.targetAction)
 
     def process_earliest_memory(self):
-        self.update_actionvalue()
+        correspondingState, actionToUpdate, _ = self.memory.get_oldest_memory()
+        discountedRewardSum = self.memory.get_discountedRewardSum()
+        self.update_actionvalue(actionToUpdate, correspondingState, discountedRewardSum, self.targetActionvalue, self.nStepVar.get())
         self.memory.forget_oldest_memory()
 
-    def update_actionvalue(self):
+    def update_actionvalue(self, actionToUpdate, correspondingState, discountedRewardSum, targetActionvalue, nStep):
         # step by step, so you can watch exactly whats happening when using a debugger
-        discountedRewardSum = self.memory.get_discountedRewardSum()
-        correspondingState, actionToUpdate, _ = self.memory.get_oldest_memory()
         Qbefore = self.get_Q(S=correspondingState, A=actionToUpdate)
-        discountedTargetActionValue = cached_power(self.discountVar.get(), self.nStepVar.get()) * self.targetActionValue  # in the MC case (n is -1 here) the targetActionValue is zero anyway, so it doesnt matter what n is.
+        discountedTargetActionValue = cached_power(self.discountVar.get(), nStep) * targetActionvalue  # in the MC case (n is -1 here) the targetActionvalue is zero anyway, so it doesnt matter what n is.
         returnEstimate = discountedRewardSum + discountedTargetActionValue
         TD_error = returnEstimate - Qbefore
         if self.dynamicAlphaVar.get():
@@ -202,6 +203,14 @@ class Agent:
         self.set_Q(S=correspondingState, A=actionToUpdate, value=Qafter)
 
     def plan(self):
+        correspondingState, actionToUpdate = random.choice(tuple(self.visitedStateActionPairs))
+        successorState, reward = self.model[correspondingState][actionToUpdate]
+        if self.updateByExpectationVar.get():
+            targetActionvalue = self.targetPolicy.get_expected_actionvalue(successorState)
+        else:
+            targetAction = self.targetPolicy.generate_action(successorState)
+            targetActionvalue = self.get_Q(S=successorState, A=targetAction)
+        self.update_actionvalue(actionToUpdate, correspondingState, reward, targetActionvalue, nStep=1)
         print(self.iSuccessivePlannings)
 
     def get_discount(self):
