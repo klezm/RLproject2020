@@ -10,9 +10,9 @@ class Environment:
         self.hasIceFloorVar = hasIceFloorVar
         self.isTorusVars = (isXtorusVar, isYtorusVar)
         self.windVars = (xWindVars, yWindVars)
-        self.agentPosition = None
-        self.teleportJustUsed = None
-        # In a gridworld, position and agent state can be treated equivalent, but not in general! i.e. snake
+        self.agentPosition = None  # In a gridworld, position and agent state can be treated equivalent, but not in general! i.e. snake
+        self.teleportJustUsed = None  # needed as a flag for coloring this tile yellow
+
 
     def update(self, tileData):
         for x in range(self.grid.shape[0]):

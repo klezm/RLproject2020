@@ -60,12 +60,15 @@ class Agent:
         self.updateByExpectationVar = updateByExpectationVar
         self.nStepVar = nStepVar
         self.nPlanVar = nPlanVar
-        self.initialActionvalueMean = initialActionvalueMean  # TODO: Set this in GUI
-        self.initialActionvalueSigma = initialActionvalueSigma  # TODO: Set this in GUI
+        self.initialActionvalueMean = initialActionvalueMean
+        self.initialActionvalueSigma = initialActionvalueSigma
         self.Qvalues = np.empty_like(self.environment.get_grid(), dtype=dict)
         self.greedyActions = np.empty_like(self.environment.get_grid(), dtype=list)
+        self.model = np.empty_like(self.environment.get_grid(), dtype=dict)
+        self.visitedStateActionPairs = set()
         self.stateActionPairCounts = np.empty_like(self.environment.get_grid(), dtype=dict)
         self.stateAbsenceCounts = np.zeros_like(self.environment.get_grid(), dtype=np.int32)
+        # self.stateActionPairAbsenceCounts = np.empty_like(self.environment.get_grid(), dtype=dict)  # will be needed for Dyna-Q+
         self.initialize_tables()
         # Strictly speaking, the agent has no model at all and therefore in the beginning knows nothing about the environment, including its shape.
         # But to avoid technical details in implementation that would anyway not change the Agent behavior at all,
@@ -79,7 +82,7 @@ class Agent:
         self.hasChosenExploratoryAction = None
         self.hasMadeExploratoryAction = None
         self.targetAction = None
-        self.targetActionvalue = None
+        self.targetActionValue = None
         self.iSuccessivePlannings = None
         # Debug variables:
         self.actionPlan = actionPlan
@@ -92,12 +95,12 @@ class Agent:
                                      for action in self.get_actionspace()}
                 self.update_greedy_actions((x,y))
                 self.stateActionPairCounts[x,y] = {action: 0 for action in self.get_actionspace()}
+                self.model[x,y] = {action: (None, None) for action in self.get_actionspace()}
 
     def update_greedy_actions(self, state: tuple):
         maxActionValue = max(self.Qvalues[state].values())
         self.greedyActions[state] = [action for action, value in self.Qvalues[state].items() if value == maxActionValue]
 
-    #def set_Q(self, S: Tuple, A: tuple, _value: float):  # TODO: import Tuple from typing
     def set_Q(self, S: tuple, A: tuple, value: float):
         self.Qvalues[S][A] = value
         self.update_greedy_actions(state=S)
@@ -130,7 +133,7 @@ class Agent:
         self.targetAction = None
         self.currentReturnVar.set(0)
         self.iSuccessivePlannings = 0
-        self.stateAbsenceCounts *= 0  # is this faster then re-initializing the whole array?
+        self.stateAbsenceCounts.fill(0)  # this is only used for visualizing the trace of the agent! Never reset at this point a count that is used for MC or Dyna-Q!
         self.state = self.environment.give_initial_position()
         if self.state is None:
             raise RuntimeError("No Starting Point found")
@@ -142,6 +145,8 @@ class Agent:
         reward, successorState, self.episodeFinished = self.environment.apply_action(behaviorAction)  # This is the only place where the agent exchanges information with the environment
         self.hasMadeExploratoryAction = self.hasChosenExploratoryAction  # if hasChosenExploratoryAction would be the only indicator for changing the agent color in the next visualization, then in the on-policy case, if the target was chosen to be an exploratory move in the last step-call, the coloring would happen BEFORE the move was taken, since in this line, the behavior action would already be determined and just copied from that target action with no chance to track if it was exploratory or not.
         self.memory.memorize(self.state, behaviorAction, reward)
+        self.model[self.state][behaviorAction] = (reward, successorState)
+        self.visitedStateActionPairs.add((self.state, behaviorAction))  # enables efficient random choice of already visited state-action-pairs for Dyna-Q
         self.currentReturnVar.set(self.currentReturnVar.get() + reward)
         self.state = successorState  # must happen after memorize and before generate_target!
         self.stateAbsenceCounts[self.state] = 0
@@ -164,7 +169,7 @@ class Agent:
     def generate_target(self):
         if self.episodeFinished:
             self.targetAction = None
-            self.targetActionvalue = 0  # per definition
+            self.targetActionValue = 0  # per definition
             return
         if self.onPolicyVar.get():
             policy = self.behaviorPolicy
@@ -172,10 +177,10 @@ class Agent:
             policy = self.targetPolicy
         if self.updateByExpectationVar.get():
             self.targetAction = None  # Otherwise, if switched dynamically to expectation during an episode, in the On-Policy case, the action selected in the else-block below would be copied and used as the behavior action in every following turn, resulting in an agent that cannot change its direction anymore
-            self.targetActionvalue = policy.get_expected_actionvalue(self.state)
+            self.targetActionValue = policy.get_expected_actionvalue(self.state)
         else:
             self.targetAction = policy.generate_action(self.state)
-            self.targetActionvalue = self.get_Q(S=self.state, A=self.targetAction)
+            self.targetActionValue = self.get_Q(S=self.state, A=self.targetAction)
 
     def process_earliest_memory(self):
         self.update_actionvalue()
@@ -186,7 +191,7 @@ class Agent:
         discountedRewardSum = self.memory.get_discountedRewardSum()
         correspondingState, actionToUpdate, _ = self.memory.get_oldest_memory()
         Qbefore = self.get_Q(S=correspondingState, A=actionToUpdate)
-        discountedTargetActionValue = cached_power(self.discountVar.get(), self.nStepVar.get()) * self.targetActionvalue  # in the MC case (n is -1 here) the targetActionvalue is zero anyway, so it doesnt matter what n is.
+        discountedTargetActionValue = cached_power(self.discountVar.get(), self.nStepVar.get()) * self.targetActionValue  # in the MC case (n is -1 here) the targetActionValue is zero anyway, so it doesnt matter what n is.
         returnEstimate = discountedRewardSum + discountedTargetActionValue
         TD_error = returnEstimate - Qbefore
         if self.dynamicAlphaVar.get():

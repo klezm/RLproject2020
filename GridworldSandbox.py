@@ -231,7 +231,10 @@ class GridworldSandbox:
 
     def reset_gridworld(self):
         self.gridworldTilemap.reset()
-        for frame in self.xWindFrames + self.yWindFrames + [self.iceFloorFrame, self.xTorusFrame, self.yTorusFrame]:
+        self.iceFloorFrame.set_value(False)
+        self.xTorusFrame.set_value(False)
+        self.yTorusFrame.set_value(False)
+        for frame in self.xWindFrames + self.yWindFrames:
             frame.set_value(0)
 
     def toggle_idleActionValues(self):
@@ -493,11 +496,13 @@ class GridworldSandbox:
         self.discountFrame.freeze()
         self.loadButton.config(state=tk.DISABLED)
         self.saveButton.config(state=tk.DISABLED)
+        self.resetButton.config(state=tk.DISABLED)
 
     def unfreeze_episodetime_parameters(self):
         self.discountFrame.unfreeze()
         self.loadButton.config(state=tk.NORMAL)
         self.saveButton.config(state=tk.NORMAL)
+        self.resetButton.config(state=tk.NORMAL)
 
     def toggle_alpha_freeze(self):
         if self.dynamicAlphaFrame.get_value():

@@ -2,11 +2,12 @@
 # TODO: Implement planning (Dyna-Q, Dyna-Q+) -> update funktion braucht zusätzlich noch quelle als argument: memory oder model
 #   TODO -> Visualize Model?
 # TODO: Plot all parameters vs timestep -> Give the paramframes names as identifier, then put them into a dict with key equal to name, makes  plotting of params in the end easier
+# TODO: Dont use numpy!
 
 # TODO -> Inverse y-Wind?
+# TODO: Handle nondeterministic environment (via specific teleporter configuration) and Dyna-Q: for every teleporter type that has at least one isSink Tile,
 # TODO: Set agent params by algorithm keyword (2. frame von links)
 # TODO: Plot Return vs Timestep for non-episodic Tasks
-# TODO: Rearrange GUI
 
 # TODO: Fix pycharm warnings
 

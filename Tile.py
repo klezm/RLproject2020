@@ -33,7 +33,7 @@ class Tile(tk.Frame):
     TELEPORTERS = [str(i) for i in range(1,10)]  # 1-9
     TELEPORTER_SOURCE_ONLY_SUFFIX = "+"
     TELEPORTER_SINK_ONLY_SUFFIX = "-"
-    TELEPORTER_DEFAULT_SUFFIX = " "
+    TELEPORTER_DEFAULT_SUFFIX = " "  # "±"  # alternative
 
     GREEDYCHARS_1_2 = np.array([['┛','↑','┗'],
                                 ['←',' ','→'],
@@ -127,10 +127,11 @@ class Tile(tk.Frame):
     def specify_teleport(self, suffix):
         text = self.label.cget("text")
         if self.master.interactionAllowed and text and (text[0] in self.TELEPORTERS):
-            if text.endswith(suffix):
-                text = text[0] + self.TELEPORTER_DEFAULT_SUFFIX
+            if text[1] == suffix:
+                replacement = self.TELEPORTER_DEFAULT_SUFFIX
             else:
-                text = text[0] + suffix
+                replacement = suffix
+            text = text[0] + replacement
             self.update_appearance(text=text)
 
     def cycle_type(self, direction):
