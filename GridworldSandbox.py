@@ -15,6 +15,7 @@ from Tilemap import Tilemap
 from MyEntryFrame import MyEntryFrame
 from CheckbuttonFrame import CheckbuttonFrame
 from InfoFrame import InfoFrame
+from RadiomenuButtonFrame import RadiomenuButtonFrame
 
 
 class GridworldSandbox:
@@ -152,6 +153,7 @@ class GridworldSandbox:
                 self.nStepFrame = MyEntryFrame(self.algorithmSettingsFrame, nameLabel="n-Step n", font=fontMiddle, VarTargetType=int)
                 self.nPlanFrame = MyEntryFrame(self.algorithmSettingsFrame, nameLabel="Dyna-Q n", font=fontMiddle, VarTargetType=int)
                 self.updateByExpectationFrame = CheckbuttonFrame(self.algorithmSettingsFrame, nameLabel="Update by Expectation", font=fontMiddle)
+                self.predefinedAlgorithmFrame = RadiomenuButtonFrame(self.algorithmSettingsFrame, nameLabel="Algorithm", font=fontMiddle, labelWidth=10, choices=["None", "Algo1", "Algorithm2", "AAAAAAAAAAAAAAlgorithm3"])
 
                 myFuncs.arrange_children(self.algorithmSettingsFrame, order="row")
 
@@ -219,11 +221,13 @@ class GridworldSandbox:
         for operation, frame in(self.operationFrames.items()):
             frame.set_and_call_trace(lambda operation=operation: self.toggle_operation_relevance(operation))
         self.dynamicAlphaFrame.set_and_call_trace(self.toggle_alpha_freeze)
+        self.predefinedAlgorithmFrame.set_and_call_trace(lambda: print(f"Value is: {self.predefinedAlgorithmFrame.get_value()}"))
         self.onPolicyFrame.set_and_call_trace(self.toggle_targetPolicyFrame)
-        for frame in [self.onPolicyFrame, self.nStepFrame]:
-            frame.set_and_call_trace(self.toggle_offPolicy_nStep_warning)
-        for frame in self.xWindFrames + self.yWindFrames + [self.iceFloorFrame]:
+        self.onPolicyFrame.set_and_call_trace(self.toggle_offPolicy_nStep_warning)
+        self.nStepFrame.set_and_call_trace(self.toggle_offPolicy_nStep_warning)
+        for frame in self.xWindFrames + self.yWindFrames:
             frame.set_and_call_trace(self.toggle_ice_and_crosswind_warning)
+        self.iceFloorFrame.set_and_call_trace(self.toggle_ice_and_crosswind_warning)
 
         myFuncs.center(self.mainWindow)
         if self.allow_idleActions and initialWindowDict["show idle action warning"]:

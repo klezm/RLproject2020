@@ -9,14 +9,14 @@ import traceback
 import sys
 
 
-def custom_warning(condition, importance, message, hideNdeepestStackLines=1):
-    if condition and importance:
+def custom_warning(condition, importance, message, hideNadditionalStackLines=0):
+    if not condition and importance:
         stack = traceback.format_stack()
-        if hideNdeepestStackLines:
-            stack = stack[:-hideNdeepestStackLines]
+        if hideNadditionalStackLines >= 0:
+            stack = stack[:-(1+hideNadditionalStackLines)]
         stack = "".join(stack)
         header = ["", "\033[93mWARNING", "\033[91mERROR"]
-        print(f"\n{header[importance]}: {message}\nStack:\n{stack}\033[0m")
+        print(f"\n{header[importance]}: {message}\n\nStack:\n{stack}\033[0m")
         if importance == 2:
             sys.exit(1)
         return True

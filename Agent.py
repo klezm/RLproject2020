@@ -203,6 +203,8 @@ class Agent:
         self.set_Q(S=correspondingState, A=actionToUpdate, value=Qafter)
 
     def plan(self):
+        # TODO: Use efficient data structure as long as unvisited state-actions are not choosable.
+        # TODO: Alternative: all are choosable, but initialized with model(S,A)=S,0
         correspondingState, actionToUpdate = random.choice(tuple(self.visitedStateActionPairs))
         successorState, reward = self.model[correspondingState][actionToUpdate]
         if self.updateByExpectationVar.get():

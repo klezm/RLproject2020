@@ -32,6 +32,8 @@
 "Exploration Rate \u03B5 (t)": 0
 "\u03B5-Decay Rate (t)": 1
 
+"Algorithm" : None
+
 "xWind": null
 "yWind": null
 "world": null

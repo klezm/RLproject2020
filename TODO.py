@@ -7,7 +7,7 @@
 # TODO: Set agent params by algorithm keyword (2. frame von links)
 # TODO: Plot Return vs Timestep for non-episodic Tasks
 
-# TODO: Fix pycharm warnings, inline todos
+# TODO: Fix pycharm warnings, inline todos, make maps
 
 # TODO: Implement Double Learning: Default 2 tables, if double on: choose 50/50, if off: 100/0. Wie mit expected?
 # TODO: Implement Statevalue-Based TD

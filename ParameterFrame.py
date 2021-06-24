@@ -23,7 +23,7 @@ class ParameterFrame(tk.Frame):
             self.set_value(defaultValue)
 
     def set_and_call_trace(self, input_Func):
-        self.tkVar.trace_add("write", lambda *traceArgs: input_Func())
+        self.tkVar.trace_add(mode="write", callback=lambda *traceArgs: input_Func())
         input_Func()
 
     def freeze(self, includeText=True):

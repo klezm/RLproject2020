@@ -70,8 +70,8 @@ class MyVar(tk.Variable):
         self._processingSuperSet = True
         super().set(self._lastStableValue)  # calls trace!
         self._processingSuperSet = False
-        myFuncs.custom_warning(not self._isValid, self._invalidValueImportance, f"\n{self}: Value {self._lastProposedValue} is INVALID. The LAST VALID value {super().get()} has been set instead.", hideNdeepestStackLines=3)
-        myFuncs.custom_warning(not self._isStable, self._unstableValueImportance, f"\n{self}: Value {self._lastProposedValue} was UNSTABLE. The TRANSFORMED value {super().get()} has been set instead.", hideNdeepestStackLines=3)
+        myFuncs.custom_warning(self._isValid, self._invalidValueImportance, f"\n{self}: Value {self._lastProposedValue} is INVALID. The LAST VALID value {super().get()} has been set instead.", hideNadditionalStackLines=2)
+        myFuncs.custom_warning(self._isStable, self._unstableValueImportance, f"\n{self}: Value {self._lastProposedValue} was UNSTABLE. The TRANSFORMED value {super().get()} has been set instead.", hideNadditionalStackLines=2)
         self._isStable = True
         self._isValid = True
         self._value = self._lastStableValue
@@ -86,10 +86,10 @@ class MyVar(tk.Variable):
                 self._lastProposedValue = self._gui_input_transform_func(self._lastProposedValue)
             tempValue = self._main_transform_func(self._lastProposedValue)
             self._isValid = self._check_func(tempValue)
-            self._lastStableValue = tempValue
         except:
             self._isValid = False
         if self._isValid:
+            self._lastStableValue = tempValue
             try:
                 if self._default_backwards_cast_func is None:
                     backwards_cast_func = type(self._lastProposedValue)
@@ -102,12 +102,12 @@ class MyVar(tk.Variable):
         elif self._processingInit:
             raise ValueError(f"{value} is no valid initialization value for {self}.")
 
-    def trace_add(self, input_func, callFunc=False, passSelf=False):
+    def trace_add(self, callback, callFunc=False, passSelf=False, mode=None):  # last arg is just to match the signature of super().trace_add
         if passSelf:
-            input_func = partial(input_func, self)
-        self._custom_traces.append(input_func)
+            callback = partial(callback, self)
+        self._custom_traces.append(callback)
         if callFunc:
-            input_func()
+            callback()
 
     def _traceFunc_wrapper(self, *traceArgs):
         self._processingTrace = True  # activate this here since it should stay activated also during the custom_traces call
