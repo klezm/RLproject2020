@@ -1,5 +1,5 @@
 import tkinter as tk
-from SafeVar import MyVar
+from SafeVar import SafeVar
 from myFuncs import custom_warning
 
 
@@ -17,14 +17,14 @@ class RadiomenuButton(tk.Menubutton):
         bd = self._bdDefault if bd is None else bd
         arrowSymbol = self._arrowSymbolDefault if arrowSymbol is None else arrowSymbol
         if choiceVariable is None:
-            self._choiceVariable = MyVar(choices[0], check_func=lambda choice_: choice_ in choices, invalidValueImportance=2)
+            self._choiceVariable = SafeVar(choices[0], check_func=lambda choice_: choice_ in choices, invalidValueImportance=2)
         else:
             self._choiceVariable = choiceVariable
-
         if width is None:
             width = max(map(len, choices)) + len(arrowSymbol) + 2
         labelVar = tk.StringVar()
         super().__init__(master, textvariable=labelVar, width=width, bd=bd, anchor=tk.W, relief=tk.RAISED, indicatoron=0, **kwargs)
+        self.config(activeforeground=self.cget("fg"))
         menu = tk.Menu(self, tearoff=0)
         self["menu"] = menu
         for choice in choices:
@@ -44,7 +44,7 @@ class RadiomenuButton(tk.Menubutton):
 
 if __name__ == "__main__":
     root = tk.Tk()
-    var = MyVar(0)
+    var = SafeVar(0)
     rmb = RadiomenuButton(root, ["ana", "irjngf"], font="calibri 11")
     #rmb = RadiomenuButton(root, ["ana", "irjngf"], text="",font="calibri 11")
     #rmb = RadiomenuButton(root, [], font="calibri 11")

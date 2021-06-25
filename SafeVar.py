@@ -1,29 +1,13 @@
 import tkinter as tk
+from tkinter import messagebox
 from functools import partial
 
 import myFuncs
+from ToolTip import ToolTip
 
 
-class MyEntry(tk.Entry):
-    def __init__(self, master=None, cnf={}, **kw):
-        self._log_from_dict(cnf | kw)
-        super().__init__(master, cnf, **kw)
-
-    def configure(self, cnf=None, **kw):
-        self._log_from_dict(kw if cnf is None else cnf | kw)
-        super().configure(cnf, **kw)
-
-    config = configure
-
-    def _log_from_dict(self, dictionary):
-        try:
-            dictionary["textvariable"].log_widget(self)
-        except:
-            pass
-
-
-class MyVar(tk.Variable):
-    def __init__(self, value, *args, check_func=lambda arg: True, main_transform_func=lambda arg: arg, gui_input_transform_func=lambda arg: arg, backwards_cast_func=None, unstableValueImportance=1, invalidValueImportance=2, **kwargs):
+class SafeVar(tk.Variable):
+    def __init__(self, value, *args, widgets=None, validityInstructions="", tooltipFont="calibri 11", check_func=lambda arg: True, main_transform_func=lambda arg: arg, gui_input_transform_func=lambda arg: arg, backwards_cast_func=None, unstableValueImportance=1, invalidValueImportance=2, **kwargs):
         super().__init__(*args, **kwargs)
         self._value = None  # Will never be accessed for code use, but updated when reset_to_stable is called.
         # Useful for debugger, since its not able to show the native _value in the tk.Variable container
@@ -31,9 +15,13 @@ class MyVar(tk.Variable):
         self._processingTrace = False
         self._processingSuperSet = False
         self._processingSet = False
+        self.tooltipFont = tooltipFont
+        self._connectedWidgets = []
+        if widgets is not None:
+            self.connect_widgets(widgets)
         super().trace_add("write", self._traceFunc_wrapper)
         self._custom_traces = []
-        self._usedBy = []
+        self._validityInstructions = validityInstructions
         self._check_func = check_func
         self._main_transform_func = main_transform_func
         self._gui_input_transform_func = gui_input_transform_func
@@ -52,7 +40,7 @@ class MyVar(tk.Variable):
         # getter soll nur dann resetten oder transformen, wenn er im code aufgerufen wird.
         # wenn er durch trace aufgerufen wird, nicht!
         # Auch nicht dann, wenn er durch eine custom tracefunc gerufen wird, deshalb ist der flag self._processingTrace so wichtig!
-        if not self._processingTrace and (not self._isValid or not self._isStable):  # last check is for speedup only
+        if not self._processingTrace and not self.is_correct():  # last check is for speedup only
             self._reset_to_stable()
         # wenn getter in eigener tracefunc aufgerufen wird, kann nichts schief gehen:
         # Sollte das value im Fall von entry-insert -> trace()  nicht einwandfrei gewesen sein,
@@ -129,15 +117,27 @@ class MyVar(tk.Variable):
         self._processingTrace = False
 
     def _color_logged_widgets(self, color):
-        for widget in self._usedBy:
-            try:  # so no garbage collector is needed if a widget doesnt refer to this object anymore
-                if widget.cget("bg") != color:  # so config is skipped for performance if nothing has to change
-                    widget.config(bg=color)
-            except:
-                pass
+        for widget in self._connectedWidgets:
+            if widget.cget("bg") != color:  # so config is skipped for performance if nothing has to change
+                widget.config(bg=color)
 
-    def log_widget(self, widget):  # only called by MyEntry objects
-        self._usedBy.append(widget)
+    def connect_widgets(self, widgets):  # only called by MyEntry objects
+        if not isinstance(widgets, list):
+            widgets = [widgets]
+        for widget in widgets:
+            widget.config(textvariable=self)
+            self._connectedWidgets.append(widget)
+            if self._validityInstructions:
+                ToolTip(widget, text=self._validityInstructions, font=self.tooltipFont)
+
+    def is_correct(self):
+        return self._isStable and self._isValid
+
+    def instruction_popup(self, force=False):
+        if force or not self.is_correct():
+            messagebox.showerror("Invalid value", f"{self} is invalid.\n{self._validityInstructions}")
+            return True
+        return False
 
 
 if __name__ == "__main__":
@@ -173,12 +173,12 @@ if __name__ == "__main__":
     # 2 entries die beide in der gleichen trace benutzt werden!
     # var = SafeVar(tk.IntVar, defaultValue=1)  # check initialize with default and different vatTypes
     # var = SafeVar(tk.Variable, defaultValue=4.6)  # check initialize with default and different vatTypes
-    var = MyVar(12, check_func=lambda i: 0 < i < 20, main_transform_func=int, gui_input_transform_func=float)#, _invalidValueImportance=1)
-    #var = MyVar(12, check_func=lambda i: 0 < i < 21, main_transform_func=float)#, _invalidValueImportance=1)
-    #var = MyVar(12, check_func=lambda i: 0 < i < 20, main_transform_func=lambda _: 5, gui_input_transform_func=float)#, _invalidValueImportance=1)
-    #var = MyVar(1.2, check_func=lambda i: 0 < i < 20, main_transform_func=my_trafo, gui_input_transform_func=float)
-    #var = MyVar("1.2", _check_func=lambda i: isinstance(i, str))#, _main_transform_func=int, _gui_input_transform_func=float)
-    #var = MyVar(0)
+    var = SafeVar(12, check_func=lambda i: 0 < i < 20, main_transform_func=int, gui_input_transform_func=float)#, _invalidValueImportance=1)
+    #var = SafeVar(12, check_func=lambda i: 0 < i < 21, main_transform_func=float)#, _invalidValueImportance=1)
+    #var = SafeVar(12, check_func=lambda i: 0 < i < 20, main_transform_func=lambda _: 5, gui_input_transform_func=float)#, _invalidValueImportance=1)
+    #var = SafeVar(1.2, check_func=lambda i: 0 < i < 20, main_transform_func=my_trafo, gui_input_transform_func=float)
+    #var = SafeVar("1.2", _check_func=lambda i: isinstance(i, str))#, _main_transform_func=int, _gui_input_transform_func=float)
+    #var = SafeVar(0)
     #var.trace_add(varTraceFunc, callFunc=True)
     #var.trace_add(varTraceFunc2, callFunc=True)
     e1 = MyEntry(root, textvariable=var, justify=tk.RIGHT)
@@ -190,8 +190,8 @@ if __name__ == "__main__":
     e3.pack()
     e3.config(textvariable=var)
     tk.Button(root, text="get test", command=get_test).pack()
-    #MyVar(tk.IntVar)
-    testValues = [C(1, 2), "0", 5, "0.5", 1, 1., "1.5", "12", "12.5", 20, "20.5", "a", "12a", "-", None, "-", True, [1, 2], MyVar]
+    #SafeVar(tk.IntVar)
+    testValues = [C(1, 2), "0", 5, "0.5", 1, 1., "1.5", "12", "12.5", 20, "20.5", "a", "12a", "-", None, "-", True, [1, 2], SafeVar]
     for value in testValues:
         tk.Button(root, text=f"test {value}", command=lambda value_=value: set_test(value_)).pack()
    # set_test(21)

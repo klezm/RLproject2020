@@ -1,7 +1,7 @@
-"Initial Q-Values Mean": 0
-"Initial Q-Values Sigma": 0
+"Initial Q-Value Mean": 0
+"Initial Q-Value Sigma": 0
 "Operations Left": 100000
-"Min Refresh Rate [ms]": 10
+"Min Delay [ms]": 10
 "Visualize Memory": true
 
 "Show Every...": 1
@@ -23,14 +23,16 @@
 "n-Step n": 1
 "Dyna-Q n": 0
 "On-Policy": true
-"Update by Expectation": false
+"Expectation Update": false
 "Decay \u03B5 Episode-wise": false
 
-"Exploration Rate \u03B5 (b)": 0.5
-"\u03B5-Decay Rate (b)": 0.9999
+# Behavior Policy
+"Exploration Rate \u03B5": 0.5
+"\u03B5-Decay Rate": 0.9999
 
-"Exploration Rate \u03B5 (t)": 0
-"\u03B5-Decay Rate (t)": 1
+# Target Policy
+"Exploration Rate \u03B5\u200C": 0
+"\u03B5-Decay Rate\u200C": 1
 
 "Algorithm" : None
 

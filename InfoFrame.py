@@ -3,7 +3,6 @@ from SafeVarFrame import SafeVarFrame
 
 
 class InfoFrame(SafeVarFrame):
-    highlightAttributes = ["fg"]
-
     def make_varWidget(self):
-        return tk.Label(self, font=self.font, textvariable=self.tkVar, width=self.varWidgetWidth, fg=self.varWidgetFg, justify=self.varWidgetJustify)
+        self.varWidget = tk.Label(self, **self.get_widget_kwargs())
+        self.connect()

@@ -16,11 +16,6 @@ class Tilemap(tk.Frame):
                 self.tiles[x,y] = Tile(self, bd=tileBd, labelWidth=tileWidth, labelHeight=tileHeight, font=font, indicateNumericalValueChange=indicateNumericalValueChange)
                 self.tiles[x,y].grid(row=y+displayWind, column=x+displayWind)
 
-    #@cache
-    #def correct_coordinates(self, x, y):
-    #    offset = int(bool(self.windLabel))
-    #    return x + offset, y + offset
-
     def protect_text_and_color(self, x, y):
         self.tiles[x,y].protect_attributes("text", "fg")
 

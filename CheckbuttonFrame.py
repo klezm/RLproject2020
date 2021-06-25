@@ -4,10 +4,13 @@ from ParameterFrame import ParameterFrame
 
 
 class CheckbuttonFrame(ParameterFrame):
-    highlightAttributes = ["bg"]
+    widgetWidthDefault = 1
 
-    def make_tkVar(self):
-        return tk.BooleanVar()
+    def make_var(self):
+        self.tkVar = tk.BooleanVar()
 
     def make_varWidget(self):
-        return tk.Checkbutton(self, variable=self.tkVar)
+        kwargs = self.get_widget_kwargs()
+        print(kwargs)
+        kwargs["width"] = 4
+        self.varWidget = tk.Checkbutton(self, variable=self.tkVar, **kwargs)
