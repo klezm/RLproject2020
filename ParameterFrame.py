@@ -11,14 +11,14 @@ class ParameterFrame(tk.Frame):
     nNameLabelBlanksDefault = 3
     highlightAttributes = ["bg"]
 
-    def __init__(self, master, *args, tkVar=None, nameLabel=None, defaultValue=None, labelWidth=None, explanation="", widgetWidth=None, widgetFg=None, font=None, nNameLabelBlanks=None, **kwargs):
+    def __init__(self, master, *args, tkVar=None, nameLabel=None, defaultValue=None, labelWidth=None, explanation="", widgetWidth=None, widgetFg=None, font=None, widgetFont=None, nNameLabelBlanks=None, **kwargs):
         super().__init__(master, *args, **kwargs)
         # setting labelwidth to None gives flexible labels
         self.widgetWidth = self.widgetWidthDefault if widgetWidth is None else widgetWidth
         self.widgetFg = self.widgetFgDefault if widgetFg is None else widgetFg
         self.nNameLabelBlanks = self.nNameLabelBlanksDefault if nNameLabelBlanks is None else nNameLabelBlanks
         self.font = self.fontDefault if font is None else font
-        self.widgetFont = self.font
+        self.widgetFont = self.font if widgetFont is None else widgetFont
         for i in [0,1]:
             self.grid_columnconfigure(i, weight=1)
         fontSize = re.findall(r"\d+", self.font)[0]  # get fontSize

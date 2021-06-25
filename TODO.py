@@ -4,6 +4,7 @@
 # TODO: Return sum für non episodic tasks (muss sie discounted werden?)
 # TODO: Plot all parameters vs timestep -> Give the paramframes names as identifier, then put them into a dict with key equal to name, makes  plotting of params in the end easier
 
+# TODO: Sort default.yaml, try if \u... can be converted to ascii
 # TODO: Dont use numpy!
 # TODO -> Inverse y-Wind?
 # TODO -> Dyna-Q+? (Which way? Book Ex 8.4 + footnote?) Also Nondeterministic Env?

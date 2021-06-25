@@ -28,7 +28,7 @@ class Tile(tk.Frame):
     TYPE_GOAL = {"text": GOAL_CHAR, "fg": LETTER_COLOR, "bg": BLANK_COLOR}
     TYPES = [TYPE_BLANK, TYPE_WALL, TYPE_START, TYPE_GOAL]
 
-    BORDER_COLORS = ["black", "cyan", "brown"]
+    BORDER_COLORS = ["Black", "Cyan", "Brown"]
 
     TELEPORTERS = [str(i) for i in range(1,10)]  # 1-9
     TELEPORTER_SOURCE_ONLY_SUFFIX = "+"

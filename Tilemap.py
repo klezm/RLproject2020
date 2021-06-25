@@ -1,6 +1,5 @@
 import tkinter as tk
 import numpy as np
-from functools import cache
 
 from Tile import Tile
 

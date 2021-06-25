@@ -29,7 +29,7 @@ class GridworldSandbox:
     SAFEFILE_FOLDER = "worldfiles"
 
     def __init__(self, guiProcess):
-        #myFuncs.print_default_values(EntryFrame)
+        myFuncs.print_default_values(RadiomenuButtonFrame)
         # RL objects:
         self.environment = None
         self.agent = None
@@ -155,7 +155,7 @@ class GridworldSandbox:
                 self.nStepFrame = EntryFrame(self.algorithmSettingsFrame, nameLabel="n-Step n", font=fontMiddle, VarTargetType=int)
                 self.nPlanFrame = EntryFrame(self.algorithmSettingsFrame, nameLabel="Dyna-Q n", font=fontMiddle, VarTargetType=int, labelWidth=8)
                 self.expectationUpdateFrame = CheckbuttonFrame(self.algorithmSettingsFrame, nameLabel="Expectation Update", font=fontMiddle)
-                self.predefinedAlgorithmFrame = RadiomenuButtonFrame(self.algorithmSettingsFrame, nameLabel="Algorithm", font=fontMiddle, choices=["None", "Algo1", "Algorithm2", "Expected SARSA"], widgetFg="blue")
+                self.predefinedAlgorithmFrame = RadiomenuButtonFrame(self.algorithmSettingsFrame, nameLabel="Algorithm", font=fontMiddle, nNameLabelBlanks=0, choices=["None", "Algo1", "Every-Visit-MC", "Expected SARSA"], widgetFg="blue")
 
                 myFuncs.arrange_children(self.algorithmSettingsFrame, order="row")
 

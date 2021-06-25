@@ -30,7 +30,7 @@ class RadiomenuButton(tk.Menubutton):
         for choice in choices:
             menu.add_radiobutton(label=choice, variable=self._choiceVariable, font=self.cget("font"))
         self._choiceVariable.trace_add(callback=lambda *traceArgs: labelVar.set(f"{arrowSymbol}  {self._choiceVariable.get()}"), mode="write")
-        self._choiceVariable.set(choices[0])
+        self.set_choice(choices[0])  # if choiceVariable arg was not None
 
     def get_choiceVar(self):
         return self._choiceVariable
