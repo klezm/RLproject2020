@@ -1,0 +1,48 @@
+# World Settings
+"Ice Floor": false
+"X-Torus": false
+"Y-Torus": false
+"Reward Black": -1
+"Reward Cyan": -10
+"Reward Brown": -100
+
+# Algorithm Settings
+"\u03B1 = 1/count((S,A))": false  # α
+"Learning Rate \u03B1": 0.1  # α
+"Discount \u03B3": 1  # γ
+"n-Step n": 1
+"Dyna-Q n": 0
+"Expectation Update": false
+"Algorithm" : Custom
+
+# Policy Settings
+"On-Policy": true
+"Decay \u03B5 Episode-wise": false  # ε
+  # Behavior Policy
+"Exploration Rate \u03B5": 0.5  # ε
+"\u03B5-Decay Rate": 0.9999  # ε
+  # Target Policy
+"Exploration Rate \u03B5\u200C": 0  # ε
+"\u03B5-Decay Rate\u200C": 1  # ε
+
+# Flow Control Settings
+"Show Every...": 1
+"...Planning Update": true
+"...Experience Update": true
+"...Action Taken": true
+"...Episode Finish": true
+"...Episode Start": true
+
+# Misc Settings
+"Initial Q-Value Mean": 0
+"Initial Q-Value Sigma": 0
+"Operations Left": 100000
+"Min Delay [ms]": 10
+"Visualize Memory": true
+
+
+
+############# Don't touch #############
+"xWind": null
+"yWind": null
+"world": null

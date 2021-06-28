@@ -1,0 +1,5 @@
+"\u03B1 = 1/count((S,A))": false  # α
+"n-Step n": 1
+"Dyna-Q n": 0
+"Expectation Update": true
+"On-Policy": true

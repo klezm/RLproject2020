@@ -1,0 +1,10 @@
+skip config window: 0
+show idle action warning: true
+default configfile: default #.yaml
+
+GUI Scale: 1.3
+Dim 1 Size: 9
+Dim 2 Size: 9
+Default-Actions: true
+King-Actions: false
+Idle-Actions: false
