@@ -3,23 +3,23 @@
 '...Episode Start': true
 '...Experience Update': true
 '...Planning Update': true
-Algorithm: SARSA
+Algorithm: Custom
 "Decay \u03B5 Episode-wise": false
 "Discount \u03B3": 1.0
 Dyna-Q n: 0
 Expectation Update: false
-"Exploration Rate \u03B5": 0.1
+"Exploration Rate \u03B5": 0.2
 "Exploration Rate \u03B5\u200C": 0.0
 Ice Floor: false
-Initial Q-Value Mean: 0.0
-Initial Q-Value Sigma: 0.0
+Initial Q-Value Mean: -5.0
+Initial Q-Value Sigma: 1.0
 "Learning Rate \u03B1": 0.5
 Min Delay [ms]: 10
 On-Policy: true
 Operations Left: 100000
+Reward Cyan: -10
 Reward Grey: -1
 Reward Red: -100
-Reward Cyan: -10
 Show Every...: 1
 Visualize Memory: true
 X-Torus: false
@@ -29,6 +29,117 @@ world:
 - - bg: white
     borderColor: Grey
     text: ''
+  - bg: white
+    borderColor: Grey
+    text: ''
+  - bg: white
+    borderColor: Grey
+    text: ''
+  - bg: white
+    borderColor: Grey
+    text: ''
+  - bg: white
+    borderColor: Grey
+    text: ''
+  - bg: white
+    borderColor: Grey
+    text: ''
+  - bg: white
+    borderColor: Grey
+    text: ''
+  - bg: white
+    borderColor: Grey
+    text: ''
+  - bg: white
+    borderColor: Grey
+    text: ''
+- - bg: white
+    borderColor: Grey
+    text: ''
+  - bg: white
+    borderColor: Grey
+    text: ''
+  - bg: white
+    borderColor: Grey
+    text: ''
+  - bg: white
+    borderColor: Grey
+    text: ''
+  - bg: white
+    borderColor: Grey
+    text: ''
+  - bg: white
+    borderColor: Grey
+    text: ''
+  - bg: white
+    borderColor: Grey
+    text: ''
+  - bg: white
+    borderColor: Grey
+    text: ''
+  - bg: white
+    borderColor: Grey
+    text: ''
+- - bg: white
+    borderColor: Grey
+    text: ''
+  - bg: white
+    borderColor: Grey
+    text: ''
+  - bg: white
+    borderColor: Grey
+    text: ''
+  - bg: white
+    borderColor: Grey
+    text: ''
+  - bg: white
+    borderColor: Grey
+    text: ''
+  - bg: white
+    borderColor: Grey
+    text: ''
+  - bg: white
+    borderColor: Grey
+    text: ''
+  - bg: white
+    borderColor: Grey
+    text: ''
+  - bg: white
+    borderColor: Grey
+    text: ''
+- - bg: white
+    borderColor: Grey
+    text: ''
+  - bg: white
+    borderColor: Grey
+    text: ''
+  - bg: white
+    borderColor: Grey
+    text: ''
+  - bg: white
+    borderColor: Grey
+    text: ''
+  - bg: white
+    borderColor: Grey
+    text: ''
+  - bg: white
+    borderColor: Grey
+    text: ''
+  - bg: white
+    borderColor: Grey
+    text: ''
+  - bg: white
+    borderColor: Grey
+    text: ''
+  - bg: white
+    borderColor: Grey
+    text: ''
+- - bg: white
+    borderColor: Grey
+    text: ''
+  - bg: white
+    borderColor: Grey
+    text: G
   - bg: white
     borderColor: Grey
     text: ''
@@ -47,24 +158,6 @@ world:
   - bg: white
     borderColor: Grey
     text: ''
-- - bg: white
-    borderColor: Grey
-    text: ''
-  - bg: white
-    borderColor: Grey
-    text: ''
-  - bg: white
-    borderColor: Grey
-    text: ''
-  - bg: white
-    borderColor: Grey
-    text: ''
-  - bg: white
-    borderColor: Grey
-    text: ''
-  - bg: white
-    borderColor: Grey
-    text: ''
   - bg: white
     borderColor: Grey
     text: ''
@@ -75,21 +168,6 @@ world:
     borderColor: Grey
     text: ''
   - bg: white
-    borderColor: Grey
-    text: ''
-  - bg: white
-    borderColor: Grey
-    text: ''
-  - bg: white
-    borderColor: Grey
-    text: ''
-  - bg: white
-    borderColor: Grey
-    text: ''
-  - bg: white
-    borderColor: Grey
-    text: ''
-- - bg: white
     borderColor: Grey
     text: ''
   - bg: white
@@ -131,21 +209,6 @@ world:
   - bg: white
     borderColor: Grey
     text: ''
-- - bg: white
-    borderColor: Grey
-    text: ''
-  - bg: white
-    borderColor: Grey
-    text: ''
-  - bg: white
-    borderColor: Grey
-    text: ''
-  - bg: white
-    borderColor: Grey
-    text: ''
-  - bg: white
-    borderColor: Grey
-    text: ''
   - bg: white
     borderColor: Grey
     text: ''
@@ -173,21 +236,6 @@ world:
   - bg: white
     borderColor: Grey
     text: ''
-- - bg: white
-    borderColor: Grey
-    text: ''
-  - bg: white
-    borderColor: Grey
-    text: ''
-  - bg: white
-    borderColor: Grey
-    text: ''
-  - bg: white
-    borderColor: Grey
-    text: G
-  - bg: white
-    borderColor: Grey
-    text: ''
   - bg: white
     borderColor: Grey
     text: ''
@@ -201,21 +249,6 @@ world:
     borderColor: Grey
     text: ''
   - bg: white
-    borderColor: Grey
-    text: ''
-  - bg: white
-    borderColor: Grey
-    text: ''
-  - bg: white
-    borderColor: Grey
-    text: ''
-  - bg: white
-    borderColor: Grey
-    text: ''
-  - bg: white
-    borderColor: Grey
-    text: ''
-- - bg: white
     borderColor: Grey
     text: ''
   - bg: white
@@ -244,17 +277,18 @@ xWind:
 - 0
 - 0
 - 0
+- 0
+- 0
 yWind:
 - 0
 - 0
 - 0
-- -1
-- -1
-- -1
-- -2
-- -2
-- -1
+- 0
+- 0
+- 0
+- 0
+- 0
 - 0
 "\u03B1 = 1/count((S,A))": false
-"\u03B5-Decay Rate": 1.0
+"\u03B5-Decay Rate": 0.9999
 "\u03B5-Decay Rate\u200C": 1.0

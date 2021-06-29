@@ -2,7 +2,7 @@
 
 ### Requirements
 
-You need python 3.9 to run at the moment. Using Conda you can create a environment with Python 3.9 by running.
+You need python 3.9 to run at the moment. Using Conda you can create an environment with Python 3.9 by running.
 
 ```shell
 conda create -n py39 python=3.9

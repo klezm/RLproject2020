@@ -8,7 +8,7 @@ from pprint import pprint
 
 import myFuncs
 from Environment import Environment
-from src.Agent import Agent
+from Agent import Agent
 from Tile import Tile
 from Tilemap import Tilemap
 from ParameterFrame import ParameterFrame
@@ -28,14 +28,16 @@ class GridworldSandbox:
     SAFEFILE_FOLDER = "worlds"
     ALGORITHMS_FOLDER = "algorithms"
     PLOTS_FOLDER = "plots"
+    SETTINGS_FOLDER = "settings"
 
     def __init__(self, guiProcess):
-        myFuncs.print_default_values(RadiomenuButtonFrame)
+        #myFuncs.print_default_values(EntryFrame)
+
         # RL objects:
         self.environment = None
         self.agent = None
-        self.predefinedAlgorithms = {name.replace(".yaml", ""): myFuncs.get_dict_from_yaml_file(f"../{self.ALGORITHMS_FOLDER}/{name}")
-                                     for name in os.listdir(f"../{self.ALGORITHMS_FOLDER}")}
+        self.predefinedAlgorithms = {name.replace(".yaml", ""): myFuncs.get_dict_from_yaml_file(f"{self.ALGORITHMS_FOLDER}/{name}")
+                                     for name in os.listdir(f"{self.ALGORITHMS_FOLDER}")}
         self.predefinedAlgorithms["Custom"] = dict()
 
         # Flow control variables
@@ -46,8 +48,8 @@ class GridworldSandbox:
 
         # Setting up the GUI
         self.guiProcess = guiProcess
-        initialWindowDict = myFuncs.get_dict_from_yaml_file("settings/initial")
-        sizesDict = myFuncs.get_dict_from_yaml_file("settings/visual")
+        initialWindowDict = myFuncs.get_dict_from_yaml_file(f"{self.SETTINGS_FOLDER}/initial")
+        sizesDict = myFuncs.get_dict_from_yaml_file(f"{self.SETTINGS_FOLDER}/visual")
 
         fontQvalues = myFuncs.create_font(sizesDict["qvalues fontsize"])
         fontWorldtiles = myFuncs.create_font(sizesDict["worldtiles fontsize"])
@@ -68,7 +70,7 @@ class GridworldSandbox:
         if not initialWindowDict["skip config window"]:
             configWindow = tk.Toplevel(self.guiProcess, pady=5, padx=5)
             configWindow.title("")
-            configWindow.iconbitmap("../settings/icon.ico")
+            configWindow.iconbitmap(f"{self.SETTINGS_FOLDER}/icon.ico")
 
             scaleVar = tk.DoubleVar(value=guiScale)
             tk.Scale(configWindow, label="GUI Scale:", variable=scaleVar, from_=1.0, to=1.5, resolution=0.05, font=fontMiddle, orient=tk.HORIZONTAL, width=15, sliderlength=20)
@@ -97,7 +99,7 @@ class GridworldSandbox:
 
         self.mainWindow = tk.Toplevel(self.guiProcess)
         self.mainWindow.title("Gridworld Sandbox")
-        self.mainWindow.iconbitmap("../settings/icon.ico")
+        self.mainWindow.iconbitmap(f"{self.SETTINGS_FOLDER}/icon.ico")
         self.mainWindow.protocol("WM_DELETE_WINDOW", self.guiProcess.quit)
 
         # mainWindow:
@@ -220,12 +222,11 @@ class GridworldSandbox:
                     myFuncs.arrange_children(self.dataButtonsFrame, order="column")  # this is a correction after the arrange_children() call, since the children of dataButtonsFrame should not be sticky
 
         self.parameterFramesDict = self.recursiveGather_namedInteractiveParameterFrames(self.mainWindow)
-        pprint(self.parameterFramesDict)
         self.load(f"{self.SAFEFILE_FOLDER}/{initialWindowDict['default configfile']}")
 
         self.relevantOperations = set()
         self.showEveryNoperationsFrame.set_and_call_trace(self.reset_agentOperationCounts)
-        for operation, frame in(self.operationFrames.items()):
+        for operation, frame in (self.operationFrames.items()):
             frame.set_and_call_trace(lambda operation=operation: self.toggle_operation_relevance(operation))
         self.dynamicAlphaFrame.set_and_call_trace(self.toggle_alpha_freeze)
         self.onPolicyFrame.set_and_call_trace(self.toggle_targetPolicyFrame)
@@ -485,7 +486,7 @@ class GridworldSandbox:
         #  This could also be implemented in check_flow_status in a similar way, but this way the stuff which must be computed at every check_flow_status call is minimized, since this function is only called after a checkbutton flip
         if self.operationFrames[operation].get_value():
             self.relevantOperations.add(operation)
-        else:
+        elif operation in self.relevantOperations:  # in-check prevents from error if frames will be set simultaneously by load() when some where unchecked before
             self.relevantOperations.remove(operation)
         self.reset_agentOperationCounts()
 
@@ -598,13 +599,3 @@ class GridworldSandbox:
         axes[1].set(xlabel="Action", ylabel="Return")
         plt.savefig(f"{self.PLOTS_FOLDER}/{len(self.agent.get_stepReturns())}_Actions.png")
         plt.show()
-
-        # diff between plt.save and fig.save?
-
-        #print("Episode returns of the agent:", self.agent.get_episodeReturns())
-        #fig, ax = plt.subplots()
-        #ax.plot(self.agent.get_stepReturns())
-        #ax.set(xlabel='Episode', ylabel='Reward', title='Development of the Reward per Episode')
-        #ax.grid()
-        #fig.savefig("RewardDevelopement.png")
-        #plt.show()

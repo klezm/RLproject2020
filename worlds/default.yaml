@@ -2,9 +2,9 @@
 "Ice Floor": false
 "X-Torus": false
 "Y-Torus": false
-"Reward Black": -1
+"Reward Grey": -1
 "Reward Cyan": -10
-"Reward Brown": -100
+"Reward Red": -100
 
 # Algorithm Settings
 "\u03B1 = 1/count((S,A))": false  # α

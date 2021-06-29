@@ -17,8 +17,8 @@ Initial Q-Value Sigma: 0.0
 Min Delay [ms]: 10
 On-Policy: false
 Operations Left: 100000
-Reward Black: -1
-Reward Brown: -100
+Reward Grey: -1
+Reward Red: -100
 Reward Cyan: -10
 Show Every...: 1
 Visualize Memory: true
@@ -27,166 +27,166 @@ Y-Torus: false
 n-Step n: 1
 world:
 - - bg: white
-    borderColor: Black
+    borderColor: Grey
     text: ''
   - bg: white
-    borderColor: Black
+    borderColor: Grey
     text: ''
   - bg: white
-    borderColor: Black
+    borderColor: Grey
     text: ''
   - bg: white
-    borderColor: Black
+    borderColor: Grey
     text: ''
   - bg: white
-    borderColor: Black
+    borderColor: Grey
     text: ''
   - bg: white
-    borderColor: Black
+    borderColor: Grey
     text: ''
 - - bg: white
-    borderColor: Black
+    borderColor: Grey
     text: ''
   - bg: white
-    borderColor: Black
+    borderColor: Grey
     text: ''
   - bg: white
-    borderColor: Black
+    borderColor: Grey
     text: ''
   - bg: black
-    borderColor: Black
+    borderColor: Grey
     text: ''
   - bg: white
-    borderColor: Black
+    borderColor: Grey
     text: ''
   - bg: white
-    borderColor: Black
+    borderColor: Grey
     text: ''
 - - bg: white
-    borderColor: Black
+    borderColor: Grey
     text: ''
   - bg: white
-    borderColor: Black
+    borderColor: Grey
     text: ''
   - bg: white
-    borderColor: Black
+    borderColor: Grey
     text: ''
   - bg: black
-    borderColor: Black
+    borderColor: Grey
     text: ''
   - bg: white
-    borderColor: Black
+    borderColor: Grey
     text: ''
   - bg: white
-    borderColor: Black
+    borderColor: Grey
     text: ''
 - - bg: white
-    borderColor: Black
+    borderColor: Grey
     text: ''
   - bg: white
-    borderColor: Black
+    borderColor: Grey
     text: ''
   - bg: white
-    borderColor: Black
+    borderColor: Grey
     text: ''
   - bg: black
-    borderColor: Black
+    borderColor: Grey
     text: ''
   - bg: white
-    borderColor: Black
+    borderColor: Grey
     text: ''
   - bg: white
-    borderColor: Black
+    borderColor: Grey
     text: S
 - - bg: white
-    borderColor: Black
+    borderColor: Grey
     text: ''
   - bg: white
-    borderColor: Black
+    borderColor: Grey
     text: ''
   - bg: white
-    borderColor: Black
+    borderColor: Grey
     text: ''
   - bg: black
-    borderColor: Black
+    borderColor: Grey
     text: ''
   - bg: white
-    borderColor: Black
+    borderColor: Grey
     text: ''
   - bg: white
-    borderColor: Black
+    borderColor: Grey
     text: ''
 - - bg: white
-    borderColor: Black
+    borderColor: Grey
     text: ''
   - bg: white
-    borderColor: Black
+    borderColor: Grey
     text: ''
   - bg: white
-    borderColor: Black
+    borderColor: Grey
     text: ''
   - bg: black
-    borderColor: Black
+    borderColor: Grey
     text: ''
   - bg: white
-    borderColor: Black
+    borderColor: Grey
     text: ''
   - bg: white
-    borderColor: Black
+    borderColor: Grey
     text: ''
 - - bg: white
-    borderColor: Black
+    borderColor: Grey
     text: ''
   - bg: white
-    borderColor: Black
+    borderColor: Grey
     text: ''
   - bg: white
-    borderColor: Black
+    borderColor: Grey
     text: ''
   - bg: black
-    borderColor: Black
+    borderColor: Grey
     text: ''
   - bg: white
-    borderColor: Black
+    borderColor: Grey
     text: ''
   - bg: white
-    borderColor: Black
+    borderColor: Grey
     text: ''
 - - bg: white
-    borderColor: Black
+    borderColor: Grey
     text: ''
   - bg: white
-    borderColor: Black
+    borderColor: Grey
     text: ''
   - bg: white
-    borderColor: Black
+    borderColor: Grey
     text: ''
   - bg: black
-    borderColor: Black
+    borderColor: Grey
     text: ''
   - bg: white
-    borderColor: Black
+    borderColor: Grey
     text: ''
   - bg: white
-    borderColor: Black
+    borderColor: Grey
     text: ''
 - - bg: white
-    borderColor: Black
+    borderColor: Grey
     text: G
   - bg: white
-    borderColor: Black
+    borderColor: Grey
     text: ''
   - bg: white
-    borderColor: Black
+    borderColor: Grey
     text: ''
   - bg: black
-    borderColor: Black
+    borderColor: Grey
     text: ''
   - bg: white
-    borderColor: Black
+    borderColor: Grey
     text: ''
   - bg: white
-    borderColor: Black
+    borderColor: Grey
     text: ''
 xWind:
 - 0

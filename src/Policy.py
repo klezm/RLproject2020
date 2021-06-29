@@ -7,7 +7,7 @@ class Policy:
 
     def give_greedy_action(self, state):
         greedyActions = self.agent.get_greedyActions()[state]
-        if len(greedyActions) == 1:  # only use rng if necessary
+        if len(greedyActions) == 1:  # use rng only if necessary
             return greedyActions[0]
         else:
             return random.choice(greedyActions)

@@ -1,10 +1,9 @@
-from src.ParameterFrame import ParameterFrame
+from ParameterFrame import ParameterFrame
 from SafeVar import SafeVar
 
 
 class SafeVarFrame(ParameterFrame):
     promptWidthDefault = 8
-    var_check_funcDefault = "lambda _: True"  # just for inspection purposes
     trustSetDefault = False
 
     def __init__(self, *args, VarTargetType, defaultValue=None, validityInstructions="", var_check_func=lambda _: True, trustSet=None, promptWidth=None, **kwargs):

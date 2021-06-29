@@ -3,11 +3,13 @@
 '...Episode Start': true
 '...Experience Update': true
 '...Planning Update': true
+Algorithm: Custom
 "Decay \u03B5 Episode-wise": false
 "Discount \u03B3": 1.0
 Dyna-Q n: 0
-"Exploration Rate \u03B5 (b)": 0.5
-"Exploration Rate \u03B5 (t)": 0.0
+Expectation Update: false
+"Exploration Rate \u03B5": 0.5
+"Exploration Rate \u03B5\u200C": 0.0
 Ice Floor: false
 Initial Q-Value Mean: 0.0
 Initial Q-Value Sigma: 0.0
@@ -15,259 +17,278 @@ Initial Q-Value Sigma: 0.0
 Min Delay [ms]: 10
 On-Policy: true
 Operations Left: 100000
-Reward Black: -1
-Reward Brown: -100
 Reward Cyan: -10
+Reward Grey: -1
+Reward Red: -100
 Show Every...: 1
-Expectation Update: false
 Visualize Memory: true
 X-Torus: false
 Y-Torus: false
-n-Step n: 10
+n-Step n: 1
 world:
 - - bg: white
-    borderColor: black
+    borderColor: grey
     text: ''
   - bg: white
-    borderColor: black
+    borderColor: grey
     text: ''
   - bg: white
-    borderColor: black
+    borderColor: grey
     text: ''
   - bg: white
-    borderColor: black
+    borderColor: grey
     text: ''
   - bg: white
-    borderColor: black
-    text: '1 '
-  - bg: white
-    borderColor: black
-    text: '1 '
-  - bg: white
-    borderColor: black
-    text: '1 '
-  - bg: white
-    borderColor: black
+    borderColor: grey
     text: ''
   - bg: white
-    borderColor: black
+    borderColor: grey
+    text: ''
+  - bg: white
+    borderColor: grey
+    text: ''
+  - bg: white
+    borderColor: grey
+    text: ''
+  - bg: white
+    borderColor: grey
     text: S
 - - bg: white
-    borderColor: black
+    borderColor: grey
     text: ''
   - bg: white
-    borderColor: brown
+    borderColor: grey
     text: ''
   - bg: white
-    borderColor: brown
-    text: ''
-  - bg: black
-    borderColor: black
+    borderColor: grey
     text: ''
   - bg: white
-    borderColor: black
+    borderColor: grey
     text: ''
   - bg: white
-    borderColor: black
+    borderColor: grey
     text: ''
   - bg: white
-    borderColor: black
+    borderColor: grey
     text: ''
   - bg: white
-    borderColor: black
+    borderColor: grey
     text: ''
   - bg: white
-    borderColor: black
-    text: ''
-- - bg: white
-    borderColor: black
-    text: ''
-  - bg: white
-    borderColor: black
-    text: ''
-  - bg: white
-    borderColor: black
-    text: ''
-  - bg: black
-    borderColor: black
-    text: ''
-  - bg: white
-    borderColor: black
-    text: ''
-  - bg: white
-    borderColor: black
-    text: ''
-  - bg: white
-    borderColor: black
-    text: ''
-  - bg: white
-    borderColor: black
-    text: ''
-  - bg: white
-    borderColor: black
-    text: ''
-- - bg: white
-    borderColor: brown
-    text: ''
-  - bg: white
-    borderColor: brown
-    text: ''
-  - bg: white
-    borderColor: black
-    text: ''
-  - bg: black
-    borderColor: black
-    text: ''
-  - bg: white
-    borderColor: black
-    text: ''
-  - bg: white
-    borderColor: black
-    text: ''
-  - bg: white
-    borderColor: black
-    text: ''
-  - bg: white
-    borderColor: black
-    text: ''
-  - bg: white
-    borderColor: black
-    text: ''
-- - bg: white
-    borderColor: black
-    text: ''
-  - bg: white
-    borderColor: black
-    text: ''
-  - bg: white
-    borderColor: black
-    text: ''
-  - bg: black
-    borderColor: black
-    text: ''
-  - bg: white
-    borderColor: black
-    text: ''
-  - bg: white
-    borderColor: black
-    text: ''
-  - bg: white
-    borderColor: black
-    text: ''
-  - bg: white
-    borderColor: black
-    text: ''
-  - bg: white
-    borderColor: black
-    text: ''
-- - bg: white
-    borderColor: black
-    text: ''
-  - bg: white
-    borderColor: brown
-    text: ''
-  - bg: white
-    borderColor: brown
-    text: ''
-  - bg: black
-    borderColor: black
-    text: ''
-  - bg: white
-    borderColor: black
-    text: ''
-  - bg: white
-    borderColor: black
-    text: ''
-  - bg: white
-    borderColor: black
-    text: ''
-  - bg: white
-    borderColor: black
-    text: ''
-  - bg: white
-    borderColor: black
-    text: ''
-- - bg: white
-    borderColor: black
-    text: ''
-  - bg: white
-    borderColor: black
+    borderColor: grey
     text: ''
   - bg: white
     borderColor: Cyan
     text: ''
+- - bg: white
+    borderColor: grey
+    text: ''
+  - bg: white
+    borderColor: grey
+    text: ''
+  - bg: white
+    borderColor: grey
+    text: ''
+  - bg: white
+    borderColor: grey
+    text: ''
+  - bg: white
+    borderColor: grey
+    text: ''
+  - bg: white
+    borderColor: grey
+    text: ''
+  - bg: white
+    borderColor: grey
+    text: ''
+  - bg: white
+    borderColor: grey
+    text: ''
   - bg: white
     borderColor: Cyan
-    text: ''
-  - bg: white
-    borderColor: black
-    text: 1+
-  - bg: white
-    borderColor: black
-    text: ''
-  - bg: white
-    borderColor: black
-    text: ''
-  - bg: white
-    borderColor: black
-    text: ''
-  - bg: white
-    borderColor: black
     text: ''
 - - bg: white
-    borderColor: black
+    borderColor: grey
+    text: ''
+  - bg: white
+    borderColor: grey
+    text: ''
+  - bg: white
+    borderColor: grey
+    text: ''
+  - bg: white
+    borderColor: grey
+    text: ''
+  - bg: white
+    borderColor: grey
+    text: ''
+  - bg: white
+    borderColor: grey
+    text: ''
+  - bg: white
+    borderColor: grey
+    text: ''
+  - bg: white
+    borderColor: grey
     text: ''
   - bg: white
     borderColor: Cyan
-    text: ''
-  - bg: white
-    borderColor: Cyan
-    text: ''
-  - bg: black
-    borderColor: black
-    text: ''
-  - bg: white
-    borderColor: black
-    text: ''
-  - bg: white
-    borderColor: black
-    text: ''
-  - bg: white
-    borderColor: black
-    text: ''
-  - bg: white
-    borderColor: black
-    text: ''
-  - bg: white
-    borderColor: black
     text: ''
 - - bg: white
-    borderColor: black
+    borderColor: grey
+    text: ''
+  - bg: white
+    borderColor: grey
+    text: ''
+  - bg: white
+    borderColor: grey
+    text: ''
+  - bg: white
+    borderColor: grey
+    text: ''
+  - bg: white
+    borderColor: grey
+    text: ''
+  - bg: white
+    borderColor: grey
+    text: ''
+  - bg: white
+    borderColor: grey
+    text: ''
+  - bg: white
+    borderColor: grey
+    text: ''
+  - bg: white
+    borderColor: Cyan
+    text: ''
+- - bg: white
+    borderColor: grey
+    text: ''
+  - bg: white
+    borderColor: grey
+    text: ''
+  - bg: white
+    borderColor: grey
+    text: ''
+  - bg: white
+    borderColor: grey
+    text: ''
+  - bg: white
+    borderColor: grey
+    text: ''
+  - bg: white
+    borderColor: grey
+    text: ''
+  - bg: white
+    borderColor: grey
+    text: ''
+  - bg: white
+    borderColor: grey
+    text: ''
+  - bg: white
+    borderColor: Cyan
+    text: ''
+- - bg: white
+    borderColor: grey
+    text: ''
+  - bg: white
+    borderColor: grey
+    text: ''
+  - bg: white
+    borderColor: grey
+    text: ''
+  - bg: white
+    borderColor: grey
+    text: ''
+  - bg: white
+    borderColor: grey
+    text: ''
+  - bg: white
+    borderColor: grey
+    text: ''
+  - bg: white
+    borderColor: grey
+    text: ''
+  - bg: white
+    borderColor: grey
+    text: ''
+  - bg: white
+    borderColor: Cyan
+    text: ''
+- - bg: white
+    borderColor: grey
+    text: ''
+  - bg: white
+    borderColor: grey
+    text: ''
+  - bg: white
+    borderColor: grey
+    text: ''
+  - bg: white
+    borderColor: grey
+    text: ''
+  - bg: white
+    borderColor: grey
+    text: ''
+  - bg: white
+    borderColor: grey
+    text: ''
+  - bg: white
+    borderColor: grey
+    text: ''
+  - bg: white
+    borderColor: grey
+    text: ''
+  - bg: white
+    borderColor: Cyan
+    text: ''
+- - bg: white
+    borderColor: grey
     text: G
   - bg: white
-    borderColor: Cyan
+    borderColor: grey
     text: ''
   - bg: white
-    borderColor: Cyan
-    text: ''
-  - bg: black
-    borderColor: black
+    borderColor: grey
     text: ''
   - bg: white
-    borderColor: black
+    borderColor: grey
     text: ''
   - bg: white
-    borderColor: black
+    borderColor: grey
     text: ''
   - bg: white
-    borderColor: black
+    borderColor: grey
     text: ''
   - bg: white
-    borderColor: black
+    borderColor: grey
     text: ''
   - bg: white
-    borderColor: black
+    borderColor: grey
     text: ''
+  - bg: white
+    borderColor: grey
+    text: ''
+xWind:
+- 0
+- 0
+- 0
+- 0
+- 0
+- 0
+- 0
+- 0
+- 0
+yWind:
+- 0
+- 1
+- 1
+- 1
+- 1
+- 1
+- 1
+- 1
+- 0
 "\u03B1 = 1/count((S,A))": false
-"\u03B5-Decay Rate (b)": 0.9999
-"\u03B5-Decay Rate (t)": 1.0
+"\u03B5-Decay Rate": 0.9999
+"\u03B5-Decay Rate\u200C": 1.0

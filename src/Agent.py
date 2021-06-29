@@ -44,12 +44,9 @@ class Agent:
 
     def __init__(self, environment, use_defaultActions, use_kingActions, use_idleActions, currentReturnVar, learningRateVar, dynamicAlphaVar, discountVar, nStepVar, nPlanVar, onPolicyVar,
                  updateByExpectationVar, behaviorEpsilonVar, behaviorEpsilonDecayRateVar, targetEpsilonVar, targetEpsilonDecayRateVar,
-                 decayEpsilonEpisodeWiseVar, initialActionvalueMean, initialActionvalueSigma, predefinedAlgorithm=None, actionPlan=[]):
+                 decayEpsilonEpisodeWiseVar, initialActionvalueMean, initialActionvalueSigma, actionPlan=[]):
         self.environment = environment
         self.actionspace = self.create_actionspace(use_defaultActions, use_kingActions, use_idleActions)
-        if predefinedAlgorithm:
-            # TODO: set missing params accordingly
-            pass
         self.currentReturnVar = currentReturnVar
         self.learningRateVar = learningRateVar
         self.dynamicAlphaVar = dynamicAlphaVar
@@ -122,7 +119,7 @@ class Agent:
             self.start_episode()
             return self.STARTED_EPISODE
         elif self.iSuccessivePlannings < self.nPlanVar.get() and self.visitedStateActionPairs:
-            self.plan()  # TODO: Model Algo needs no Memory and doesnt need to pass a target action to the behavior action. Nevertheless, expected version is possible.
+            self.plan()  # Model Algo needs no Memory and doesnt need to pass a target action to the behavior action. Nevertheless, expected version is possible.
             self.iSuccessivePlannings += 1
             return self.UPDATED_BY_PLANNING
         else:
@@ -213,7 +210,6 @@ class Agent:
             targetAction = self.targetPolicy.generate_action(successorState)
             targetActionvalue = self.get_Q(S=successorState, A=targetAction)
         self.update_actionvalue(actionToUpdate, correspondingState, reward, targetActionvalue, nStep=1)
-        print(self.iSuccessivePlannings)
 
     def get_discount(self):
         return self.discountVar.get()

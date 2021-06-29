@@ -3,8 +3,8 @@ import numpy as np
 
 from functools import cache
 
-from src.Agent import Agent
-from src import myFuncs
+from Agent import Agent
+import myFuncs
 
 
 class Tile(tk.Frame):
@@ -28,7 +28,7 @@ class Tile(tk.Frame):
     TYPE_GOAL = {"text": GOAL_CHAR, "fg": LETTER_COLOR, "bg": BLANK_COLOR}
     TYPES = [TYPE_BLANK, TYPE_WALL, TYPE_START, TYPE_GOAL]
 
-    BORDER_COLORS = ["Black", "Cyan", "Brown"]
+    BORDER_COLORS = ["Grey", "Cyan", "Red"]
 
     TELEPORTERS = [str(i) for i in range(1,10)]  # 1-9
     TELEPORTER_SOURCE_ONLY_SUFFIX = "+"

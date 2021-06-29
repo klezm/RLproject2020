@@ -1,6 +1,6 @@
 import tkinter as tk
 
-from src.GridworldSandbox import GridworldSandbox
+from GridworldSandbox import GridworldSandbox
 
 
 def main():
