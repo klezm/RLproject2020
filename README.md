@@ -1,4 +1,6 @@
-# RLproject2020
+# ***Readme is not up to date yet***
+
+# Gridworld Sandbox
 
 ### Requirements
 
