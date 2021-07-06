@@ -5,14 +5,28 @@ from Tile import Tile
 
 
 class Tilemap(tk.Frame):
-    def __init__(self, master, X, Y, interactionAllowed, font="calibri 14 bold", displayWind=False, indicateNumericalValueChange=False, tileWidth=2, tileHeight=2, tileBd=2, **kwargs):
+    fontDefault = "calibri 14 bold"
+    displayWindDefault = False
+    indicateNumericalValueChangeDefault = False
+    tileWidthDefault = 2
+    tileHeightDefault = 2
+    tileBdDefault = 2
+
+    def __init__(self, master, X, Y, interactionAllowed, font=None, displayWind=None, indicateNumericalValueChange=None, tileWidth=None, tileHeight=None, tileBd=None, **kwargs):
         super().__init__(master, **kwargs)
         self.interactionAllowed = interactionAllowed
         self.windLabel: tk.Label = None  # Wind frames must be added later manually, because they need a master (namely this tilemap instance) for the ctor call
         self.tiles = np.empty((X,Y), dtype=tk.Frame)
+
+        bd = self.tileBdDefault if tileBd is None else tileBd
+        labelWidth = self.tileWidthDefault if tileWidth is None else tileWidth
+        labelHeight = self.tileHeightDefault if tileHeight is None else tileHeight
+        font = self.fontDefault if font is None else font
+        indicateNumericalValueChange = self.indicateNumericalValueChangeDefault if indicateNumericalValueChange is None else indicateNumericalValueChange
+        displayWind = self.displayWindDefault if displayWind is None else displayWind
         for x in range(X):
             for y in range(Y):
-                self.tiles[x,y] = Tile(self, bd=tileBd, labelWidth=tileWidth, labelHeight=tileHeight, font=font, indicateNumericalValueChange=indicateNumericalValueChange)
+                self.tiles[x,y] = Tile(self, bd=bd, labelWidth=labelWidth, labelHeight=labelHeight, font=font, indicateNumericalValueChange=indicateNumericalValueChange)
                 self.tiles[x,y].grid(row=y+displayWind, column=x+displayWind)
 
     def protect_text_and_color(self, x, y):

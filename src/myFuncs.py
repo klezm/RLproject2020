@@ -10,6 +10,8 @@ from tkinter import ttk
 import yaml
 import traceback
 import sys
+import inspect
+import re
 
 
 def custom_warning(condition, importance, message, hideNadditionalStackLines=0):
@@ -112,9 +114,18 @@ def create_font(size, family="calibri", weight="bold"):
     return f"{family} {size} {weight}"
 
 
-def print_default_values(cls, suffix="Default"):
-    pprint(OrderedDict([(mroClass, {kwarg[:-len(suffix)]: value
-                                    for kwarg, value in mroClass.__dict__.items()
-                                    if kwarg.endswith(suffix)})
-                        for mroClass in cls.__mro__]),
-           indent=2, width=50)
+def print_default_values(classObject, suffix="Default", indent=2, width=180):
+    od = OrderedDict()
+    for mroClass in classObject.__mro__:
+        signature = {}
+        for kwarg, defaultValue in mroClass.__dict__.items():
+            if kwarg.endswith(suffix):
+                if hasattr(defaultValue, "__func__"):
+                    defaultValue = defaultValue.__func__  # needed to bind unbound functions
+                if callable(defaultValue):
+                    sourceString = inspect.getsource(defaultValue)
+                    bracketIndex = sourceString.index("(")
+                    defaultValue = re.sub(" +", " ", sourceString[bracketIndex:].replace("\n", ";"))
+                signature[kwarg.replace(suffix, "")] = defaultValue
+        od[mroClass] = signature
+    pprint(od, indent=indent, width=width)

@@ -42,12 +42,13 @@ class Agent:
             actionspace += cls.IDLE_ACTIONSPACE
         return actionspace
 
-    def __init__(self, environment, use_defaultActions, use_kingActions, use_idleActions, currentReturnVar, learningRateVar, dynamicAlphaVar, discountVar, nStepVar, nPlanVar, onPolicyVar,
-                 updateByExpectationVar, behaviorEpsilonVar, behaviorEpsilonDecayRateVar, targetEpsilonVar, targetEpsilonDecayRateVar,
-                 decayEpsilonEpisodeWiseVar, initialActionvalueMean, initialActionvalueSigma, actionPlan=[]):
+    def __init__(self, environment, use_defaultActions, use_kingActions, use_idleActions, currentReturnVar, currentEpisodeVar, learningRateVar,
+                 dynamicAlphaVar, discountVar, nStepVar, nPlanVar, onPolicyVar, updateByExpectationVar, behaviorEpsilonVar, behaviorEpsilonDecayRateVar,
+                 targetEpsilonVar, targetEpsilonDecayRateVar, decayEpsilonEpisodeWiseVar, initialActionvalueMean, initialActionvalueSigma, actionPlan=[]):
         self.environment = environment
         self.actionspace = self.create_actionspace(use_defaultActions, use_kingActions, use_idleActions)
         self.currentReturnVar = currentReturnVar
+        self.currentEpisodeVar = currentEpisodeVar
         self.learningRateVar = learningRateVar
         self.dynamicAlphaVar = dynamicAlphaVar
         self.discountVar = discountVar
@@ -76,6 +77,7 @@ class Agent:
         self.episodeFinished = False
         self.episodeReturns = [0]
         self.stepReturns = [0]
+        self.currentEpisodeVar.set(0)
         self.memory = Memory(self)
         self.hasChosenExploratoryAction = None
         self.hasMadeExploratoryAction = None
@@ -130,6 +132,7 @@ class Agent:
     def start_episode(self):
         self.targetAction = None
         self.currentReturnVar.set(0)
+        self.currentEpisodeVar.set(self.currentEpisodeVar.get() + 1)
         self.iSuccessivePlannings = 0
         self.stateAbsenceCounts.fill(0)  # this is only used for visualizing the trace of the agent! Never reset at this point a count that is used for MC or Dyna-Q!
         self.state = self.environment.give_initial_position()

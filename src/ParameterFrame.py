@@ -11,7 +11,7 @@ class ParameterFrame(tk.Frame):
     highlightAttributes = ["bg"]  # Default for subclasses
     isInteractive = True  # Default for subclasses
 
-    def __init__(self, master, *args, variable=None, nameLabel=None, defaultValue=None, labelWidth=None, explanation="", promptFg=None, font=None, promptFont=None, nNameLabelBlanks=None, **kwargs):
+    def __init__(self, master, *args, variable=None, nameLabel=None, value=None, labelWidth=None, explanation=None, promptFg=None, font=None, promptFont=None, nNameLabelBlanks=None, **kwargs):
         super().__init__(master, *args, **kwargs)
         # setting labelwidth to None gives flexible labels
         self.promptFg = self.promptFgDefault if promptFg is None else promptFg
@@ -37,8 +37,8 @@ class ParameterFrame(tk.Frame):
         self.make_prompt()
         self.dataPrompt.grid(row=0, column=1, sticky=tk.E)
         self.normalize()
-        if defaultValue is not None:
-            self.set_value(defaultValue)
+        if value is not None:
+            self.set_value(value)
 
     def set_and_call_trace(self, input_Func):
         self.variable.trace_add(mode="write", callback=lambda *traceArgs: input_Func())

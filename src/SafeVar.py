@@ -7,7 +7,25 @@ from ToolTip import ToolTip
 
 
 class SafeVar(tk.Variable):
-    def __init__(self, value, *args, widgets=None, validityInstructions="", tooltipFont="calibri 11", check_func=lambda arg: True, main_transform_func=lambda arg: arg, gui_input_transform_func=lambda arg: arg, backwards_cast_func=None, trustSet=False, unstableValueImportance=1, invalidValueImportance=2, **kwargs):
+    @classmethod
+    def basic_type(cls, value, type_, **kwargs):
+        myFuncs.custom_warning(type_ in [int, float, str, bool], 1, f"type_ must be int, float, str or bool, not {type_}", 1)
+        return cls(value, gui_input_transform_func=float if type_ in (int, float) else None,
+                   main_transform_func=type_, **kwargs)
+
+    @staticmethod
+    def check_funcDefault(_): return True
+    @staticmethod
+    def main_transform_funcDefault(arg): return arg
+    gui_input_transform_funcDefault = main_transform_funcDefault
+    unstableValueImportanceDefault = 1
+    invalidValueImportanceDefault = 2
+    tooltipFontDefault = "calibri 11"
+    trustSetDefault = False
+
+    def __init__(self, value, *args, widgets=None, validityInstructions=None, tooltipFont=None, trustSet=None,
+                 check_func=None, main_transform_func=None, gui_input_transform_func=None, backwards_cast_func=None,
+                 unstableValueImportance=None, invalidValueImportance=None, **kwargs):
         super().__init__(*args, **kwargs)
         self._value = None  # Will never be accessed for code use, but updated when reset_to_stable is called.
         # Useful for debugger, since its not able to show the native _value in the tk.Variable container
@@ -15,20 +33,20 @@ class SafeVar(tk.Variable):
         self._processingTrace = False
         self._processingSuperSet = False
         self._processingSet = False
-        self.tooltipFont = tooltipFont
+        self.tooltipFont = self.tooltipFontDefault if tooltipFont is None else tooltipFont
         self._connectedWidgets = []
         if widgets is not None:
             self.connect_widgets(widgets)
         super().trace_add("write", self._traceFunc_wrapper)
         self._custom_traces = []
         self._validityInstructions = validityInstructions
-        self._check_func = check_func
-        self._main_transform_func = main_transform_func
-        self._gui_input_transform_func = gui_input_transform_func
-        self._default_backwards_cast_func = backwards_cast_func
-        self._unstableValueImportance = unstableValueImportance
-        self._invalidValueImportance = invalidValueImportance
-        self._trustSet = trustSet
+        self._check_func = self.check_funcDefault if check_func is None else check_func
+        self._main_transform_func = self.main_transform_funcDefault if main_transform_func is None else main_transform_func
+        self._gui_input_transform_func = self.gui_input_transform_funcDefault if gui_input_transform_func is None else gui_input_transform_func
+        self._backwards_cast_func = backwards_cast_func
+        self._unstableValueImportance = self.unstableValueImportanceDefault if unstableValueImportance is None else unstableValueImportance
+        self._invalidValueImportance = self.invalidValueImportanceDefault if invalidValueImportance is None else invalidValueImportance
+        self._trustSet = self.trustSetDefault if trustSet is None else trustSet
         self._lastProposedValue = value
         self._lastStableValue: object = None
         self._isValid: bool = None
@@ -86,11 +104,8 @@ class SafeVar(tk.Variable):
         if self._isValid:
             self._lastStableValue = tempValue
             try:
-                if self._default_backwards_cast_func is None:
-                    backwards_cast_func = type(self._lastProposedValue)
-                else:
-                    backwards_cast_func = self._default_backwards_cast_func
-                backwardsCastedValue = backwards_cast_func(self._lastStableValue)
+                temp_backwards_cast_func = type(self._lastProposedValue) if self._backwards_cast_func is None else self._backwards_cast_func
+                backwardsCastedValue = temp_backwards_cast_func(self._lastStableValue)
                 self._isStable = (backwardsCastedValue == self._lastProposedValue)
             except:  # backwards cast failed
                 self._isStable = (self._lastStableValue == self._lastProposedValue)
@@ -179,8 +194,8 @@ if __name__ == "__main__":
     root = tk.Tk()
     root.call('tk', 'scaling', 2)
     # 2 entries die beide in der gleichen trace benutzt werden!
-    # var = SafeVar(tk.IntVar, defaultValue=1)  # check initialize with default and different vatTypes
-    # var = SafeVar(tk.Variable, defaultValue=4.6)  # check initialize with default and different vatTypes
+    # var = SafeVar(tk.IntVar, value=1)  # check initialize with default and different vatTypes
+    # var = SafeVar(tk.Variable, value=4.6)  # check initialize with default and different vatTypes
     var = SafeVar(12, check_func=lambda i: 0 < i < 20, main_transform_func=int, gui_input_transform_func=float)#, _invalidValueImportance=1)
     #var = SafeVar(12, check_func=lambda i: 0 < i < 21, main_transform_func=float)#, _invalidValueImportance=1)
     #var = SafeVar(12, check_func=lambda i: 0 < i < 20, main_transform_func=lambda _: 5, gui_input_transform_func=float)#, _invalidValueImportance=1)

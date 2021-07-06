@@ -1,5 +1,7 @@
 # Fixes:
 # TODO: Dont use numpy! -> Rather make state and action an own class with state.x, state.y, action.x, action.y to mirror the true nature of states and actions in general
+# TODO: exit initial window properly on x
+# TODO: Tooltip: tk.Toplevel as superclass?
 
 # Finalize:
 # TODO: Move to my Git

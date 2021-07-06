@@ -36,6 +36,6 @@ class EpsilonGreedyPolicy(Policy):
 
     def decay_epsilon(self):
         newEpsilon = self.epsilonVar.get() * self.epsilonDecayRateVar.get()
-        if newEpsilon < 1e-05:  # otherwise, the value would be shown in scientific notation with way too much digits, so that the exponent wouldnt be visible anymore in the entry
+        if newEpsilon < 1e-04:  # otherwise, the value would be shown in scientific notation with way too much digits, so that the exponent wouldnt be visible anymore in the entry
             newEpsilon = 0.
         self.epsilonVar.set(newEpsilon)
