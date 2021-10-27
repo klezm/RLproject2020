@@ -28,10 +28,10 @@ class GridworldSandbox:
     VALUE_TILEMAPS_RELIEF_DEFAULT = tk.FLAT
     VALUE_TILEMAPS_RELIEF_TARGET_ACTION = tk.GROOVE
     GUI_FRAMES_RELIEF_DEFAULT = tk.GROOVE
-    SAFEFILE_FOLDER = "worlds"
-    ALGORITHMS_FOLDER = "algorithms"
-    PLOTS_FOLDER = "plots"
-    SETTINGS_FOLDER = "settings"
+    SAFEFILE_FOLDER = "../worlds"
+    ALGORITHMS_FOLDER = "../algorithms"
+    PLOTS_FOLDER = "../plots"
+    SETTINGS_FOLDER = "../settings"
 
     def __init__(self, guiProcess):
         myFuncs.print_default_values(EntryFrame)
@@ -39,6 +39,7 @@ class GridworldSandbox:
         # RL objects:
         self.environment = None
         self.agent = None
+        print("hello", os.listdir("__pycache__"))
         self.predefinedAlgorithms = {name.replace(".yaml", ""): myFuncs.get_dict_from_yaml_file(f"{self.ALGORITHMS_FOLDER}/{name}")
                                      for name in os.listdir(f"{self.ALGORITHMS_FOLDER}")}
         self.predefinedAlgorithms["Custom"] = dict()

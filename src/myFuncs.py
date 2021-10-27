@@ -14,7 +14,7 @@ import inspect
 import re
 
 
-def custom_warning(condition, importance, message, hideNadditionalStackLines=0):
+def custom_warning(condition, importance, message, hideNadditionalStackLines=0):  # Todo: choose stream
     if not condition and importance:
         stack = traceback.format_stack()
         if hideNadditionalStackLines >= 0:
@@ -116,7 +116,7 @@ def create_font(size, family="calibri", weight="bold"):
 
 def print_default_values(classObject, suffix="Default", indent=2, width=180):
     od = OrderedDict()
-    for mroClass in classObject.__mro__:
+    for mroClass in classObject.__mro__:  # TODO: inspect.get_mro()
         signature = {}
         for kwarg, defaultValue in mroClass.__dict__.items():
             if kwarg.endswith(suffix):

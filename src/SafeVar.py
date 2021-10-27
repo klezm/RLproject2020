@@ -9,7 +9,7 @@ from ToolTip import ToolTip
 class SafeVar(tk.Variable):
     @classmethod
     def basic_type(cls, value, type_, **kwargs):
-        myFuncs.custom_warning(type_ in [int, float, str, bool], 1, f"type_ must be int, float, str or bool, not {type_}", 1)
+        myFuncs.custom_warning(type_ in [int, float, str, bool], 2, f"type_ must be int, float, str or bool, not {type_}", 1)
         return cls(value, gui_input_transform_func=float if type_ in (int, float) else None,
                    main_transform_func=type_, **kwargs)
 
