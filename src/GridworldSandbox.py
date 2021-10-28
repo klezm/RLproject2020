@@ -2,6 +2,7 @@
 from tkinter import messagebox
 import numpy as np
 from collections import OrderedDict
+from pathlib import Path
 import matplotlib.pyplot as plt
 import os
 import sys
@@ -28,10 +29,12 @@ class GridworldSandbox:
     VALUE_TILEMAPS_RELIEF_DEFAULT = tk.FLAT
     VALUE_TILEMAPS_RELIEF_TARGET_ACTION = tk.GROOVE
     GUI_FRAMES_RELIEF_DEFAULT = tk.GROOVE
-    SAFEFILE_FOLDER = "../worlds"
-    ALGORITHMS_FOLDER = "../algorithms"
-    PLOTS_FOLDER = "../plots"
-    SETTINGS_FOLDER = "../settings"
+
+    ROOT_PATH = Path("..")
+    SAFEFILE_PATH = ROOT_PATH / "worlds"
+    ALGORITHMS_PATH = ROOT_PATH / "algorithms"
+    PLOTS_PATH = ROOT_PATH / "plots"
+    SETTINGS_PATH = ROOT_PATH / "settings"
 
     def __init__(self, guiProcess):
         myFuncs.print_default_values(EntryFrame)
@@ -39,9 +42,8 @@ class GridworldSandbox:
         # RL objects:
         self.environment = None
         self.agent = None
-        print("hello", os.listdir("__pycache__"))
-        self.predefinedAlgorithms = {name.replace(".yaml", ""): myFuncs.get_dict_from_yaml_file(f"{self.ALGORITHMS_FOLDER}/{name}")
-                                     for name in os.listdir(f"{self.ALGORITHMS_FOLDER}")}
+        self.predefinedAlgorithms = {filepath.stem: myFuncs.get_dict_from_yaml_file(self.ALGORITHMS_PATH / filepath)
+                                     for filepath in self.ALGORITHMS_PATH.iterdir()}
         self.predefinedAlgorithms["Custom"] = dict()
 
         # Flow control variables
@@ -52,8 +54,8 @@ class GridworldSandbox:
 
         # Setting up the GUI
         self.guiProcess = guiProcess
-        initialWindowDict = myFuncs.get_dict_from_yaml_file(f"{self.SETTINGS_FOLDER}/initial")
-        sizesDict = myFuncs.get_dict_from_yaml_file(f"{self.SETTINGS_FOLDER}/visual")
+        initialWindowDict = myFuncs.get_dict_from_yaml_file(self.SETTINGS_PATH / "initial")
+        sizesDict = myFuncs.get_dict_from_yaml_file(self.SETTINGS_PATH / "visual")
 
         fontQvalues = myFuncs.create_font(sizesDict["qvalues fontsize"])
         fontWorldtiles = myFuncs.create_font(sizesDict["worldtiles fontsize"])
@@ -74,7 +76,7 @@ class GridworldSandbox:
         if not initialWindowDict["skip config window"]:
             configWindow = tk.Toplevel(self.guiProcess, pady=5, padx=5)
             configWindow.title("")
-            configWindow.iconbitmap(f"{self.SETTINGS_FOLDER}/icon.ico")
+            configWindow.iconbitmap(self.SETTINGS_PATH / "icon.ico")
 
             scaleVar = tk.DoubleVar(value=guiScale)
             tk.Scale(configWindow, label="GUI Scale:", variable=scaleVar, from_=1.0, to=1.5, resolution=0.05, font=fontMiddle, orient=tk.HORIZONTAL, width=15, sliderlength=20)
@@ -103,7 +105,7 @@ class GridworldSandbox:
 
         self.mainWindow = tk.Toplevel(self.guiProcess)
         self.mainWindow.title("Gridworld Sandbox")
-        self.mainWindow.iconbitmap(f"{self.SETTINGS_FOLDER}/icon.ico")
+        self.mainWindow.iconbitmap(self.SETTINGS_PATH / "icon.ico")
         self.mainWindow.protocol("WM_DELETE_WINDOW", self.guiProcess.quit)
 
         # mainWindow:
@@ -227,7 +229,7 @@ class GridworldSandbox:
                     myFuncs.arrange_children(self.dataButtonsFrame, order="column")  # this is a correction after the arrange_children() call, since the children of dataButtonsFrame should not be sticky
 
         self.parameterFramesDict = self.recursiveGather_namedInteractiveParameterFrames(self.mainWindow)
-        self.load(f"{self.SAFEFILE_FOLDER}/{initialWindowDict['default configfile']}")
+        self.load(self.SAFEFILE_PATH / initialWindowDict['default configfile'])
 
         self.relevantOperations = set()
         self.showEveryNoperationsFrame.set_and_call_trace(self.reset_agentOperationCounts)
@@ -275,7 +277,7 @@ class GridworldSandbox:
         return collection
 
     def load(self, filename=None):
-        yamlDict = myFuncs.get_dict_from_yaml_file(filename, initialdir=self.SAFEFILE_FOLDER)
+        yamlDict = myFuncs.get_dict_from_yaml_file(filename, initialdir=self.SAFEFILE_PATH)
         if yamlDict:  # get_dict_from_yaml_file could have returned an empty Dict if dialog was canceled
             throwWorldShapeError = False
             tileDictMatrix = yamlDict.pop("world")
@@ -306,12 +308,12 @@ class GridworldSandbox:
             for name, frame in self.parameterFramesDict.items():  # must be executed only after world and wind was popped
                 frame.set_value(yamlDict[name])
 
-    def save(self, filename=None):
+    def save(self, filepath=None):
         valueDict = {name: frame.get_value() for name, frame in self.parameterFramesDict.items()}
         valueDict["world"] = self.gridworldTilemap.get_yaml_list()
         valueDict["xWind"] = [frame.get_value() for frame in self.xWindFrames]
         valueDict["yWind"] = [frame.get_value() for frame in self.yWindFrames]
-        myFuncs.create_yaml_file_from_dict(valueDict, filename, nameEmbedding=f"{{}}_{self.X}x{self.Y}", initialdir=self.SAFEFILE_FOLDER)
+        myFuncs.create_yaml_file_from_dict(valueDict, filepath, nameEmbedding=f"{{}}_{self.X}x{self.Y}", initialdir=self.SAFEFILE_PATH)
 
     def initialize_environment_and_agent(self):
         self.environment = Environment(X=self.X,
@@ -609,5 +611,5 @@ class GridworldSandbox:
         axes[0].set(xlabel="Episode", ylabel="Return")
         axes[1].plot(self.agent.get_stepReturns())
         axes[1].set(xlabel="Action", ylabel="Return")
-        plt.savefig(f"{self.PLOTS_FOLDER}/{len(self.agent.get_stepReturns())}_Actions.png")
+        plt.savefig(self.PLOTS_PATH / f"{len(self.agent.get_stepReturns())}_Actions.png")
         plt.show()

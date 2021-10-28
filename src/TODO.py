@@ -1,6 +1,10 @@
+# Hofixes:
+# TODO: "shape does not match warning still changes settings
+
 # Fixes:
 # TODO: Dont use numpy! -> Rather make state and action an own class with state.x, state.y, action.x, action.y to mirror the true nature of states and actions in general
-# TODO: Use better file access
+# TODO: underscore to all private members
+# TODO: Docstrings
 # TODO: Use Dataclasses?
 # TODO: exit initial window properly on x
 

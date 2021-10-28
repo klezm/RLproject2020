@@ -5,7 +5,9 @@ import webcolors
 import numpy as np
 import tkinter as tk
 from tkinter import filedialog
+from tkinter import messagebox
 from pprint import pprint
+from pathlib import Path
 from tkinter import ttk
 import yaml
 import traceback
@@ -15,6 +17,13 @@ import re
 
 
 def custom_warning(condition, importance, message, hideNadditionalStackLines=0):  # Todo: choose stream
+    """
+    :param bool condition: Throw if condition does NOT hold (= evaluates to False).
+    :param int importance: 2: Throw error (red color and system exit). / 1: Throw warning (orange color). 0: Throw nothing.
+    :param str message: Message shown if anything was thrown.
+    :param int hideNadditionalStackLines: By default, the trace will not bring the user back to this function. Use a number > 0 to hide even more of the trace.
+    :return bool: True if error or warning was thrown, else False.
+    """
     if not condition and importance:
         stack = traceback.format_stack()
         if hideNadditionalStackLines >= 0:
@@ -86,28 +95,56 @@ def arrange_children(frame, order, useSticky=True, fillFrame=True, **kwargs):
             getattr(frame, f"grid_{order}configure")(i, weight=1)
 
 
-def get_dict_from_yaml_file(filepath=None, initialdir="."):
-    if not filepath:
-        filepath = filedialog.askopenfilename(initialdir=initialdir, title="Load", filetypes=[("", "*.yaml")])
-        if not filepath:  # True when X was pressed
+def get_dict_from_yaml_file(filepath=None, initialdir=None):
+    '''
+    :param pathlib.Path filepath: Path to file (.yaml suffix not necessary here). If None, opens filedialog.
+    :param pathlib.Path initialdir: Initial filedialog path. If None, filedialog opens in cwd.
+    :return dict: Contains content of yaml file if successful, empty if not.
+    '''
+    if initialdir is None:
+        initialdir = "."
+    else:
+        initialdir = initialdir.name
+    if filepath is None:
+        filepath = Path(filedialog.askopenfilename(initialdir=initialdir, title="Load", filetypes=[("", "*.yaml")]))
+        if not filepath.name:  # True when X was pressed
             return {}
-    if not filepath.endswith(".yaml"):
-        filepath += ".yaml"
-    with open(filepath, "r") as file:
+    filepath = filepath.with_suffix(".yaml")
+    with filepath.open(mode="r") as file:
         return yaml.safe_load(file)
 
 
-def create_yaml_file_from_dict(inputDict, filepath=None, nameEmbedding="{}", initialdir="."):
-    if not filepath:
-        filepath = filedialog.asksaveasfilename(initialdir=initialdir, title="Save", filetypes=[("", "*.yaml")])
-        if not filepath:  # True when X was pressed
-            return
-    if not nameEmbedding.replace("{}", "") in filepath:  # user has NOT chosen already existing file
-        filepath = nameEmbedding.format(filepath)
-    if not filepath.endswith(".yaml"):
-        filepath += ".yaml"
-    with open(filepath, "w") as file:
+def create_yaml_file_from_dict(inputDict, filepath=None, nameEmbedding="", initialdir=None):
+    '''
+    :param dict inputDict: Data dictionary that can be dumped into a yaml file
+    :param pathlib.Path filepath: Path to file (.yaml suffix not necessary here). If None, opens filedialog.
+    :param str nameEmbedding: String to be wrapped around a user-given filepath to structure important information in filenames without the user having to deal with it. Calls format(), so the insert position is defined by curly braces.
+    :param pathlib.Path initialdir: Initial filedialog path. If None, filedialog opens in cwd.
+    :return bool: False if file creation was aborted (by pressing X/cancel in filedialog or denying overwriting an already existing file), else True.
+    '''
+    if initialdir is None:  # Do it this way, dont put Path(".") as default arg, since it will be evaluated at function definition and will then not be influenced by calls of cd() and alike anymore
+        initialdir = "."
+    else:
+        initialdir = initialdir.name
+    if filepath is None:
+        filepath = Path(filedialog.asksaveasfilename(initialdir=initialdir, title="Save", filetypes=[("", "*.yaml")]))
+        if not filepath.name:  # True when X was pressed in the filedialog
+            return False
+    # Edge case: If a user provides a path that doesnt match an existing filepath, but does after appending ".yaml" and/or embedding it into a given nameEmbedding, the filedialog above will miss that and the old file would be overwritten without asking or giving any hint.
+    chosenPath = filepath  # To handle this later, the user-given path must be stored at ths point.
+    if "{}" in nameEmbedding:
+        if not nameEmbedding.replace("{}", "") in filepath.name:  # user has NOT chosen a filepath that already contains the embedding
+            filepath = filepath.with_stem(nameEmbedding.format(filepath.stem))
+    elif nameEmbedding:  # doesnt contain "{}", but is also not empty
+        custom_warning(False, 1, 'Argument "nameEmbedding" doesnt contain "{}". Embedding was therefore not applied.', 1)
+    filepath = filepath.with_suffix(".yaml")
+    if filepath != chosenPath and filepath.exists():  # If the edge case described above occurs: Check if the new filepath matches an already existing one and manually ask the user if he wants to overwrite.
+        # To avoid asking twice if the edge case didnt occur, also check if embedding and handling the yaml ending has changed the user-given filepath at all and dont ask if it didnt.
+        if messagebox.askquestion("Confirm Overwrite", f"{filepath.name} already exists.\nDo you want to overwrite it?") == "no":
+            return False
+    with filepath.open(mode="w") as file:
         yaml.dump(inputDict, file)
+    return True
 
 
 def create_font(size, family="calibri", weight="bold"):
