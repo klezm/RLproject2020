@@ -4,13 +4,13 @@ from SafeVar import SafeVar
 
 class SafeVarFrame(ParameterFrame):
     promptWidthDefault = 8
-    check_funcDefault = SafeVar.check_funcDefault
-    trustSetDefault = SafeVar.trustSetDefault
+    check_funcDefault = SafeVar.check_funcDefault  # not used, but needed for default value inspection. None will get passed to the SafeVar ctor, which then will assign check_funcDefault
+    trustSetDefault = SafeVar.trustSetDefault  # # not used, but needed for default value inspection. None will get passed to the SafeVar ctor, which then will assign trustSetDefault
 
     def __init__(self, *args, varTargetType, value=None, validityInstructions=None, check_func=None, trustSet=None, promptWidth=None, **kwargs):
         self.promptWidth = self.promptWidthDefault if promptWidth is None else promptWidth
-        self.check_func = check_func  # using self.var_check_funcDefault doesnt work here!
-        self.trustSet = trustSet
+        self.check_func = check_func  # the check if is None must not be applied here since None will just get passed to the SafeVar ctor later, which handles the check
+        self.trustSet = trustSet  # the check if is None must not be applied here since None will just get passed to the SafeVar ctor later, which handles the check
         self.validityInstructions = validityInstructions
         self.varTargetType = varTargetType
         if value is None:
