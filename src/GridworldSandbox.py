@@ -4,9 +4,11 @@ from collections import OrderedDict
 from pathlib import Path
 import matplotlib.pyplot as plt
 import sys
+import cProfile  # used for benchmarking, but doesnt give useful information because just one iteration of iterate_flow() can be measured at a time
+import pstats    # used for benchmarking, but doesnt give useful information because just one iteration of iterate_flow() can be measured at a time
 
 import myFuncs
-from myFuncs import matrix
+from myFuncs import matrix, shape
 from Environment import Environment
 from Agent import Agent
 from Tile import Tile
@@ -72,7 +74,7 @@ class GridworldSandbox:
         if not initialWindowDict["skip config window"]:
             configWindow = tk.Toplevel(self.guiProcess, pady=5, padx=5)
             configWindow.title("")
-            configWindow.iconbitmap(self.SETTINGS_PATH / "icon.ico")
+            configWindow.iconbitmap(self.SETTINGS_PATH / "iconG.ico")
 
             scaleVar = tk.DoubleVar(value=guiScale)
             tk.Scale(configWindow, label="GUI Scale:", variable=scaleVar, from_=1.0, to=1.5, resolution=0.05, font=fontMiddle, orient=tk.HORIZONTAL, width=15, sliderlength=20)
@@ -101,7 +103,7 @@ class GridworldSandbox:
 
         self.mainWindow = tk.Toplevel(self.guiProcess)
         self.mainWindow.title("Gridworld Sandbox")
-        self.mainWindow.iconbitmap(self.SETTINGS_PATH / "icon.ico")
+        self.mainWindow.iconbitmap(self.SETTINGS_PATH / "iconG.ico")
         self.mainWindow.protocol("WM_DELETE_WINDOW", self.guiProcess.quit)
 
         # mainWindow:
@@ -278,7 +280,8 @@ class GridworldSandbox:
             throwWorldShapeError = False
             tileDictMatrix = yamlDict.pop("world")
             if tileDictMatrix is not None:
-                if len(tileDictMatrix) == self.H and len(tileDictMatrix[0]) == self.W:
+                print(shape(tileDictMatrix), (self.H, self.W))
+                if shape(tileDictMatrix) == (self.H, self.W):
                     for h in range(self.H):
                         for w in range(self.W):
                             self.gridworldTilemap.update_tile_appearance(h, w, **tileDictMatrix[h][w])

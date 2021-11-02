@@ -3,28 +3,47 @@
 '...Episode Start': true
 '...Experience Update': true
 '...Planning Update': true
-Algorithm: Dyna-Q_50
+Algorithm: SARSA
 "Decay \u03B5 Episode-wise": false
 "Discount \u03B3": 1.0
-Dyna-Q n: 50
+Dyna-Q n: 0
 Expectation Update: false
-"Exploration Rate \u03B5": 0.5
+"Exploration Rate \u03B5": 0.1
 "Exploration Rate \u03B5\u200C": 0.0
+H-Torus: false
 Ice Floor: false
 Initial Q-Value Mean: 0.0
 Initial Q-Value Sigma: 0.0
-"Learning Rate \u03B1": 0.1
+"Learning Rate \u03B1": 0.5
 Min Delay [ms]: 10
-On-Policy: false
+On-Policy: true
 Operations Left: 100000
+Reward Cyan: -10
 Reward Grey: -1
 Reward Red: -100
-Reward Cyan: -10
 Show Every...: 1
 Visualize Memory: true
-H-Torus: false
 W-Torus: false
+hWind:
+- 0
+- 0
+- 0
+- -1
+- -1
+- -1
+- -2
+- -2
+- -1
+- 0
 n-Step n: 1
+wWind:
+- 0
+- 0
+- 0
+- 0
+- 0
+- 0
+- 0
 world:
 - - bg: white
     borderColor: Grey
@@ -44,34 +63,10 @@ world:
   - bg: white
     borderColor: Grey
     text: ''
-- - bg: white
-    borderColor: Grey
-    text: ''
   - bg: white
     borderColor: Grey
     text: ''
   - bg: white
-    borderColor: Grey
-    text: ''
-  - bg: black
-    borderColor: Grey
-    text: ''
-  - bg: white
-    borderColor: Grey
-    text: ''
-  - bg: white
-    borderColor: Grey
-    text: ''
-- - bg: white
-    borderColor: Grey
-    text: ''
-  - bg: white
-    borderColor: Grey
-    text: ''
-  - bg: white
-    borderColor: Grey
-    text: ''
-  - bg: black
     borderColor: Grey
     text: ''
   - bg: white
@@ -89,16 +84,64 @@ world:
   - bg: white
     borderColor: Grey
     text: ''
-  - bg: black
+  - bg: white
+    borderColor: Grey
+    text: ''
+  - bg: white
     borderColor: Grey
     text: ''
   - bg: white
     borderColor: Grey
     text: ''
   - bg: white
+    borderColor: Grey
+    text: ''
+  - bg: white
+    borderColor: Grey
+    text: ''
+  - bg: white
+    borderColor: Grey
+    text: ''
+  - bg: white
+    borderColor: Grey
+    text: ''
+- - bg: white
+    borderColor: Grey
+    text: ''
+  - bg: white
+    borderColor: Grey
+    text: ''
+  - bg: white
+    borderColor: Grey
+    text: ''
+  - bg: white
+    borderColor: Grey
+    text: ''
+  - bg: white
+    borderColor: Grey
+    text: ''
+  - bg: white
+    borderColor: Grey
+    text: ''
+  - bg: white
+    borderColor: Grey
+    text: ''
+  - bg: white
+    borderColor: Grey
+    text: ''
+  - bg: white
+    borderColor: Grey
+    text: ''
+  - bg: white
+    borderColor: Grey
+    text: ''
+- - bg: white
     borderColor: Grey
     text: S
-- - bg: white
+  - bg: white
+    borderColor: Grey
+    text: ''
+  - bg: white
     borderColor: Grey
     text: ''
   - bg: white
@@ -107,70 +150,13 @@ world:
   - bg: white
     borderColor: Grey
     text: ''
-  - bg: black
-    borderColor: Grey
-    text: ''
   - bg: white
     borderColor: Grey
     text: ''
   - bg: white
     borderColor: Grey
     text: ''
-- - bg: white
-    borderColor: Grey
-    text: ''
   - bg: white
-    borderColor: Grey
-    text: ''
-  - bg: white
-    borderColor: Grey
-    text: ''
-  - bg: black
-    borderColor: Grey
-    text: ''
-  - bg: white
-    borderColor: Grey
-    text: ''
-  - bg: white
-    borderColor: Grey
-    text: ''
-- - bg: white
-    borderColor: Grey
-    text: ''
-  - bg: white
-    borderColor: Grey
-    text: ''
-  - bg: white
-    borderColor: Grey
-    text: ''
-  - bg: black
-    borderColor: Grey
-    text: ''
-  - bg: white
-    borderColor: Grey
-    text: ''
-  - bg: white
-    borderColor: Grey
-    text: ''
-- - bg: white
-    borderColor: Grey
-    text: ''
-  - bg: white
-    borderColor: Grey
-    text: ''
-  - bg: white
-    borderColor: Grey
-    text: ''
-  - bg: black
-    borderColor: Grey
-    text: ''
-  - bg: white
-    borderColor: Grey
-    text: ''
-  - bg: white
-    borderColor: Grey
-    text: ''
-- - bg: white
     borderColor: Grey
     text: G
   - bg: white
@@ -179,7 +165,7 @@ world:
   - bg: white
     borderColor: Grey
     text: ''
-  - bg: black
+- - bg: white
     borderColor: Grey
     text: ''
   - bg: white
@@ -188,23 +174,87 @@ world:
   - bg: white
     borderColor: Grey
     text: ''
-hWind:
-- 0
-- 0
-- 0
-- 0
-- 0
-- 0
-wWind:
-- 0
-- 0
-- 0
-- 0
-- 0
-- 0
-- 0
-- 0
-- 0
+  - bg: white
+    borderColor: Grey
+    text: ''
+  - bg: white
+    borderColor: Grey
+    text: ''
+  - bg: white
+    borderColor: Grey
+    text: ''
+  - bg: white
+    borderColor: Grey
+    text: ''
+  - bg: white
+    borderColor: Grey
+    text: ''
+  - bg: white
+    borderColor: Grey
+    text: ''
+  - bg: white
+    borderColor: Grey
+    text: ''
+- - bg: white
+    borderColor: Grey
+    text: ''
+  - bg: white
+    borderColor: Grey
+    text: ''
+  - bg: white
+    borderColor: Grey
+    text: ''
+  - bg: white
+    borderColor: Grey
+    text: ''
+  - bg: white
+    borderColor: Grey
+    text: ''
+  - bg: white
+    borderColor: Grey
+    text: ''
+  - bg: white
+    borderColor: Grey
+    text: ''
+  - bg: white
+    borderColor: Grey
+    text: ''
+  - bg: white
+    borderColor: Grey
+    text: ''
+  - bg: white
+    borderColor: Grey
+    text: ''
+- - bg: white
+    borderColor: Grey
+    text: ''
+  - bg: white
+    borderColor: Grey
+    text: ''
+  - bg: white
+    borderColor: Grey
+    text: ''
+  - bg: white
+    borderColor: Grey
+    text: ''
+  - bg: white
+    borderColor: Grey
+    text: ''
+  - bg: white
+    borderColor: Grey
+    text: ''
+  - bg: white
+    borderColor: Grey
+    text: ''
+  - bg: white
+    borderColor: Grey
+    text: ''
+  - bg: white
+    borderColor: Grey
+    text: ''
+  - bg: white
+    borderColor: Grey
+    text: ''
 "\u03B1 = 1/count((S,A))": false
-"\u03B5-Decay Rate": 0.9999
+"\u03B5-Decay Rate": 1.0
 "\u03B5-Decay Rate\u200C": 1.0

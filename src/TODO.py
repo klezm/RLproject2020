@@ -1,9 +1,7 @@
 # Hofixes:
-# TODO: "shape does not match" warning still changes settings
 # TODO: exit initial window properly on x
 
 # Now:
-# TODO: Use Dataclasses?
 
 # Finalize:
 # TODO: underscore to all private members

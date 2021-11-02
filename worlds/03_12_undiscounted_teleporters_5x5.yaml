@@ -10,6 +10,7 @@ Dyna-Q n: 0
 Expectation Update: false
 "Exploration Rate \u03B5": 0.5
 "Exploration Rate \u03B5\u200C": 0.0
+H-Torus: false
 Ice Floor: false
 Initial Q-Value Mean: 0.0
 Initial Q-Value Sigma: 0.0
@@ -17,63 +18,62 @@ Initial Q-Value Sigma: 0.0
 Min Delay [ms]: 10
 On-Policy: true
 Operations Left: 100000
+Reward Cyan: 6
 Reward Grey: -1
 Reward Red: 11
-Reward Cyan: 6
 Show Every...: 1
 Visualize Memory: true
-H-Torus: false
 W-Torus: false
+hWind:
+- 0
+- 0
+- 0
+- 0
+- 0
 n-Step n: 1
+wWind:
+- 0
+- 0
+- 0
+- 0
+- 0
 world:
 - - bg: white
     borderColor: Grey
     text: ''
   - bg: white
-    borderColor: Grey
-    text: ''
-  - bg: white
-    borderColor: Grey
-    text: ''
-  - bg: white
-    borderColor: Grey
-    text: ''
-  - bg: white
-    borderColor: Grey
-    text: ''
-- - bg: white
     borderColor: Red
     text: '1 '
   - bg: white
     borderColor: Grey
     text: ''
   - bg: white
-    borderColor: Grey
-    text: ''
-  - bg: white
-    borderColor: Grey
-    text: ''
-  - bg: white
-    borderColor: Grey
-    text: 1+
-- - bg: white
-    borderColor: Grey
-    text: ''
-  - bg: white
-    borderColor: Grey
-    text: ''
-  - bg: white
-    borderColor: Grey
-    text: ''
-  - bg: white
-    borderColor: Grey
-    text: ''
-  - bg: white
-    borderColor: Grey
-    text: ''
-- - bg: white
     borderColor: Cyan
     text: '2 '
+  - bg: white
+    borderColor: Grey
+    text: ''
+- - bg: white
+    borderColor: Grey
+    text: ''
+  - bg: white
+    borderColor: Grey
+    text: ''
+  - bg: white
+    borderColor: Grey
+    text: ''
+  - bg: white
+    borderColor: Grey
+    text: ''
+  - bg: white
+    borderColor: Grey
+    text: ''
+- - bg: white
+    borderColor: Grey
+    text: ''
+  - bg: white
+    borderColor: Grey
+    text: ''
   - bg: white
     borderColor: Grey
     text: ''
@@ -83,9 +83,6 @@ world:
   - bg: white
     borderColor: Grey
     text: ''
-  - bg: white
-    borderColor: Grey
-    text: ''
 - - bg: white
     borderColor: Grey
     text: ''
@@ -101,18 +98,21 @@ world:
   - bg: white
     borderColor: Grey
     text: ''
-hWind:
-- 0
-- 0
-- 0
-- 0
-- 0
-wWind:
-- 0
-- 0
-- 0
-- 0
-- 0
+- - bg: white
+    borderColor: Grey
+    text: ''
+  - bg: white
+    borderColor: Grey
+    text: 1+
+  - bg: white
+    borderColor: Grey
+    text: ''
+  - bg: white
+    borderColor: Grey
+    text: ''
+  - bg: white
+    borderColor: Grey
+    text: ''
 "\u03B1 = 1/count((S,A))": false
 "\u03B5-Decay Rate": 0.9999
 "\u03B5-Decay Rate\u200C": 1.0

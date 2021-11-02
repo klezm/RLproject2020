@@ -14,6 +14,6 @@ qvalues borderwidth: 2      # pixels
 
 targetmarker width: 10      # pixels
 
-agent qValueTilemaps lightness: 9           # hex digit (0 to F)
+agent qValueTilemaps lightness: 9         # hex digit (0 to F)
 agent trace min saturation rate: 0.4      # ratio between saturation of first trace tile and agent itself in qValueTilemaps
 agent trace max saturation rate: 0.75     # ratio between saturation of last  trace tile and agent itself in qValueTilemaps
