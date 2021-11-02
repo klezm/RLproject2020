@@ -4,7 +4,8 @@
 # Now:
 
 # Finalize:
-# TODO: underscore to all private members
+# TODO: Check inline TODOs
+# TODO: underscore to all private members for frame classes and tooltip class
 # TODO: Docstrings
 # TODO: check for dead imports
 # TODO: Move to my Git
