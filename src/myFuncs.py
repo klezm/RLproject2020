@@ -8,7 +8,6 @@ from tkinter import filedialog
 from tkinter import messagebox
 from pprint import pprint
 from pathlib import Path
-from tkinter import ttk
 import yaml
 import traceback
 import sys
@@ -35,6 +34,33 @@ def custom_warning(condition, importance, message, hideNadditionalStackLines=0):
             sys.exit(1)
         return True
     return False
+
+
+def hRange(mat):
+    return range(len(mat))
+
+
+def wRange(mat):
+    return range(len(mat[0]))
+
+
+def matrix(H, W, value=0):
+    return [[value for _ in range(W)] for _ in range(H)]
+
+
+def matrix_like(mat, value=0):
+    return [[value for _ in wRange(mat)] for _ in hRange(mat)]
+
+
+def evaluate(mat, indexTuple):
+    return mat[indexTuple[0]][indexTuple[1]]
+
+def assign(mat, indexTuple, value):
+    mat[indexTuple[0]][indexTuple[1]] = value
+
+
+def shape(mat):
+    return len(mat), len(mat[0])
 
 
 @cache
@@ -64,6 +90,17 @@ def rgbHexString_to_hsv(string):
     hsvTripleInteger = webcolors.hex_to_rgb(string)
     hsvTripleNormalized = tuple(value / 255 for value in hsvTripleInteger)
     return colorsys.rgb_to_hsv(*hsvTripleNormalized)
+
+
+@cache
+def direction_to_hsvHexString(direction, colorwheelAngleOffset=0, hsvValue=0.75):
+    if direction == (0,0):
+        return "#000000"  # black
+    angle = angle_between((1,0), direction)  # arbitrary constant reference direction. Reference/Offset finetuning is more convenient by adding an angle.
+    if direction[1] < 0:  # here the outer angle has to be measured
+        angle = 360 - angle
+    angle = (angle + colorwheelAngleOffset) % 360
+    return hsv_to_rgbHexString(angle / 360, 1, hsvValue)
 
 
 def get_light_color(color: str, lightness: str):

@@ -1,12 +1,14 @@
 import random
 
+from myFuncs import evaluate
+
 
 class Policy:
     def __init__(self, agent):
         self.agent = agent
 
     def give_greedy_action(self, state):
-        greedyActions = self.agent.get_greedyActions()[state]
+        greedyActions = evaluate(self.agent.get_greedyActions(), state)
         if len(greedyActions) == 1:  # use rng only if necessary
             return greedyActions[0]
         else:

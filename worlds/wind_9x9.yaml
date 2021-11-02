@@ -22,8 +22,8 @@ Reward Grey: -1
 Reward Red: -100
 Show Every...: 1
 Visualize Memory: true
-X-Torus: false
-Y-Torus: false
+H-Torus: false
+W-Torus: false
 n-Step n: 1
 world:
 - - bg: white
@@ -269,7 +269,7 @@ world:
   - bg: white
     borderColor: grey
     text: ''
-xWind:
+hWind:
 - 0
 - 0
 - 0
@@ -279,7 +279,7 @@ xWind:
 - 0
 - 0
 - 0
-yWind:
+wWind:
 - 0
 - 1
 - 1

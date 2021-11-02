@@ -1,16 +1,12 @@
 ﻿import tkinter as tk
 from tkinter import messagebox
-import numpy as np
 from collections import OrderedDict
 from pathlib import Path
 import matplotlib.pyplot as plt
-import os
 import sys
-from pprint import pprint
-import cProfile
-import pstats
 
 import myFuncs
+from myFuncs import matrix
 from Environment import Environment
 from Agent import Agent
 from Tile import Tile
@@ -100,8 +96,8 @@ class GridworldSandbox:
             self.allow_kingActions = kingActionsFrame.get_value()
             self.allow_idleActions = idleActionsFrame.get_value()
         self.guiProcess.call('tk', 'scaling', guiScale)
-        self.X = max(dim1, dim2)
-        self.Y = min(dim1, dim2)
+        self.H = min(dim1, dim2)
+        self.W = max(dim1, dim2)
 
         self.mainWindow = tk.Toplevel(self.guiProcess)
         self.mainWindow.title("Gridworld Sandbox")
@@ -115,27 +111,27 @@ class GridworldSandbox:
         myFuncs.arrange_children(self.mainWindow, order="row")
 
         if True:  # tilemapsFrame:
-            self.gridworldTilemap = Tilemap(self.tilemapsFrame, X=self.X, Y=self.Y, interactionAllowed=True, font=fontWorldtiles, relief=self.GUI_FRAMES_RELIEF_DEFAULT, displayWind=True,
+            self.gridworldTilemap = Tilemap(self.tilemapsFrame, H=self.H, W=self.W, interactionAllowed=True, font=fontWorldtiles, relief=self.GUI_FRAMES_RELIEF_DEFAULT, displayWind=True,
                                             bd=5, tileHeight=sizesDict["worldtiles height"], tileWidth=sizesDict["worldtiles width"], tileBd=sizesDict["worldtiles borderwidth"])
             self.valueVisualizationFrame = tk.Frame(self.tilemapsFrame, bd=5, relief=self.GUI_FRAMES_RELIEF_DEFAULT)
 
             myFuncs.arrange_children(self.tilemapsFrame, order="column", useSticky=False)
 
             if True:  # gridworldTilemap:
-                self.xWindFrames = [EntryFrame(self.gridworldTilemap, font=fontMiddle, varTargetType=int, promptWidth=2, promptHighlightthickness=4) for _ in range(self.Y)]
-                self.yWindFrames = [EntryFrame(self.gridworldTilemap, font=fontMiddle, varTargetType=int, promptWidth=2, promptHighlightthickness=4) for _ in range(self.X)]
-                self.gridworldTilemap.add_wind(self.xWindFrames, self.yWindFrames)
+                self.hWindFrames = [EntryFrame(self.gridworldTilemap, font=fontMiddle, varTargetType=int, promptWidth=2, promptHighlightthickness=4) for _ in range(self.W)]
+                self.wWindFrames = [EntryFrame(self.gridworldTilemap, font=fontMiddle, varTargetType=int, promptWidth=2, promptHighlightthickness=4) for _ in range(self.H)]
+                self.gridworldTilemap.add_wind(self.hWindFrames, self.wWindFrames)
 
             if True:  # valueVisualizationFrame:
                 self.QVALUES_WIDTH = sizesDict["qvalues width"]
                 self.qValueTilemaps = {}
                 for action in Agent.create_actionspace(default=self.allow_defaultActions, king=self.allow_kingActions, idle=self.allow_idleActions):
-                    self.qValueTilemaps[action] = Tilemap(self.valueVisualizationFrame, X=self.X, Y=self.Y, interactionAllowed=False,
+                    self.qValueTilemaps[action] = Tilemap(self.valueVisualizationFrame, H=self.H, W=self.W, interactionAllowed=False,
                                                           indicateNumericalValueChange=True, font=fontQvalues, tileWidth=self.QVALUES_WIDTH,
                                                           bd=sizesDict["targetmarker width"], relief=self.VALUE_TILEMAPS_RELIEF_DEFAULT,
-                                                          bg=Tile.direction_to_hsvHexString(action), tileHeight=sizesDict["qvalues height"], tileBd=sizesDict["qvalues borderwidth"])
-                    self.qValueTilemaps[action].grid(row=action[1] + 1, column=action[0] + 1)  # maps the Tilemaps corresponding to the actions (which are actually 2D "vectors")  to coordinates inside the valueVisualizationFrame
-                self.greedyPolicyTilemap = Tilemap(self.valueVisualizationFrame, X=self.X, Y=self.Y, interactionAllowed=False, font=fontQvalues,
+                                                          bg=myFuncs.direction_to_hsvHexString(action, hsvValue=Tile.DEFAULT_HSV_VALUE), tileHeight=sizesDict["qvalues height"], tileBd=sizesDict["qvalues borderwidth"])
+                    self.qValueTilemaps[action].grid(row=action[0] + 1, column=action[1] + 1)  # maps the Tilemaps corresponding to the actions (which are actually 2D "vectors")  to coordinates inside the valueVisualizationFrame
+                self.greedyPolicyTilemap = Tilemap(self.valueVisualizationFrame, H=self.H, W=self.W, interactionAllowed=False, font=fontQvalues,
                                                    tileWidth=self.QVALUES_WIDTH, bd=sizesDict["targetmarker width"], tileHeight=sizesDict["qvalues height"], tileBd=sizesDict["qvalues borderwidth"], relief=self.VALUE_TILEMAPS_RELIEF_TARGET_ACTION)
                 self.greedyPolicyTilemap.grid(row=1, column=1)
                 self.guiProcess.bind_all("<space>", lambda _: self.toggle_idleActionValues())
@@ -154,8 +150,8 @@ class GridworldSandbox:
 
             if True:  # worldSettingsFrame
                 self.iceFloorFrame = CheckbuttonFrame(self.worldSettingsFrame, nameLabel="Ice Floor", font=fontMiddle)
-                self.xTorusFrame = CheckbuttonFrame(self.worldSettingsFrame, nameLabel="X-Torus", font=fontMiddle)
-                self.yTorusFrame = CheckbuttonFrame(self.worldSettingsFrame, nameLabel="Y-Torus", font=fontMiddle)
+                self.hTorusFrame = CheckbuttonFrame(self.worldSettingsFrame, nameLabel="H-Torus", font=fontMiddle)
+                self.wTorusFrame = CheckbuttonFrame(self.worldSettingsFrame, nameLabel="W-Torus", font=fontMiddle)
                 self.rewardFrames = OrderedDict([(color, EntryFrame(self.worldSettingsFrame, nameLabel=f"Reward {color.capitalize()}", promptFg=color, font=fontMiddle, varTargetType=int)) for color in Tile.BORDER_COLORS])
                 self.resetButton = tk.Button(self.worldSettingsFrame, text="Reset World", font=fontBig, bd=5, command=self.reset_gridworld)
                 myFuncs.arrange_children(self.worldSettingsFrame, order="row")
@@ -239,7 +235,7 @@ class GridworldSandbox:
         self.onPolicyFrame.set_and_call_trace(self.toggle_targetPolicyFrame)
         self.onPolicyFrame.set_and_call_trace(self.toggle_offPolicy_nStep_warning)
         self.nStepFrame.set_and_call_trace(self.toggle_offPolicy_nStep_warning)
-        for frame in self.xWindFrames + self.yWindFrames:
+        for frame in self.hWindFrames + self.wWindFrames:
             frame.set_and_call_trace(self.toggle_ice_and_crosswind_warning)
         self.iceFloorFrame.set_and_call_trace(self.toggle_ice_and_crosswind_warning)
         self.predefinedAlgorithmFrame.set_and_call_trace(self.toggle_algorithm)
@@ -251,9 +247,9 @@ class GridworldSandbox:
     def reset_gridworld(self):
         self.gridworldTilemap.reset()
         self.iceFloorFrame.set_value(False)
-        self.xTorusFrame.set_value(False)
-        self.yTorusFrame.set_value(False)
-        for frame in self.xWindFrames + self.yWindFrames:
+        self.hTorusFrame.set_value(False)
+        self.wTorusFrame.set_value(False)
+        for frame in self.hWindFrames + self.wWindFrames:
             frame.set_value(0)
 
     def toggle_idleActionValues(self):
@@ -282,23 +278,23 @@ class GridworldSandbox:
             throwWorldShapeError = False
             tileDictMatrix = yamlDict.pop("world")
             if tileDictMatrix is not None:
-                if len(tileDictMatrix) == self.X and len(tileDictMatrix[0]) == self.Y:
-                    for x in range(self.X):
-                        for y in range(self.Y):
-                            self.gridworldTilemap.update_tile_appearance(x, y, **tileDictMatrix[x][y])
+                if len(tileDictMatrix) == self.H and len(tileDictMatrix[0]) == self.W:
+                    for h in range(self.H):
+                        for w in range(self.W):
+                            self.gridworldTilemap.update_tile_appearance(h, w, **tileDictMatrix[h][w])
                 else:
                     throwWorldShapeError = True
-            xWindValues = yamlDict.pop("xWind")
-            if xWindValues is not None:
-                if len(xWindValues) == self.Y:
-                    for frame, value in zip(self.xWindFrames, xWindValues):
+            hWindValues = yamlDict.pop("hWind")
+            if hWindValues is not None:
+                if len(hWindValues) == self.W:
+                    for frame, value in zip(self.hWindFrames, hWindValues):
                         frame.set_value(value)
                 else:
                     throwWorldShapeError = True
-            yWindValues = yamlDict.pop("yWind")
-            if yWindValues is not None:
-                if len(yWindValues) == self.X:
-                    for frame, value in zip(self.yWindFrames, yWindValues):
+            wWindValues = yamlDict.pop("wWind")
+            if wWindValues is not None:
+                if len(wWindValues) == self.H:
+                    for frame, value in zip(self.wWindFrames, wWindValues):
                         frame.set_value(value)
                 else:
                     throwWorldShapeError = True
@@ -311,18 +307,18 @@ class GridworldSandbox:
     def save(self, filepath=None):
         valueDict = {name: frame.get_value() for name, frame in self.parameterFramesDict.items()}
         valueDict["world"] = self.gridworldTilemap.get_yaml_list()
-        valueDict["xWind"] = [frame.get_value() for frame in self.xWindFrames]
-        valueDict["yWind"] = [frame.get_value() for frame in self.yWindFrames]
-        myFuncs.create_yaml_file_from_dict(valueDict, filepath, nameEmbedding=f"{{}}_{self.X}x{self.Y}", initialdir=self.SAFEFILE_PATH)
+        valueDict["hWind"] = [frame.get_value() for frame in self.hWindFrames]
+        valueDict["wWind"] = [frame.get_value() for frame in self.wWindFrames]
+        myFuncs.create_yaml_file_from_dict(valueDict, filepath, nameEmbedding=f"{{}}_{self.H}x{self.W}", initialdir=self.SAFEFILE_PATH)
 
     def initialize_environment_and_agent(self):
-        self.environment = Environment(X=self.X,
-                                       Y=self.Y,
+        self.environment = Environment(H=self.H,
+                                       W=self.W,
                                        hasIceFloorVar=self.iceFloorFrame.get_variable(),
-                                       isXtorusVar=self.xTorusFrame.get_variable(),
-                                       isYtorusVar=self.yTorusFrame.get_variable(),
-                                       xWindVars=[frame.get_variable() for frame in self.xWindFrames],
-                                       yWindVars=[frame.get_variable() for frame in self.yWindFrames])
+                                       isHtorusVar=self.hTorusFrame.get_variable(),
+                                       isWtorusVar=self.wTorusFrame.get_variable(),
+                                       hWindVars=[frame.get_variable() for frame in self.hWindFrames],
+                                       wWindVars=[frame.get_variable() for frame in self.wWindFrames])
         # Agent needs an environment to exist, but environment doesnt need an agent to exist
         self.agent = Agent(environment=self.environment,
                            use_defaultActions=self.allow_defaultActions,
@@ -346,21 +342,21 @@ class GridworldSandbox:
                            initialActionvalueSigma=self.initialActionvalueSigmaFrame.get_value())
 
     def update_environment(self):
-        tileData = np.empty((self.X,self.Y), dtype=dict)
+        tileData = matrix(self.H, self.W)
         valueVisualizationTilemaps = self.valueVisualizationFrame.winfo_children()
-        for x in range(self.X):
-            for y in range(self.Y):
-                newText = self.gridworldTilemap.get_tile_text(x, y)
-                newBackground = self.gridworldTilemap.get_tile_background_color(x, y)
-                newBordercolor = self.gridworldTilemap.get_tile_border_color(x, y)
+        for h in range(self.H):
+            for w in range(self.W):
+                newText = self.gridworldTilemap.get_tile_text(h, w)
+                newBackground = self.gridworldTilemap.get_tile_background_color(h, w)
+                newBordercolor = self.gridworldTilemap.get_tile_border_color(h, w)
                 updateKwargs = {"fg": Tile.LETTER_COLOR, "borderColor": newBordercolor, "bg": newBackground}
                 for tilemap in valueVisualizationTilemaps:
-                    tilemap.unprotect_text_and_textColor(x, y)  # needed to set / remove Goalchar properly
+                    tilemap.unprotect_text_and_textColor(h, w)  # needed to set / remove Goalchar properly
                     if newText and (newText[-1] in [Tile.GOAL_CHAR, Tile.TELEPORTER_SINK_ONLY_SUFFIX]):
-                        tilemap.update_tile_appearance(x, y, text=newText, **updateKwargs)
-                        tilemap.protect_text_and_color(x, y)
+                        tilemap.update_tile_appearance(h, w, text=newText, **updateKwargs)
+                        tilemap.protect_text_and_color(h, w)
                     else:
-                        tilemap.update_tile_appearance(x, y, **updateKwargs)
+                        tilemap.update_tile_appearance(h, w, **updateKwargs)
                 teleportSource = None
                 teleportSink = None
                 if newText and newText[0] in Tile.TELEPORTERS:
@@ -369,7 +365,7 @@ class GridworldSandbox:
                     if newText[1] != Tile.TELEPORTER_SOURCE_ONLY_SUFFIX:
                         teleportSink = newText[0]
                 arrivalRewardVarName = "Reward " + newBordercolor.capitalize()
-                tileData[x,y] = {"position": (x,y),
+                tileData[h][w] = {"position": (h,w),
                                  "isWall": newBackground == Tile.WALL_COLOR,
                                  "isStart": newText == Tile.START_CHAR,
                                  "isGoal": newText == Tile.GOAL_CHAR,
@@ -454,16 +450,16 @@ class GridworldSandbox:
             if traceTail:
                 traceCandidates.add(traceTail)
 
-        for x in range(self.X):
-            for y in range(self.Y):
-                if self.gridworldTilemap.get_tile_background_color(x, y) == Tile.WALL_COLOR:
+        for h in range(self.H):
+            for w in range(self.W):
+                if self.gridworldTilemap.get_tile_background_color(h, w) == Tile.WALL_COLOR:
                     continue
                 gridworldFrame_Color = Tile.BLANK_COLOR
                 valueVisualizationFrame_Color = Tile.BLANK_COLOR
-                if self.visualizeMemoryFrame.get_value() and (x,y) in traceCandidates:
-                    newSaturation = (self.maxLightnessAgentTrace - self.minLightnessAgentTrace * self.agent.get_absence((x,y)) / (memorySize+1)) * agentcolorDefaultSaturation
+                if self.visualizeMemoryFrame.get_value() and (h,w) in traceCandidates:
+                    newSaturation = (self.maxLightnessAgentTrace - self.minLightnessAgentTrace * self.agent.get_absence((h,w)) / (memorySize+1)) * agentcolorDefaultSaturation
                     valueVisualizationFrame_Color = myFuncs.hsv_to_rgbHexString(agentcolorDefaultHue, newSaturation, agentcolorvalue)
-                if (x,y) == self.agent.get_state():
+                if (h,w) == self.agent.get_state():
                     if self.operationsLeftFrame.get_value() <= 0:
                         gridworldFrame_Color = Tile.AGENTCOLOR_DEAD
                         valueVisualizationFrame_Color = Tile.AGENTCOLOR_DEAD
@@ -476,15 +472,15 @@ class GridworldSandbox:
                     else:
                         gridworldFrame_Color = Tile.AGENTCOLOR_DEFAULT
                         valueVisualizationFrame_Color = myFuncs.get_light_color(Tile.AGENTCOLOR_DEFAULT, self.agentLightnessQvalueFrames)
-                elif (x,y) == self.environment.get_teleportJustUsed():
+                elif (h,w) == self.environment.get_teleportJustUsed():
                     gridworldFrame_Color = Tile.TELEPORT_JUST_USED_COLOR
                     valueVisualizationFrame_Color = myFuncs.get_light_color(Tile.TELEPORT_JUST_USED_COLOR, self.agentLightnessQvalueFrames)
-                self.gridworldTilemap.update_tile_appearance(x, y, bg=gridworldFrame_Color)
-                for action, Qvalue in self.agent.get_Qvalues()[x,y].items():
-                    self.qValueTilemaps[action].update_tile_appearance(x, y, text=f"{Qvalue:< 3.2f}"[:self.QVALUES_WIDTH + 1], bg=valueVisualizationFrame_Color)
+                self.gridworldTilemap.update_tile_appearance(h, w, bg=gridworldFrame_Color)
+                for action, Qvalue in self.agent.get_Qvalues()[h][w].items():
+                    self.qValueTilemaps[action].update_tile_appearance(h, w, text=f"{Qvalue:< 3.2f}"[:self.QVALUES_WIDTH + 1], bg=valueVisualizationFrame_Color)
 
-                greedyReprKwargs = Tile.get_greedy_actions_representation(tuple(self.agent.get_greedyActions()[x,y]))  # tuple cast because a cached function needs mutable args
-                self.greedyPolicyTilemap.update_tile_appearance(x, y, bg=valueVisualizationFrame_Color, **greedyReprKwargs)
+                greedyReprKwargs = Tile.get_greedy_actions_representation(tuple(self.agent.get_greedyActions()[h][w]))  # tuple cast because a cached function needs mutable args
+                self.greedyPolicyTilemap.update_tile_appearance(h, w, bg=valueVisualizationFrame_Color, **greedyReprKwargs)
 
         for action, tilemap in self.qValueTilemaps.items():
             if action == self.agent.get_targetAction():
@@ -573,9 +569,10 @@ class GridworldSandbox:
 
     def toggle_ice_and_crosswind_warning(self):
         windLabelColor = "black"
+        windWarningColor = "orange"
         iceFloorValid = True
         if self.iceFloorFrame.get_value():
-            for frame in self.xWindFrames + self.yWindFrames:
+            for frame in self.hWindFrames + self.wWindFrames:
                 if frame.get_value():
                     frame.highlight(self.WARNING_COLOR)
                     windLabelColor = self.WARNING_COLOR
@@ -583,22 +580,22 @@ class GridworldSandbox:
                 else:
                     frame.normalize()
         else:
-            yWindAbsNonzeroValues = {abs(frame.get_value()) for frame in self.yWindFrames if frame.get_value()}
-            for xWindFrame in self.xWindFrames:  # use indices
-                xValue = xWindFrame.get_value()
-                if not xValue or yWindAbsNonzeroValues in [set(), {abs(xValue)}]:
-                    xWindFrame.normalize()
+            wWindAbsNonzeroValues = {abs(frame.get_value()) for frame in self.wWindFrames if frame.get_value()}
+            for hWindFrame in self.hWindFrames:  # use indices
+                hValue = hWindFrame.get_value()
+                if not hValue or wWindAbsNonzeroValues in [set(), {abs(hValue)}]:
+                    hWindFrame.normalize()
                 else:
-                    xWindFrame.highlight("orange")
-                    windLabelColor = "orange"
-            xWindAbsNonzeroValues = {abs(frame.get_value()) for frame in self.xWindFrames if frame.get_value()}
-            for yWindFrame in self.yWindFrames:  # use indices
-                yValue = yWindFrame.get_value()
-                if not yValue or xWindAbsNonzeroValues in [set(), {abs(yValue)}]:
-                    yWindFrame.normalize()
+                    hWindFrame.highlight(windWarningColor)
+                    windLabelColor = windWarningColor
+            hWindAbsNonzeroValues = {abs(frame.get_value()) for frame in self.hWindFrames if frame.get_value()}
+            for wWindFrame in self.wWindFrames:  # use indices
+                wValue = wWindFrame.get_value()
+                if not wValue or hWindAbsNonzeroValues in [set(), {abs(wValue)}]:
+                    wWindFrame.normalize()
                 else:
-                    yWindFrame.highlight("orange")
-                    windLabelColor = "orange"
+                    wWindFrame.highlight(windWarningColor)
+                    windLabelColor = windWarningColor
         self.gridworldTilemap.set_windLabel_color(windLabelColor)
         if iceFloorValid:
             self.iceFloorFrame.normalize()

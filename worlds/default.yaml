@@ -1,7 +1,7 @@
 # World Settings
 "Ice Floor": false
-"X-Torus": false
-"Y-Torus": false
+"H-Torus": false
+"W-Torus": false
 "Reward Grey": -1
 "Reward Cyan": -10
 "Reward Red": -100
@@ -43,6 +43,6 @@
 
 
 ############# Don't touch #############
-"xWind": null
-"yWind": null
+"hWind": null
+"wWind": null
 "world": null
