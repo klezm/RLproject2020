@@ -55,6 +55,7 @@ class GridworldSandbox:
         initialWindowDict = myFuncs.get_dict_from_yaml_file(self.SETTINGS_PATH / "initial")
         sizesDict = myFuncs.get_dict_from_yaml_file(self.SETTINGS_PATH / "visual")
 
+        icon = "iconGS.ico"
         fontQvalues = myFuncs.create_font(sizesDict["qvalues fontsize"])
         fontWorldtiles = myFuncs.create_font(sizesDict["worldtiles fontsize"])
         fontSmall = myFuncs.create_font(sizesDict["fontsize small"])
@@ -74,8 +75,9 @@ class GridworldSandbox:
         if not initialWindowDict["skip config window"]:
             configWindow = tk.Toplevel(self.guiProcess, pady=5, padx=5)
             configWindow.title("")
-            configWindow.iconbitmap(self.SETTINGS_PATH / "iconG.ico")
+            configWindow.iconbitmap(self.SETTINGS_PATH / icon)
 
+            quitFlag = tk.BooleanVar(False)
             scaleVar = tk.DoubleVar(value=guiScale)
             tk.Scale(configWindow, label="GUI Scale:", variable=scaleVar, from_=1.0, to=1.5, resolution=0.05, font=fontMiddle, orient=tk.HORIZONTAL, width=15, sliderlength=20)
             labelWidth = 15
@@ -84,13 +86,17 @@ class GridworldSandbox:
             defaultActionsFrame = CheckbuttonFrame(configWindow, nameLabel="Default-Actions", font=fontMiddle, value=self.allow_defaultActions, labelWidth=labelWidth)
             kingActionsFrame = CheckbuttonFrame(configWindow, nameLabel="King-Actions", font=fontMiddle, value=self.allow_kingActions, labelWidth=labelWidth)
             idleActionsFrame = CheckbuttonFrame(configWindow, nameLabel="Idle-Actions", font=fontMiddle, value=self.allow_idleActions, labelWidth=labelWidth)
-            tk.Button(configWindow, text="Proceed", height=1, font=fontBig, bd=5, command=configWindow.destroy)
+            tk.Button(configWindow, text="Proceed", height=1, font=fontBig, bd=5, command=lambda: quitFlag.set(False))
 
             myFuncs.arrange_children(configWindow, order="row")
-
-            configWindow.protocol("WM_DELETE_WINDOW", lambda: sys.exit(0))
             myFuncs.center(configWindow)
-            self.guiProcess.wait_window(configWindow)
+
+            configWindow.protocol("WM_DELETE_WINDOW", lambda: quitFlag.set(True))
+            self.guiProcess.wait_variable(quitFlag)
+            if quitFlag.get():
+                sys.exit(0)
+            else:
+                configWindow.destroy()
             guiScale = scaleVar.get()
             dim1 = dim1Frame.get_value()
             dim2 = dim2Frame.get_value()
@@ -103,7 +109,7 @@ class GridworldSandbox:
 
         self.mainWindow = tk.Toplevel(self.guiProcess)
         self.mainWindow.title("Gridworld Sandbox")
-        self.mainWindow.iconbitmap(self.SETTINGS_PATH / "iconG.ico")
+        self.mainWindow.iconbitmap(self.SETTINGS_PATH / icon)
         self.mainWindow.protocol("WM_DELETE_WINDOW", self.guiProcess.quit)
 
         # mainWindow:

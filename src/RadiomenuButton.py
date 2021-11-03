@@ -19,9 +19,9 @@ class RadiomenuButton(tk.Menubutton):
         bd = self.bdDefault if bd is None else bd
         arrowSymbol = self.arrowSymbolDefault if arrowSymbol is None else arrowSymbol
         if choiceVariable is None:
-            self._choiceVariable = SafeVar(choices[0], check_func=lambda choice_: choice_ in choices, invalidValueImportance=2)
+            self.choiceVariable = SafeVar(choices[0], check_func=lambda choice_: choice_ in choices, invalidValueImportance=2)
         else:
-            self._choiceVariable = choiceVariable
+            self.choiceVariable = choiceVariable
         nBlanks = 2
         if width is None:
             width = max(map(len, choices)) + len(arrowSymbol) + nBlanks + 1
@@ -31,12 +31,12 @@ class RadiomenuButton(tk.Menubutton):
         menu = tk.Menu(self, tearoff=0)
         self["menu"] = menu
         for choice in choices:
-            menu.add_radiobutton(label=choice, variable=self._choiceVariable, font=self.cget("font"))
-        self._choiceVariable.trace_add(callback=lambda *traceArgs: labelVar.set(f"{arrowSymbol}{' ' * nBlanks}{self._choiceVariable.get()}"), mode="write")
+            menu.add_radiobutton(label=choice, variable=self.choiceVariable, font=self.cget("font"))
+        self.choiceVariable.trace_add(callback=lambda *traceArgs: labelVar.set(f"{arrowSymbol}{' ' * nBlanks}{self.choiceVariable.get()}"), mode="write")
         self.set_choice(choices[0])  # if choiceVariable arg was not None
 
     def get_choiceVar(self):
-        return self._choiceVariable
+        return self.choiceVariable
 
     def get_choice(self):
         return self.get_choiceVar().get()

@@ -53,8 +53,7 @@ class Tile(tk.Frame):
     @cache
     def get_greedy_actions_representation(cls, greedyActions):
         actionSum = np.sum(greedyActions, axis=0)  # i.e. UP + RIGHT = (-1,-0) + (0,1) = (-1,1)
-        #index = (actionSum[1]+1, actionSum[0]+1)  # TODO: Important line!
-        index = actionSum + 1  # TODO: Important line!
+        index = actionSum + 1  # index where to find the representation of greedyactions with that sum in the GREEDYCHARS_ matrices
         color = "black"
         if bool(set(greedyActions) & set(Agent.create_actionspace(default=False))):  # greedyActions contains nondefault action
             if len(greedyActions) == 1:

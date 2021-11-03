@@ -1,4 +1,4 @@
-skip config window: true
+skip config window: false
 show idle action warning: true
 default configfile: default #.yaml
 

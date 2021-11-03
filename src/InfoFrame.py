@@ -12,6 +12,6 @@ class InfoFrame(SafeVarFrame):
         self.promptAnchor = self.promptAnchorDefault if promptAnchor is None else promptAnchor
         super().__init__(*args, **kwargs)
 
-    def make_prompt(self):
+    def _make_prompt(self):
         self.dataPrompt = tk.Label(self, **self.get_prompt_kwargs())
         self.connect()

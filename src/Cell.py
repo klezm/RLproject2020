@@ -14,14 +14,14 @@ class Cell:
     def terminates_episode(self):
         return any([self.isGoal])
 
-    def get_position(self):
-        return self.position
-
-    def get_arrivalReward(self):
-        return self.arrivalRewardVar.get()
-
     def is_teleportName_destination(self, name):
         return self.teleportSource == name
 
     def is_teleport_entry(self):
         return bool(self.teleportSink)
+
+    def get_position(self):
+        return self.position
+
+    def get_arrivalReward(self):
+        return self.arrivalRewardVar.get()

@@ -15,6 +15,6 @@ class RadiomenuButtonFrame(ParameterFrame):
 
     # If self.make_variable() is called, self.variable was None anyway beforehand, so the super().make_variable() can easily be used.
 
-    def make_prompt(self):
+    def _make_prompt(self):
         self.dataPrompt = RadiomenuButton(self, choices=self.choices, choiceVariable=self.variable, arrowSymbol=self.arrowSymbol, **self.get_prompt_kwargs())
         self.variable = self.dataPrompt.get_choiceVar()  # if self.variable was None before, because it is meant to be taken after the RadiomenuButton construction, the self.variable must be updated now.

@@ -15,7 +15,7 @@ import inspect
 import re
 
 
-def custom_warning(condition, importance, message, hideNadditionalStackLines=0):  # Todo: choose stream
+def custom_warning(condition, importance, message, hideNadditionalStackLines=0, stream=sys.stdout):
     """
     :param bool condition: Throw if condition does NOT hold (= evaluates to False).
     :param int importance: 2: Throw error (red color and system exit). / 1: Throw warning (orange color). 0: Throw nothing.
@@ -29,7 +29,7 @@ def custom_warning(condition, importance, message, hideNadditionalStackLines=0):
             stack = stack[:-(1+hideNadditionalStackLines)]
         stack = "".join(stack)
         header = ["", "\033[93mWARNING", "\033[91mERROR"]
-        print(f"\n{header[importance]}: {message}\n\nStack:\n{stack}\033[0m")
+        print(f"\n{header[importance]}: {message}\n\nStack:\n{stack}\033[0m", file=stream)
         if importance == 2:
             sys.exit(1)
         return True
@@ -190,12 +190,12 @@ def create_font(size, family="calibri", weight="bold"):
 
 def print_default_values(classObject, suffix="Default", indent=2, width=180):
     od = OrderedDict()
-    for mroClass in classObject.__mro__:  # TODO: inspect.get_mro()
+    for mroClass in classObject.__mro__:  # Alternative: inspect.get_mro()
         signature = {}
         for kwarg, defaultValue in mroClass.__dict__.items():
             if kwarg.endswith(suffix):
                 if hasattr(defaultValue, "__func__"):
-                    defaultValue = defaultValue.__func__  # needed to bind unbound functions
+                    defaultValue = defaultValue.__func__  # is needed to bind unbound functions
                 if callable(defaultValue):
                     sourceString = inspect.getsource(defaultValue)
                     bracketIndex = sourceString.index("(")

@@ -13,6 +13,6 @@ class EntryFrame(SafeVarFrame):
         self.promptJustify = self.promptJustifyDefault if promptJustify is None else promptJustify
         super().__init__(*args, **kwargs)
 
-    def make_prompt(self):
+    def _make_prompt(self):
         self.dataPrompt = tk.Entry(self, **self.get_prompt_kwargs())
         self.connect()

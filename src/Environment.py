@@ -20,6 +20,25 @@ class Environment:
             for w in wRange(self.grid):
                 self.grid[h][w] = Cell(**tileData[h][w])
 
+    def apply_action(self, action):
+        oldEstimate = self.agentPosition
+        while True:
+            destinationEstimate = self._get_step_destination(oldEstimate, action)  # processes world edge / torus / wall
+            destinationEstimate = self._get_wind_destination(destinationEstimate)
+            if not self.hasIceFloorVar.get() or destinationEstimate == oldEstimate:
+                break
+            oldEstimate = destinationEstimate
+        self.agentPosition = destinationEstimate
+        reward = self._gather_reward()
+        if evaluate(self.grid, self.agentPosition).is_teleport_entry():
+            self.teleportJustUsed = self.agentPosition  # needed for coloring
+            self.agentPosition = self._get_teleport_destination(evaluate(self.grid, self.agentPosition))
+            reward += self._gather_reward()
+        else:
+            self.teleportJustUsed = None
+        episodeFinished = evaluate(self.grid, self.agentPosition).terminates_episode()
+        return reward, self.agentPosition, episodeFinished
+
     def give_initial_position(self):
         cellArray = np.array(self.grid).flatten()
         candidates = [cell.get_position() for cell in cellArray if cell.isStart]
@@ -30,7 +49,11 @@ class Environment:
         self.agentPosition = random.choice(candidates)
         return self.agentPosition
 
-    def get_teleport_destination(self, entryCell):
+    def remove_agent(self):
+        self.agentPosition = None
+        return self.agentPosition
+
+    def _get_teleport_destination(self, entryCell):
         teleportName = entryCell.teleportSink
         cellArray = np.array(self.grid).flatten()
         candidates = [cell.get_position() for cell in cellArray if (cell.is_teleportName_destination(teleportName) and cell is not entryCell)]
@@ -40,26 +63,7 @@ class Environment:
             candidates = [entryCell.get_position()]
         return random.choice(candidates)
 
-    def apply_action(self, action):
-        oldEstimate = self.agentPosition
-        while True:
-            destinationEstimate = self.get_step_destination(oldEstimate, action)  # processes world edge / torus / wall
-            destinationEstimate = self.get_wind_destination(destinationEstimate)
-            if not self.hasIceFloorVar.get() or destinationEstimate == oldEstimate:
-                break
-            oldEstimate = destinationEstimate
-        self.agentPosition = destinationEstimate
-        reward = self.gather_reward()
-        if evaluate(self.grid, self.agentPosition).is_teleport_entry():
-            self.teleportJustUsed = self.agentPosition  # needed for coloring
-            self.agentPosition = self.get_teleport_destination(evaluate(self.grid, self.agentPosition))
-            reward += self.gather_reward()
-        else:
-            self.teleportJustUsed = None
-        episodeFinished = evaluate(self.grid, self.agentPosition).terminates_episode()
-        return reward, self.agentPosition, episodeFinished
-
-    def get_step_destination(self, position, step):
+    def _get_step_destination(self, position, step):
         estimate = [-1, -1]
         for iDim in [0,1]:
             rawEstimate = position[iDim] + step[iDim]
@@ -73,7 +77,7 @@ class Environment:
             return position
         return estimate
 
-    def get_wind_destination(self, position):
+    def _get_wind_destination(self, position):
         wind = [0,0]
         for iDim in [0,1]:
             wind[iDim] = self.windVars[iDim][position[not iDim]].get()
@@ -82,18 +86,14 @@ class Environment:
             maxWindStrength = np.max(absWind)
             windDirection = np.sign(wind)
             for i in range(maxWindStrength):
-                afterWindEstimate = self.get_step_destination(position=position, step=windDirection)
+                afterWindEstimate = self._get_step_destination(position=position, step=windDirection)
                 if afterWindEstimate == position:  # no more movement
                     break
                 position = afterWindEstimate
         return position
 
-    def gather_reward(self):
+    def _gather_reward(self):
         return evaluate(self.grid, self.agentPosition).get_arrivalReward()
-
-    def remove_agent(self):
-        self.agentPosition = None
-        return self.agentPosition
 
     def get_grid(self):
         return self.grid

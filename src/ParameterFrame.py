@@ -18,8 +18,8 @@ class ParameterFrame(tk.Frame):
         self.nNameLabelBlanks = self.nNameLabelBlanksDefault if nNameLabelBlanks is None else nNameLabelBlanks
         self.font = self.fontDefault if font is None else font
         self.promptFont = self.font if promptFont is None else promptFont
-        for i in [0,1]:
-            self.grid_columnconfigure(i, weight=1)
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_columnconfigure(1, weight=1)
         fontSize = re.findall(r"\d+", self.font)[0]  # get fontSize
         self.tooltipFont = self.font.replace(fontSize, str(int(0.8 * int(fontSize))))  # inner int() because findall() returned a string, outer int() because fontSize must be an integer
         self.defaultFrameBg = master.cget("bg")
@@ -32,9 +32,9 @@ class ParameterFrame(tk.Frame):
                 ToolTip(self.nameLabel, text=explanation, font=self.tooltipFont)
         self.variable: tk.Variable = variable
         if variable is None:
-            self.make_var()
+            self._make_var()
         self.dataPrompt: tk.Widget = None
-        self.make_prompt()
+        self._make_prompt()
         self.dataPrompt.grid(row=0, column=1, sticky=tk.E)
         self.normalize()
         if value is not None:
@@ -87,10 +87,10 @@ class ParameterFrame(tk.Frame):
     def set_value(self, value):
         return self.get_variable().set(value)
 
-    def make_var(self):
+    def _make_var(self):
         pass
 
-    def make_prompt(self):
+    def _make_prompt(self):
         pass
 
     def get_prompt_kwargs(self):

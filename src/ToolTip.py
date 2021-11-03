@@ -13,14 +13,14 @@ class ToolTip(tk.Toplevel):
         tk.Label(self, justify=tk.LEFT, bg="white", borderwidth=1,
                  relief=tk.SOLID, **labelKwargs).pack(ipadx=3)
         self.afterId = None
-        self.master.bind("<Enter>", lambda _: self.enter())
+        self.master.bind("<Enter>", lambda _: self._enter())
         for event in ("<Leave>", "<Button>", "<Key>"):
-            self.master.bind(event, lambda _: self.leave())
+            self.master.bind(event, lambda _: self._leave())
 
-    def enter(self):
-        self.afterId = self.after(self.delay, self.show_tip)
+    def _enter(self):
+        self.afterId = self.after(self.delay, self._show_tip)
 
-    def show_tip(self):
+    def _show_tip(self):
         x = self.master.winfo_pointerx() + 10
         y = self.master.winfo_pointery()
         # That extra pixels are crucial: otherwise the tooltip would
@@ -30,7 +30,7 @@ class ToolTip(tk.Toplevel):
         self.wm_geometry(f"+{x}+{y}")
         self.deiconify()
 
-    def leave(self):
+    def _leave(self):
         self.master.winfo_toplevel().deiconify()  # Prevents the toplevel from iconifying if the curser left the widget directly via the toplevel border
         self.withdraw()
         if self.afterId is not None:

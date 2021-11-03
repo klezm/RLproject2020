@@ -1,15 +1,15 @@
 # Hofixes:
-# TODO: exit initial window properly on x
 
 # Now:
 
 # Finalize:
-# TODO: Check inline TODOs
+
 # TODO: underscore to all private members for frame classes and tooltip class
 # TODO: Docstrings
-# TODO: check for dead imports
 # TODO: Move to my Git
-# TODO: Readme
+# TODO: Tutorials
+# TODO: check for dead imports
+# TODO: Check inline TODOs
 
 # Potential future features
 # TODO  Does Inverse y-Wind feel better?

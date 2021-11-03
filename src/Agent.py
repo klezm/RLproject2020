@@ -8,6 +8,7 @@ from myFuncs import cached_power, matrix_like, hRange, wRange, evaluate, assign
 
 
 class Agent:
+    """"""
     # RL variables:
     UP = (-1,0)  # actions and states are defined as tuples (not as lists), so they can be used as dict keys
     DOWN = (1,0)
@@ -68,7 +69,7 @@ class Agent:
         self.stateActionPairCounts = matrix_like(self.environment.get_grid())
         self.stateAbsenceCounts = np.zeros_like(self.environment.get_grid(), dtype=np.int32)  # using numpy since counting can be vectorized
         # self.stateActionPairAbsenceCounts = np.empty_like(self.environment.get_grid(), dtype=dict)  # will be needed for Dyna-Q+
-        self.initialize_tables()
+        self._initialize_tables()
         # Strictly speaking, the agent has no model at all and therefore in the beginning knows nothing about the environment, including its shape.
         # But to avoid technical details in implementation that would anyway not change the Agent behavior at all,
         # the agent will be given that the states can be structured in a matrix that has the same shape as the environment
@@ -88,29 +89,10 @@ class Agent:
         self.actionPlan = actionPlan
         self.actionHistory = []
 
-    def initialize_tables(self):
-        for h in hRange(self.Qvalues):
-            for w in wRange(self.Qvalues):
-                self.Qvalues[h][w] = {action: np.random.normal(self.initialActionvalueMean, self.initialActionvalueSigma)
-                                     for action in self.get_actionspace()}
-                self.update_greedy_actions((h,w))
-                self.stateActionPairCounts[h][w] = {action: 0 for action in self.get_actionspace()}
-                self.model[h][w] = {action: (None, None) for action in self.get_actionspace()}
-
-    def update_greedy_actions(self, state: tuple):
-        maxActionValue = max(evaluate(self.Qvalues, state).values())
-        actionList = [action for action, value in evaluate(self.Qvalues, state).items() if value == maxActionValue]
-        assign(self.greedyActions, state, actionList)
-
-    def set_Q(self, S: tuple, A: tuple, value: float):
-        QvaluesForS = evaluate(self.Qvalues, S)
-        QvaluesForS[A] = value
-        self.update_greedy_actions(state=S)
-
     def operate(self):
         if self.get_memory_size() >= self.nStepVar.get() >= 1 or (self.episodeFinished and self.get_memory_size()):
             # First condition is never True for MC
-            self.process_earliest_memory()
+            self._process_earliest_memory()
             return self.UPDATED_BY_EXPERIENCE
         elif self.episodeFinished:
             self.episodeReturns.append(self.currentReturnVar.get())
@@ -120,18 +102,40 @@ class Agent:
             self.episodeFinished = False
             return self.FINISHED_EPISODE
         elif self.state is None:
-            self.start_episode()
+            self._start_episode()
             return self.STARTED_EPISODE
         elif self.iSuccessivePlannings < self.nPlanVar.get() and self.visitedStateActionPairs:
-            self.plan()  # Model Algo needs no Memory and doesnt need to pass a target action to the behavior action. Nevertheless, expected version is possible.
+            self._plan()  # Model Algo needs no Memory and doesnt need to pass a target action to the behavior action. Nevertheless, expected version is possible.
             self.iSuccessivePlannings += 1
             return self.UPDATED_BY_PLANNING
         else:
-            self.take_action()
+            self._take_action()
             self.stepReturns.append(self.currentReturnVar.get())
             return self.TOOK_ACTION
 
-    def start_episode(self):
+    def _initialize_tables(self):
+        for h in hRange(self.Qvalues):
+            for w in wRange(self.Qvalues):
+                self.Qvalues[h][w] = {action: np.random.normal(self.initialActionvalueMean, self.initialActionvalueSigma)
+                                     for action in self.get_actionspace()}
+                self._update_greedy_actions((h, w))
+                self.stateActionPairCounts[h][w] = {action: 0 for action in self.get_actionspace()}
+                self.model[h][w] = {action: (None, None) for action in self.get_actionspace()}
+
+    def _update_greedy_actions(self, state: tuple):
+        maxActionValue = max(evaluate(self.Qvalues, state).values())
+        actionList = [action for action, value in evaluate(self.Qvalues, state).items() if value == maxActionValue]
+        assign(self.greedyActions, state, actionList)
+
+    def _set_Q(self, S: tuple, A: tuple, value: float):
+        QvaluesForS = evaluate(self.Qvalues, S)
+        QvaluesForS[A] = value
+        self._update_greedy_actions(state=S)
+
+    def _get_Q(self, S, A):
+        return evaluate(self.Qvalues, S)[A]
+
+    def _start_episode(self):
         self.targetAction = None
         self.currentReturnVar.set(0)
         self.currentEpisodeVar.set(self.currentEpisodeVar.get() + 1)
@@ -141,10 +145,10 @@ class Agent:
         if self.state is None:
             raise RuntimeError("No Starting Point found")
 
-    def take_action(self):
+    def _take_action(self):
         self.iSuccessivePlannings = 0
         self.stateAbsenceCounts += 1
-        behaviorAction = self.generate_behavior_action()
+        behaviorAction = self._generate_behavior_action()
         reward, successorState, self.episodeFinished = self.environment.apply_action(behaviorAction)  # This is the only place where the agent exchanges information with the environment
         self.currentReturnVar.set(self.currentReturnVar.get() + reward)
         evaluate(self.model, self.state)[behaviorAction] = (successorState, reward)
@@ -153,14 +157,14 @@ class Agent:
         self.stateAbsenceCounts[successorState] = 0
         self.hasMadeExploratoryAction = self.hasChosenExploratoryAction  # if hasChosenExploratoryAction would be the only indicator for changing the agent color in the next visualization, then in the on-policy case, if the target was chosen to be an exploratory move in the last step-call, the coloring would happen BEFORE the move was taken, since in this line, the behavior action would already be determined and just copied from that target action with no chance to track if it was exploratory or not.
         self.state = successorState  # must happen after memorize and before generate_target!
-        self.generate_target()
+        self._generate_target()
         if not self.decayEpsilonEpisodeWiseVar.get() or self.episodeFinished:
             self.behaviorPolicy.decay_epsilon()
             self.targetPolicy.decay_epsilon()
         # self.actionHistory.append(behaviorAction)  TODO: Dont forget debug stuff here
         # print(self.actionHistory)
 
-    def generate_behavior_action(self):
+    def _generate_behavior_action(self):
         if self.onPolicyVar.get() and self.targetAction:
             # In this case, the target action was chosen by the behavior policy (which is the only policy in on-policy) beforehand.
             return self.targetAction
@@ -169,7 +173,7 @@ class Agent:
             # ...there is no recent target action because: the _value used for the latest update was an expectation OR no update happened in this episode so far.
             return self.behaviorPolicy.generate_action(self.state)
 
-    def generate_target(self):
+    def _generate_target(self):
         if self.episodeFinished:
             self.targetAction = None
             self.targetActionvalue = 0  # per definition
@@ -183,17 +187,17 @@ class Agent:
             self.targetActionvalue = policy.get_expected_actionvalue(self.state)
         else:
             self.targetAction = policy.generate_action(self.state)
-            self.targetActionvalue = self.get_Q(S=self.state, A=self.targetAction)
+            self.targetActionvalue = self._get_Q(S=self.state, A=self.targetAction)
 
-    def process_earliest_memory(self):
+    def _process_earliest_memory(self):
         correspondingState, actionToUpdate, _ = self.memory.get_oldest_memory()
         discountedRewardSum = self.memory.get_discountedRewardSum()
-        self.update_actionvalue(actionToUpdate, correspondingState, discountedRewardSum, self.targetActionvalue, self.nStepVar.get())
+        self._update_actionvalue(actionToUpdate, correspondingState, discountedRewardSum, self.targetActionvalue, self.nStepVar.get())
         self.memory.forget_oldest_memory()
 
-    def update_actionvalue(self, actionToUpdate, correspondingState, discountedRewardSum, targetActionvalue, nStep):
+    def _update_actionvalue(self, actionToUpdate, correspondingState, discountedRewardSum, targetActionvalue, nStep):
         # step by step, so you can watch exactly whats happening when using a debugger
-        Qbefore = self.get_Q(S=correspondingState, A=actionToUpdate)
+        Qbefore = self._get_Q(S=correspondingState, A=actionToUpdate)
         discountedTargetActionValue = cached_power(self.discountVar.get(), nStep) * targetActionvalue  # in the MC case (n is 0 here) the targetActionvalue is zero anyway, so it doesnt matter what n is.
         returnEstimate = discountedRewardSum + discountedTargetActionValue
         TD_error = returnEstimate - Qbefore
@@ -203,19 +207,18 @@ class Agent:
             self.learningRateVar.set(1/actionCountDict[actionToUpdate])
         update = self.learningRateVar.get() * TD_error
         Qafter = Qbefore + update
-        self.set_Q(S=correspondingState, A=actionToUpdate, value=Qafter)
+        self._set_Q(S=correspondingState, A=actionToUpdate, value=Qafter)
 
-    def plan(self):
-        # TODO: Use efficient data structure as long as unvisited state-actions are not choosable.
-        # TODO: Alternative: all are choosable, but initialized with model(S,A)=S,0
+    def _plan(self):
+        # TODO: Use efficient data structure as long as unvisited state-actions are not choosable. Alternative: all are choosable, but initialized with model(S,A)=S,0
         correspondingState, actionToUpdate = random.choice(tuple(self.visitedStateActionPairs))
         successorState, reward = evaluate(self.model, correspondingState)[actionToUpdate]
         if self.updateByExpectationVar.get():
             targetActionvalue = self.targetPolicy.get_expected_actionvalue(successorState)
         else:
             targetAction = self.targetPolicy.generate_action(successorState)
-            targetActionvalue = self.get_Q(S=successorState, A=targetAction)
-        self.update_actionvalue(actionToUpdate, correspondingState, reward, targetActionvalue, nStep=1)
+            targetActionvalue = self._get_Q(S=successorState, A=targetAction)
+        self._update_actionvalue(actionToUpdate, correspondingState, reward, targetActionvalue, nStep=1)
 
     def get_discount(self):
         return self.discountVar.get()
@@ -237,9 +240,6 @@ class Agent:
 
     def get_absence(self, state):
         return self.stateAbsenceCounts[state]
-
-    def get_Q(self, S, A):
-        return evaluate(self.Qvalues, S)[A]
 
     def get_targetAction(self):
         return self.targetAction
