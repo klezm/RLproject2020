@@ -17,10 +17,12 @@ import re
 
 def custom_warning(condition, importance, message, hideNadditionalStackLines=0, stream=sys.stdout):
     """
+    An more customizable alternative to built-in exceptions, which in particular does not necessarily cause the program to halt.
     :param bool condition: Throw if condition does NOT hold (= evaluates to False).
     :param int importance: 2: Throw error (red color and system exit). / 1: Throw warning (orange color). 0: Throw nothing.
     :param str message: Message shown if anything was thrown.
     :param int hideNadditionalStackLines: By default, the trace will not bring the user back to this function. Use a number > 0 to hide even more of the trace.
+    :param _io.TextIOWrapper stream:
     :return bool: True if error or warning was thrown, else False.
     """
     if not condition and importance:
@@ -122,12 +124,21 @@ def center(window):
     window.geometry('{}x{}+{}+{}'.format(width, height, x, y))
 
 
-def arrange_children(frame, order, useSticky=True, fillFrame=True, **kwargs):
+def arrange_children(frame, order, useSticky=True, fillFrame=True, **gridKwargs):
+    """
+    Arranges child widgets of a tk container all in a single line using the grid geometry manager.
+
+    :param frame: Parent container.
+    :param str order: "row" assigns a new row to each child so that they will be aligned in vertical direction. "column" assigns a new column to each child so that they will be aligned in horizontal direction.
+    :param bool useSticky: If True, each child will expand to use all its available space perpendicular to the direction given by the order argument.
+    :param bool fillFrame: if True, the children will be aligned so that together they will use all available space in the direction given by the order argument.
+    :param gridKwargs: Additional keyword arguments other than row, column or sticky that will be passed to the grid call of each child.
+    """
     stickyValues = {"row": (tk.W + tk.E) * useSticky, "column": (tk.N + tk.S) * useSticky}
-    kwargs = {"row": 0, "column": 0, "sticky": stickyValues[order]} | kwargs
+    gridKwargs = {"row": 0, "column": 0, "sticky": stickyValues[order]} | gridKwargs
     for i, child in enumerate(frame.winfo_children()):
-        kwargs[order] = i
-        child.grid(**kwargs)
+        gridKwargs[order] = i
+        child.grid(**gridKwargs)
         if fillFrame:
             getattr(frame, f"grid_{order}configure")(i, weight=1)
 

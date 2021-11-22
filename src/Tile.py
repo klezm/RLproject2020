@@ -55,13 +55,13 @@ class Tile(tk.Frame):
         actionSum = np.sum(greedyActions, axis=0)  # i.e. UP + RIGHT = (-1,-0) + (0,1) = (-1,1)
         index = actionSum + 1  # index where to find the representation of greedyactions with that sum in the GREEDYCHARS_ matrices
         color = "black"
-        if bool(set(greedyActions) & set(Agent.create_actionspace(default=False))):  # greedyActions contains nondefault action
+        if bool(set(greedyActions) & set(Agent.create_actionspace(straight=False))):  # greedyActions contains nondefault action
             if len(greedyActions) == 1:
                 color = myFuncs.direction_to_hsvHexString(tuple(actionSum), hsvValue=cls.DEFAULT_HSV_VALUE)  # tuple cast because a cached function needs mutable args
                 symbol = evaluate(cls.GREEDYCHARS_SINGLE_NONDEFAULT_ACTION, index)
             else:
                 symbol = cls.GREEDYCHAR_NONDEFAULT_ACTION_MIX
-        else:  # greedyActions contains only default actions
+        else:  # greedyActions contains only straight actions
             if len(greedyActions) <= 2:
                 color = myFuncs.direction_to_hsvHexString(tuple(actionSum), hsvValue=cls.DEFAULT_HSV_VALUE)  # tuple cast because a cached function needs mutable args
                 if actionSum.any():  # Other than opposing directions

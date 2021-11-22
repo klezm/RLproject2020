@@ -8,22 +8,22 @@ from myFuncs import cached_power, matrix_like, hRange, wRange, evaluate, assign
 
 
 class Agent:
-    """"""
+    """Reinforcement learner interacting with an Environment object and passing information to a GUI."""
     # RL variables:
     UP = (-1,0)  # actions and states are defined as tuples (not as lists), so they can be used as dict keys
     DOWN = (1,0)
     LEFT = (0,-1)
     RIGHT = (0,1)
-    DEFAULT_ACTIONSPACE = [UP, DOWN, LEFT, RIGHT]  # for iteration purposes
+    STRAIGHT_ACTIONSPACE = [UP, DOWN, LEFT, RIGHT]  # for iteration purposes
     UPLEFT = (-1,-1)
     UPRIGHT = (-1,1)
     DOWNLEFT = (1,-1)
     DOWNRIGHT = (1,1)
-    KING_EXCLUSIVE_ACTIONSPACE = [UPLEFT, UPRIGHT, DOWNLEFT, DOWNRIGHT]
+    DIAGONAL_ACTIONSPACE = [UPLEFT, UPRIGHT, DOWNLEFT, DOWNRIGHT]
     IDLE = (0,0)
     IDLE_ACTIONSPACE = [IDLE]
 
-    # Flow control variables to pass to an external GUI:
+    # Flow control states passed to the GUI:
     UPDATED_BY_PLANNING = "Planning Update"
     UPDATED_BY_EXPERIENCE = "Experience Update"
     TOOK_ACTION = "Action Taken"
@@ -33,21 +33,21 @@ class Agent:
 
     @classmethod
     @cache
-    def create_actionspace(cls, default=True, king=True, idle=True):
+    def create_actionspace(cls, straight=True, diagonal=True, idle=True):
         actionspace = []
-        if default:
-            actionspace += cls.DEFAULT_ACTIONSPACE
-        if king:
-            actionspace += cls.KING_EXCLUSIVE_ACTIONSPACE
+        if straight:
+            actionspace += cls.STRAIGHT_ACTIONSPACE
+        if diagonal:
+            actionspace += cls.DIAGONAL_ACTIONSPACE
         if idle:
             actionspace += cls.IDLE_ACTIONSPACE
         return actionspace
 
-    def __init__(self, environment, use_defaultActions, use_kingActions, use_idleActions, currentReturnVar, currentEpisodeVar, learningRateVar,
+    def __init__(self, environment, use_straightActions, use_diagonalActions, use_idleActions, currentReturnVar, currentEpisodeVar, learningRateVar,
                  dynamicAlphaVar, discountVar, nStepVar, nPlanVar, onPolicyVar, updateByExpectationVar, behaviorEpsilonVar, behaviorEpsilonDecayRateVar,
                  targetEpsilonVar, targetEpsilonDecayRateVar, decayEpsilonEpisodeWiseVar, initialActionvalueMean, initialActionvalueSigma, actionPlan=[]):
         self.environment = environment
-        self.actionspace = self.create_actionspace(use_defaultActions, use_kingActions, use_idleActions)
+        self.actionspace = self.create_actionspace(use_straightActions, use_diagonalActions, use_idleActions)
         self.currentReturnVar = currentReturnVar
         self.currentEpisodeVar = currentEpisodeVar
         self.learningRateVar = learningRateVar
