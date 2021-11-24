@@ -199,18 +199,19 @@ def create_font(size, family="calibri", weight="bold"):
     return f"{family} {size} {weight}"
 
 
-def print_default_values(classObject, suffix="Default", indent=2, width=180):
-    od = OrderedDict()
-    for mroClass in classObject.__mro__:  # Alternative: inspect.get_mro()
-        signature = {}
-        for kwarg, defaultValue in mroClass.__dict__.items():
-            if kwarg.endswith(suffix):
-                if hasattr(defaultValue, "__func__"):
-                    defaultValue = defaultValue.__func__  # is needed to bind unbound functions
-                if callable(defaultValue):
-                    sourceString = inspect.getsource(defaultValue)
-                    bracketIndex = sourceString.index("(")
-                    defaultValue = re.sub(" +", " ", sourceString[bracketIndex:].replace("\n", ";"))
-                signature[kwarg.replace(suffix, "")] = defaultValue
-        od[mroClass] = signature
+def get_kwarg_defaults(func):
+    return {name: param.default for
+            name, param
+            in inspect.signature(func).parameters.items()
+            if param.default is not inspect._empty}
+
+
+def print_default_kwargs(classObject, indent=2, width=1):
+    od = OrderedDict()  # no nice orderedDict comprehension available
+    for mroClass in inspect.getmro(classObject):
+        if "__init__" in mroClass.__dict__.keys():
+            od[mroClass.__name__] = get_kwarg_defaults(mroClass.__init__)
+        else:
+            od[mroClass.__name__] = f"__init___inherited_from_{mroClass.__init__.__qualname__.replace('.__init__', '')}"
+            # blanks in the string instead of underscores would look bad because of width=1, which is needed for the indentation to look good
     pprint(od, indent=indent, width=width)

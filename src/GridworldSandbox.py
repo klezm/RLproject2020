@@ -1,4 +1,5 @@
-﻿import tkinter as tk
+﻿import inspect
+import tkinter as tk
 from tkinter import messagebox
 from collections import OrderedDict
 from pathlib import Path
@@ -647,3 +648,18 @@ class GridworldSandbox:
         axes[1].set(xlabel="Action", ylabel="Return")
         plt.savefig(self.PLOTS_PATH / f"{len(self.agent.get_stepReturns())}_Actions.png")
         plt.show()
+
+
+def main():
+    #myFuncs.print_default_kwargs(Agent)
+    #myFuncs.print_default_kwargs(Environment)
+    #myFuncs.print_default_kwargs(Tilemap)
+    #myFuncs.print_default_kwargs(Tile)
+    #myFuncs.print_default_kwargs(CheckbuttonFrame)
+    #myFuncs.print_default_kwargs(RadiomenuButtonFrame)
+    #myFuncs.print_default_kwargs(InfoFrame)
+    myFuncs.print_default_kwargs(EntryFrame)
+
+
+if __name__ == "__main__":
+    main()

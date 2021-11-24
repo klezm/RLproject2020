@@ -242,7 +242,6 @@ class SafeVar(tk.Variable):
 
 
 def main():
-    myFuncs.print_default_values(SafeVar)
     tk.Tk()  # Needs to be called at least once to create instances of SafeVar.
     restrictedInt = SafeVar.basic_type(3, int, check_func=lambda x: 0 <= x <= 10, validityInstructions="Value must be an int between 0 and 10.")
     print(f"{restrictedInt.get() = }")
@@ -258,4 +257,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+   main()

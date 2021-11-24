@@ -20,7 +20,7 @@ class EntryFrame(SafeVarFrame):
 
 if __name__ == "__main__":
     try:
-        from myFuncs import print_default_values
-        print_default_values(EntryFrame)
-    except:
+        from myFuncs import print_default_kwargs
+        print_default_kwargs(EntryFrame)
+    except Exception:
         pass
