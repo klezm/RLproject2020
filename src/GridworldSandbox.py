@@ -22,7 +22,14 @@ from RadiomenuButtonFrame import RadiomenuButtonFrame
 
 
 class GridworldSandbox:
-    """Main class that holds the Agent, the Environment and the GUI
+    """A reinforcement learner interacts with a gridworld environment
+    by passing actions to it and receives rewards and successor states from it.
+    It is able to apply a variety of tabular temporal difference control algorithms
+    introduced in the book "Reinforcement Learning - An Introduction by Sutton & Barto",
+    as well as combinations between those algorithms. Detailed information about
+    the environment, the agents actions, decision making and value tables
+    is visualized by a GUI.
+    This is the main class that holds the Agent, the Environment and the GUI
     and manages most interactions between them."""
 
     LABELFRAME_ENABLED_COLOR = "blue"
@@ -315,7 +322,6 @@ class GridworldSandbox:
             throwWorldShapeError = False
             tileDictMatrix = yamlDict.pop("world")
             if tileDictMatrix is not None:
-                print(shape(tileDictMatrix), (self.H, self.W))
                 if shape(tileDictMatrix) == (self.H, self.W):
                     for h in range(self.H):
                         for w in range(self.W):
@@ -404,12 +410,12 @@ class GridworldSandbox:
                         teleportSink = newText[0]
                 arrivalRewardVarName = "Reward " + newBordercolor.capitalize()
                 tileData[h][w] = {"position": (h,w),
-                                 "isWall": newBackground == Tile.WALL_COLOR,
-                                 "isStart": newText == Tile.START_CHAR,
-                                 "isGoal": newText == Tile.GOAL_CHAR,
-                                 "arrivalRewardVar": self.parameterFramesDict[arrivalRewardVarName].get_variable(),
-                                 "teleportSource": teleportSource,
-                                 "teleportSink": teleportSink}
+                                  "isWall": newBackground == Tile.WALL_COLOR,
+                                  "isStart": newText == Tile.START_CHAR,
+                                  "isGoal": newText == Tile.GOAL_CHAR,
+                                  "arrivalRewardVar": self.parameterFramesDict[arrivalRewardVarName].get_variable(),
+                                  "teleportSource": teleportSource,
+                                  "teleportSink": teleportSink}
         self.environment.update(tileData)
         # TODO: Everytime a Tile is changed to an episode terminator, change its Qvalues to 0 explicitly. NO! Agent cant know this beforehand, thats the point!
 
@@ -650,7 +656,7 @@ class GridworldSandbox:
         plt.show()
 
 
-def main():
+if __name__ == "__main__":
     #myFuncs.print_default_kwargs(Agent)
     #myFuncs.print_default_kwargs(Environment)
     #myFuncs.print_default_kwargs(Tilemap)
@@ -659,7 +665,3 @@ def main():
     #myFuncs.print_default_kwargs(RadiomenuButtonFrame)
     #myFuncs.print_default_kwargs(InfoFrame)
     myFuncs.print_default_kwargs(EntryFrame)
-
-
-if __name__ == "__main__":
-    main()

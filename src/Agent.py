@@ -183,7 +183,7 @@ class Agent:
         else:
             policy = self.targetPolicy
         if self.updateByExpectationVar.get():
-            self.targetAction = None  # Otherwise, if switched dynamically to expectation during an episode, in the On-Policy case, the action selected in the else-block below would be copied and used as the behavior action in every following turn, resulting in an agent that cannot change its direction anymore
+            self.targetAction = None  # Without this line, if switched dynamically to expectation during an episode, in the On-Policy case, the action selected in the else-block below would be copied and used as the behavior action in every following turn, resulting in an agent that cannot change its direction anymore
             self.targetActionvalue = policy.get_expected_actionvalue(self.state)
         else:
             self.targetAction = policy.generate_action(self.state)

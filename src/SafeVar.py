@@ -46,23 +46,12 @@ class SafeVar(tk.Variable):
         :return SafeVar: SafeVar object.
         """
         myFuncs.custom_warning(type_ in [int, float, str, bool], 2, f"type_ must be int, float, str or bool, not {type_}", 1)
-        return cls(value, str_input_transform_func=float if type_ in (int, float) else None,
+        return cls(value, str_input_transform_func=float if type_ in (int, float) else lambda arg: arg,
                    main_transform_func=type_, **kwargs)
 
-    @staticmethod
-    def check_funcDefault(_): return True
-    @staticmethod
-    def main_transform_funcDefault(arg): return arg
-    str_input_transform_funcDefault = main_transform_funcDefault
-    unstableValueImportanceDefault = 1
-    invalidValueImportanceDefault = 2
-    tooltipFontDefault = "calibri 11"
-    validityInstructionsDefault = ""
-    trustSetDefault = False
-
-    def __init__(self, value, *args, widgets=None, validityInstructions: str=None, tooltipFont=None, trustSet=None,
-                 check_func=None, main_transform_func=lambda arg: 2*arg, str_input_transform_func=None, backwards_cast_func=None,
-                 unstableValueImportance=None, invalidValueImportance=None, **kwargs):
+    def __init__(self, value, *args, widgets=None, validityInstructions="", tooltipFont="calibri 11", trustSet=False,
+                 check_func=lambda _: True, main_transform_func=lambda arg: arg, str_input_transform_func=lambda arg: arg, backwards_cast_func=None,
+                 unstableValueImportance=1, invalidValueImportance=2, **kwargs):
         """Sets up a SafeVar object.
 
         :param value: Initial Value. An error is thrown if it does not pass the check.
@@ -85,20 +74,20 @@ class SafeVar(tk.Variable):
         self.processingInit = True
         self.processingTrace = False
         self.processingSuperSet = False
-        self.tooltipFont = self.tooltipFontDefault if tooltipFont is None else tooltipFont
+        self.tooltipFont = tooltipFont
         self.connectedWidgets = []
         if widgets is not None:
             self.connect_widgets(widgets)
         super().trace_add("write", lambda *traceArgs: self._traceFunc_wrapper())
         self.custom_traces = []
-        self.validityInstructions = self.validityInstructionsDefault if validityInstructions is None else validityInstructions
-        self.check_func = self.check_funcDefault if check_func is None else check_func
-        self.main_transform_func = self.main_transform_funcDefault if main_transform_func is None else main_transform_func
-        self.str_input_transform_func = self.str_input_transform_funcDefault if str_input_transform_func is None else str_input_transform_func
+        self.validityInstructions = validityInstructions
+        self.check_func = check_func
+        self.main_transform_func = main_transform_func
+        self.str_input_transform_func = str_input_transform_func
         self.backwards_cast_func = backwards_cast_func
-        self.unstableValueImportance = self.unstableValueImportanceDefault if unstableValueImportance is None else unstableValueImportance
-        self.invalidValueImportance = self.invalidValueImportanceDefault if invalidValueImportance is None else invalidValueImportance
-        self.trustSet = self.trustSetDefault if trustSet is None else trustSet
+        self.unstableValueImportance = unstableValueImportance
+        self.invalidValueImportance = invalidValueImportance
+        self.trustSet = trustSet
         self.lastProposedValue = value
         self.lastStableValue: object = None
         self.isValid: bool = None
@@ -242,6 +231,11 @@ class SafeVar(tk.Variable):
 
 
 def main():
+    try:
+        from myFuncs import print_default_kwargs
+        print_default_kwargs(SafeVar)
+    except Exception:
+        pass
     tk.Tk()  # Needs to be called at least once to create instances of SafeVar.
     restrictedInt = SafeVar.basic_type(3, int, check_func=lambda x: 0 <= x <= 10, validityInstructions="Value must be an int between 0 and 10.")
     print(f"{restrictedInt.get() = }")
@@ -257,4 +251,4 @@ def main():
 
 
 if __name__ == "__main__":
-   main()
+    main()

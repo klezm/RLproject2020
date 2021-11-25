@@ -5,19 +5,13 @@ from myFuncs import custom_warning
 
 class RadiomenuButton(tk.Menubutton):
     # Works with tk.StringVar and SafeVar as choiceVariable argument.
-    bdDefault = 3
-    arrowSymbolDefault = "⮛"
-    #arrowSymbolDefault = "⮟"
-    #arrowSymbolDefault = "▼"
     # This way, one doesnt have to know the exact default value if passing args through. So passing None guarantees the default value without prior knowledge.
-
-    def __init__(self, master, choices, choiceVariable: tk.Variable = None, width=None, bd=None, arrowSymbol=None, **kwargs):
+    # Alternative arror symbols: ⮟ ▼
+    def __init__(self, master, choices, choiceVariable: tk.Variable = None, width=None, bd=3, arrowSymbol="⮛", **kwargs):
         custom_warning(isinstance(choices, (list, tuple)), 2, "Argument: 'choices' must be a list or a tuple.", hideNadditionalStackLines=1)
         custom_warning(choices, 2, "Argument: 'choices' must have nonzero length.", hideNadditionalStackLines=1)
         for key in ["textvariable", "text", "menu", "anchor", "relief", "indicatoron"]:
             custom_warning(key not in kwargs, 2, f"Argument '{key}' is invalid.", hideNadditionalStackLines=1)
-        bd = self.bdDefault if bd is None else bd
-        arrowSymbol = self.arrowSymbolDefault if arrowSymbol is None else arrowSymbol
         if choiceVariable is None:
             self.choiceVariable = SafeVar(choices[0], check_func=lambda choice_: choice_ in choices, invalidValueImportance=2)
         else:
@@ -45,17 +39,26 @@ class RadiomenuButton(tk.Menubutton):
         self.get_choiceVar().set(choice)
 
 
-if __name__ == "__main__":
+def main():
+    try:
+        from myFuncs import print_default_kwargs
+        print_default_kwargs(RadiomenuButton)
+    except Exception:
+        pass
     root = tk.Tk()
     var = SafeVar(0)
-    rmb = RadiomenuButton(root, ["ana", "irjngf"], font="calibri 11")
-    #rmb = RadiomenuButton(root, ["ana", "irjngf"], text="",font="calibri 11")
+    rmb = RadiomenuButton(root, ["foo", "bar"], font="calibri 11")
+    #rmb = RadiomenuButton(root, ["foo", "bar"], text="", font="calibri 11")
     #rmb = RadiomenuButton(root, [], font="calibri 11")
-    #rmb = RadiomenuButton(root, ["ana", "irjngf"], choiceVariable=var, font="calibri 15 bold")
+    #rmb = RadiomenuButton(root, ["foo", "bar"], choiceVariable=var, font="calibri 15 bold")
     rmb.pack()
     rmb.get_choiceVar().trace_add(mode="write", callback=lambda: print(f"extra trace! value is now {rmb.get_choice()}"))
-    tk.Button(root, text="set correct", command=lambda: rmb.set_choice("ana")).pack()
-    tk.Button(root, text="set correct2", command=lambda: rmb.set_choice("irjngf")).pack()
-    tk.Button(root, text="set wrong", command=lambda: rmb.set_choice("edefe")).pack()
+    tk.Button(root, text="set correct", command=lambda: rmb.set_choice("foo")).pack()
+    tk.Button(root, text="set correct2", command=lambda: rmb.set_choice("bar")).pack()
+    tk.Button(root, text="set wrong", command=lambda: rmb.set_choice("fail")).pack()
     tk.Button(root, text="get", command=lambda: print(rmb.get_choice())).pack()
     root.mainloop()
+
+
+if __name__ == "__main__":
+    main()

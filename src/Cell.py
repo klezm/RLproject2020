@@ -1,4 +1,7 @@
 class Cell:
+    """Used by ``Environment`` class to represent a cell in the gridworld and store information about it.
+    No graphical representation here, just data!
+    """
     def __init__(self, position, isWall, isStart, isGoal, arrivalRewardVar, teleportSource, teleportSink):
         self.position = position
         self.isWall = isWall

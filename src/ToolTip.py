@@ -2,10 +2,8 @@ import tkinter as tk
 
 
 class ToolTip(tk.Toplevel):
-    delayDefault = 400  # [ms]
-
-    def __init__(self, master, delay=None, **labelKwargs):
-        self.delay = self.delayDefault if delay is None else delay
+    def __init__(self, master, delay=400, **labelKwargs):  # delay in ms
+        self.delay = delay
         super().__init__(master)
         self.withdraw()
         self.wm_attributes("-topmost", 1)
@@ -31,16 +29,20 @@ class ToolTip(tk.Toplevel):
         self.deiconify()
 
     def _leave(self):
-        self.master.winfo_toplevel().deiconify()  # Prevents the toplevel from iconifying if the curser left the widget directly via the toplevel border
+        self.master.winfo_toplevel().deiconify()  # Prevents the master-toplevel from iconifying if the curser left the widget directly via the toplevel border
         self.withdraw()
         if self.afterId is not None:
             self.afterId = self.after_cancel(self.afterId)  # returns None
 
 
-if __name__ == "__main__":
+def main():
     root = tk.Tk()
     for i in range(5):
         label = tk.Label(root, text=f"Label {i}", bg="#" + 6 * str(i+5), width=i+7)
         label.pack()
         ToolTip(label, text=f"Tooltip {i}")
     root.mainloop()
+
+
+if __name__ == "__main__":
+    main()

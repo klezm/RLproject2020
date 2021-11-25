@@ -75,11 +75,9 @@ class Tile(tk.Frame):
                 symbol = evaluate(cls.GREEDYCHARS_3_4, index)
         return {"text": symbol, "fg": color}
 
-    fontDefault = "calibri 14 bold"
-
-    def __init__(self, master, indicateNumericalValueChange, labelWidth, labelHeight, font=None, **kwargs):
+    def __init__(self, master, indicateNumericalValueChange, labelWidth, labelHeight, font="calibri 14 bold", **kwargs):
         super().__init__(master, relief=self.DEFAULT_RELIEF, **kwargs)
-        self.label = tk.Label(self, bd=0, height=labelHeight, width=labelWidth, font=self.fontDefault if font is None else font)
+        self.label = tk.Label(self, bd=0, height=labelHeight, width=labelWidth, font=font)
         self.label.pack(fill=tk.BOTH, expand=True)
         self.typeCycleIndex = 0
         self.borderColorCycleIndex = 0

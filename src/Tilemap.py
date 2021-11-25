@@ -1,32 +1,18 @@
 import tkinter as tk
 
-from myFuncs import matrix
+from myFuncs import matrix, get_default_kwargs
 from Tile import Tile
 
 
 class Tilemap(tk.Frame):
-    fontDefault = "calibri 14 bold"
-    displayWindDefault = False
-    indicateNumericalValueChangeDefault = False
-    tileWidthDefault = 2
-    tileHeightDefault = 2
-    tileBdDefault = 2
-
-    def __init__(self, master, H, W, interactionAllowed, font=None, displayWind=None, indicateNumericalValueChange=None, tileWidth=None, tileHeight=None, tileBd=None, **kwargs):
+    def __init__(self, master, H, W, interactionAllowed, font=get_default_kwargs(Tile)["font"], displayWind=False, indicateNumericalValueChange=False, tileWidth=2, tileHeight=2, tileBd=2, **kwargs):
         super().__init__(master, **kwargs)
         self.interactionAllowed = interactionAllowed
-        self.windLabel: tk.Label = None  # Wind frames must be added later manually, because they need a master (namely this tilemap instance) for the ctor call
+        self.windLabel: tk.Label = None  # Wind frames must be added later manually, because they need a master (namely this tilemap instance) for the init call
         self.tiles = matrix(H, W)
-
-        bd = self.tileBdDefault if tileBd is None else tileBd
-        labelWidth = self.tileWidthDefault if tileWidth is None else tileWidth
-        labelHeight = self.tileHeightDefault if tileHeight is None else tileHeight
-        font = self.fontDefault if font is None else font
-        indicateNumericalValueChange = self.indicateNumericalValueChangeDefault if indicateNumericalValueChange is None else indicateNumericalValueChange
-        displayWind = self.displayWindDefault if displayWind is None else displayWind
         for h in range(H):
             for w in range(W):
-                self.tiles[h][w] = Tile(self, bd=bd, labelWidth=labelWidth, labelHeight=labelHeight, font=font, indicateNumericalValueChange=indicateNumericalValueChange)
+                self.tiles[h][w] = Tile(self, bd=tileBd, labelWidth=tileWidth, labelHeight=tileHeight, font=font, indicateNumericalValueChange=indicateNumericalValueChange)
                 self.tiles[h][w].grid(row=h+displayWind, column=w+displayWind)
 
     def protect_text_and_color(self, h, w):

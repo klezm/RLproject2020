@@ -7,36 +7,33 @@ from ToolTip import ToolTip
 class ParameterFrame(tk.Frame):
     """Base class for a custom Frame that holds two widgets side by side.
     The left widget should provide information, the right widget is an
-    interactive widget connected to a variable. Its behaviour will be
-    defined by daughter classes inheriting from this class.
+    interactive widget ("prompt") connected to a variable. Its behaviour
+    will be defined by daughter classes inheriting from this class.
     """
-    fontDefault = "calibri 14 bold"
-    promptFgDefault = "black"
-    nNameLabelBlanksDefault = 2
     highlightAttributes = ["bg"]  # Default for subclasses
     isInteractive = True  # Default for subclasses
 
-    def __init__(self, master, *args, variable=None, nameLabel=None, value=None, labelWidth=None, explanation=None, promptFg=None, font=None, promptFont=None, nNameLabelBlanks=None, **kwargs):
+    def __init__(self, master, *args, variable=None, nameLabel=None, value=None, labelWidth=None, explanation=None, promptFg="black", font="calibri 14 bold", promptFont=None, nNameLabelBlanks=2, **kwargs):
         """Creates a ParameterFrame object.
 
         :param master: Parent container.
         :param args: Additional arguments passed to the super().__init__ (tk.Frame)
-        :param variable: Pre-build tk.Variable (or daughter class) that will be connected to the interactive widget on the right. If None is passed, a new variable will be build and assigned by the _make_var method that is overwritten by daughter classes.
-        :param nameLabel: Widget (or daughter class) that will be used as the widget on the left. If a nonempty str is passed instead, a tk.Label will be build from that. If None or an empty string is passed, there will be no widget on the left at all.
-        :param value: Optional initial value for the used variable.
-        :param int labelWidth: Width of the widget on the left.
-        :param str explanation: If not empty or None, this explanation will be shown in a popup while hovering anywhere over the Frame.
-        :param promptFg: Default foreground color of the widget on the right.
-        :param font: Font of the widget on the left
-        :param promptFont: Font of the widget on the right. If None is passed, propmtFont will be set to the value of font.
-        :param nNameLabelBlanks: For optical finetuning, specify how many blanks should be appended to the string shown in the left widget.
+        :param tk.Variable | None variable: Pre-build tk.Variable (or daughter class) that will be connected to the interactive widget on the right. If None is passed, a new variable will be build and assigned by the _make_var method that is overwritten by daughter classes.
+        :param tk.Widget | str | None nameLabel: Widget (or daughter class) that will be used as the widget on the left. If a nonempty str is passed instead, a tk.Label will be build from that. If None or an empty string is passed, there will be no widget on the left at all.
+        :param int | None value: Optional initial value for the used variable.
+        :param int | None labelWidth: Width of the widget on the left. This will be passed to the width argument of tk.Label, if no existig widget is passed to the nameLabel arg.
+        :param str | None explanation: If not empty or None, this explanation will be shown in a popup while hovering anywhere over the Frame.
+        :param str promptFg: Default foreground color of the widget on the right.
+        :param str font: Font of the widget on the left
+        :param str | None promptFont: Font of the widget on the right. If None is passed, propmtFont will be set to the value of font.
+        :param int nNameLabelBlanks: For optical finetuning, specify how many blanks should be appended to the string shown in the left widget.
         :param kwargs: Additional keyword arguments passed to the super().__init__ (tk.Frame)
         """
         super().__init__(master, *args, **kwargs)
         # setting labelwidth to None gives flexible labels
-        self.promptFg = self.promptFgDefault if promptFg is None else promptFg
-        self.nNameLabelBlanks = self.nNameLabelBlanksDefault if nNameLabelBlanks is None else nNameLabelBlanks
-        self.font = self.fontDefault if font is None else font
+        self.promptFg = promptFg
+        self.nNameLabelBlanks = nNameLabelBlanks
+        self.font = font
         self.promptFont = self.font if promptFont is None else promptFont
         self.grid_columnconfigure(0, weight=1)
         self.grid_columnconfigure(1, weight=1)

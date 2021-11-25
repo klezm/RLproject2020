@@ -12,7 +12,6 @@ import yaml
 import traceback
 import sys
 import inspect
-import re
 
 
 def custom_warning(condition, importance, message, hideNadditionalStackLines=0, stream=sys.stdout):
@@ -56,6 +55,7 @@ def matrix_like(mat, value=0):
 
 def evaluate(mat, indexTuple):
     return mat[indexTuple[0]][indexTuple[1]]
+
 
 def assign(mat, indexTuple, value):
     mat[indexTuple[0]][indexTuple[1]] = value
@@ -199,19 +199,26 @@ def create_font(size, family="calibri", weight="bold"):
     return f"{family} {size} {weight}"
 
 
-def get_kwarg_defaults(func):
-    return {name: param.default for
-            name, param
-            in inspect.signature(func).parameters.items()
-            if param.default is not inspect._empty}
+def get_default_kwargs(clss=None, func=None, hierarchy=False):
+    # one has to insert both clss.func and func for class methods
+    if clss is None:
+        return {name: param.default for
+                name, param
+                in inspect.signature(func).parameters.items()
+                if param.default is not inspect._empty}
+    if func is None:
+        func = clss.__init__
+    hierarchyDict = OrderedDict()  # no nice orderedDict comprehension available
+    plainDict = dict()
+    for mroClass in reversed(inspect.getmro(clss)):  # reversed so that daughter defaults that overwrote mother defaults will be displayed correctly
+        try:
+            funcKwargs = get_default_kwargs(func=mroClass.__dict__[func.__name__])
+            hierarchyDict[mroClass.__name__] = funcKwargs
+            plainDict |= funcKwargs
+        except KeyError:
+            hierarchyDict[mroClass.__name__] = f"{func.__name__}-inherited-from-{mroClass.__init__.__qualname__.replace(f'.{func.__name__}', '')}"  # one might get the __name__ of the class this way, but getting the object is hard if it wasnt imported
+    return hierarchyDict if hierarchy else plainDict
 
 
-def print_default_kwargs(classObject, indent=2, width=1):
-    od = OrderedDict()  # no nice orderedDict comprehension available
-    for mroClass in inspect.getmro(classObject):
-        if "__init__" in mroClass.__dict__.keys():
-            od[mroClass.__name__] = get_kwarg_defaults(mroClass.__init__)
-        else:
-            od[mroClass.__name__] = f"__init___inherited_from_{mroClass.__init__.__qualname__.replace('.__init__', '')}"
-            # blanks in the string instead of underscores would look bad because of width=1, which is needed for the indentation to look good
-    pprint(od, indent=indent, width=width)
+def print_default_kwargs(clss=None, func=None, indent=2, width=1):
+    pprint(get_default_kwargs(clss, func, hierarchy=True), indent=indent, width=width)
