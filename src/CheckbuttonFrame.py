@@ -10,7 +10,7 @@ class CheckbuttonFrame(ParameterFrame):
         self.variable = tk.BooleanVar()
 
     def _make_prompt(self):
-        kwargs = self.get_prompt_kwargs()
+        kwargs = self._get_prompt_kwargs()
         self.dataPrompt = tk.Checkbutton(self, variable=self.variable, **kwargs)
 
 

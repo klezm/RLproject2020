@@ -5,6 +5,10 @@ from myFuncs import evaluate
 
 
 class EpsilonGreedyPolicy(Policy):
+    """ε-greedy policy as introduced in Sutton & Barto.
+    ε defines the probability of using a random action
+    over a greedy action and may be altered over time.
+    """
     def __init__(self, agent, epsilonVar, epsilonDecayRateVar):
         # Epsilon = 0 equals the greedy policy
         super().__init__(agent)

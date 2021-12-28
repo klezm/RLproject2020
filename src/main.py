@@ -4,9 +4,10 @@ from GridworldSandbox import GridworldSandbox
 
 
 def main():
-    """Sets up a tkinter GUI, a GridworldSandbox, and connects them."""
+    """Sets up a ``tkinter`` root process, a ``GridworldSandbox``, and connects them.
+    """
     root = tk.Tk()
-    root.withdraw()
+    root.withdraw()  # dont wanna use the root process like a toplevel
     GridworldSandbox(guiProcess=root)
     root.mainloop()
 

@@ -6,6 +6,15 @@ from Cell import Cell
 
 
 class Environment:
+    """Holds all data about the gridworld environment an agent interacts with and defines its behaviour.
+     ..
+    Supported features include (non-)episodic tasks, applying changes between episodes,
+    customizable cell rewards, randomized start, (randomizable) teleporters, wind,
+    cylinder- and torus-shaped maps, and an icy floor.\n
+    This features may be combined mostly without restrictions and allow
+    rebuilding most of the gridworlds introduced in the book
+    "Reinforcement Learning - An Introduction" by Sutton & Barto.
+    """
     def __init__(self, H, W, hasIceFloorVar, isHtorusVar, isWtorusVar, hWindVars, wWindVars):
         self.grid = matrix(H, W)
         self.hasIceFloorVar = hasIceFloorVar
@@ -13,7 +22,7 @@ class Environment:
         self.windVars = (hWindVars, wWindVars)
         self.agentPosition = None  # In a gridworld, position and agent state can be treated equivalent, but not in general! i.e. snake
         self.teleportJustUsed = None  # needed as a flag for coloring this tile yellow
-
+        self.windJustUsed = None
 
     def update(self, tileData):
         for h in hRange(self.grid):
@@ -21,21 +30,26 @@ class Environment:
                 self.grid[h][w] = Cell(**tileData[h][w])
 
     def apply_action(self, action):
+        # Step, Wind & Ice:
+        self.windJustUsed = None
         oldEstimate = self.agentPosition
         while True:
-            destinationEstimate = self._get_step_destination(oldEstimate, action)  # processes world edge / torus / wall
-            destinationEstimate = self._get_wind_destination(destinationEstimate)
-            if not self.hasIceFloorVar.get() or destinationEstimate == oldEstimate:
+            stepDestinationEstimate = self._get_step_destination(oldEstimate, action)  # processes world edge / torus / wall
+            windDestinationEstimate = self._get_wind_destination(stepDestinationEstimate)
+            if windDestinationEstimate != stepDestinationEstimate:
+                self.windJustUsed = stepDestinationEstimate
+            if not self.hasIceFloorVar.get() or windDestinationEstimate == oldEstimate:
                 break
-            oldEstimate = destinationEstimate
-        self.agentPosition = destinationEstimate
+            oldEstimate = windDestinationEstimate
+        self.agentPosition = windDestinationEstimate
         reward = self._gather_reward()
+        # Teleporter:
+        self.teleportJustUsed = None
         if evaluate(self.grid, self.agentPosition).is_teleport_entry():
             self.teleportJustUsed = self.agentPosition  # needed for coloring
-            self.agentPosition = self._get_teleport_destination(evaluate(self.grid, self.agentPosition))
+            self.agentPosition = self._get_teleport_destination(self.agentPosition)
             reward += self._gather_reward()
-        else:
-            self.teleportJustUsed = None
+        # Goal:
         episodeFinished = evaluate(self.grid, self.agentPosition).terminates_episode()
         return reward, self.agentPosition, episodeFinished
 
@@ -53,14 +67,15 @@ class Environment:
         self.agentPosition = None
         return self.agentPosition
 
-    def _get_teleport_destination(self, entryCell):
+    def _get_teleport_destination(self, position):
+        entryCell = evaluate(self.grid, position)
         teleportName = entryCell.teleportSink
         cellArray = np.array(self.grid).flatten()
         candidates = [cell.get_position() for cell in cellArray if (cell.is_teleportName_destination(teleportName) and cell is not entryCell)]
         if not candidates:  # random destination if no free source of this teleporter is available
             candidates = [cell.get_position() for cell in cellArray if (cell.is_suitable_spawn())]
         if not candidates:
-            candidates = [entryCell.get_position()]
+            candidates = [position]
         return random.choice(candidates)
 
     def _get_step_destination(self, position, step):
@@ -78,9 +93,8 @@ class Environment:
         return estimate
 
     def _get_wind_destination(self, position):
-        wind = [0,0]
-        for iDim in [0,1]:
-            wind[iDim] = self.windVars[iDim][position[not iDim]].get()
+        wind = [self.windVars[0][position[1]].get(),
+                self.windVars[1][position[0]].get()]
         absWind = np.abs(wind)
         if any(wind) and (0 in wind or absWind[0] == absWind[1]):   # only apply wind if one wind dim is zero or both are equally nonzero strong
             maxWindStrength = np.max(absWind)
@@ -100,3 +114,6 @@ class Environment:
 
     def get_teleportJustUsed(self):
         return self.teleportJustUsed
+
+    def get_windJustUsed(self):
+        return self.windJustUsed

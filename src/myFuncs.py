@@ -15,13 +15,12 @@ import inspect
 
 
 def custom_warning(condition, importance, message, hideNadditionalStackLines=0, stream=sys.stdout):
-    """
-    An more customizable alternative to built-in exceptions, which in particular does not necessarily cause the program to halt.
+    """An more customizable alternative to builtin exceptions, that in particular does not necessarily cause the program to halt.
     :param bool condition: Throw if condition does NOT hold (= evaluates to False).
-    :param int importance: 2: Throw error (red color and system exit). / 1: Throw warning (orange color). 0: Throw nothing.
+    :param int importance: 2: Throw error (red color) and system exit / 1: Throw warning (orange color) and proceed / 0: Throw nothing and proceed.
     :param str message: Message shown if anything was thrown.
     :param int hideNadditionalStackLines: By default, the trace will not bring the user back to this function. Use a number > 0 to hide even more of the trace.
-    :param _io.TextIOWrapper stream:
+    :param _io.TextIOWrapper stream: standard output/ standard error/ file/ ...
     :return bool: True if error or warning was thrown, else False.
     """
     if not condition and importance:
@@ -35,6 +34,12 @@ def custom_warning(condition, importance, message, hideNadditionalStackLines=0, 
             sys.exit(1)
         return True
     return False
+
+
+# When vectorization is not an issue, numpy arrays are slower than builtin lists.
+# However, working with matrices as lists of lists often requires quite lengthy commands
+# compared to "equivalent" numpy commands. The following functions provide a more
+# convenient way to create and manage such "native matrices", using a numpy-like interface.
 
 
 def hRange(mat):
@@ -106,11 +111,12 @@ def direction_to_hsvHexString(direction, colorwheelAngleOffset=0, hsvValue=0.75)
 
 
 def get_light_color(color: str, lightness: str):
+    """color must be in hex format, f.e. '#012DEF' """
     return color.replace("0", lightness)
 
 
 def center(window):
-    # Centers a tkinter window. Function taken from stackoverflow.
+    """Centers a tkinter window. Function taken from stackoverflow."""
     window.update_idletasks()  # For stability: Apply latest changes.
     # Now some magic to find the center of the visible screen, no matter what, and let the window center match that coordinates.
     width = window.winfo_width()
@@ -200,7 +206,16 @@ def create_font(size, family="calibri", weight="bold"):
 
 
 def get_default_kwargs(clss=None, func=None, hierarchy=False):
-    # one has to insert both clss.func and func for class methods
+    """Returns the default values of all keyword arguments of a given function/method,
+    even those which are hidden in a *kwargs argument to get passed through to (nested)
+    ``super().__init__`` calls.
+
+    :param type clss: If None, indicates that the given function isnt bound to a class. Otherwise, this argument MUST be the corresponding class object.
+    :param function func: If None, the __init__ of the given class will be assigned to this argument.
+    :param bool hierarchy: If True, also includes class information. Just try and see.
+    :return dict: Data
+    """
+    # one has to insert both clss and clss.func for class methods
     if clss is None:
         return {name: param.default for
                 name, param

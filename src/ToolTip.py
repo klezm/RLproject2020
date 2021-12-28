@@ -2,7 +2,15 @@ import tkinter as tk
 
 
 class ToolTip(tk.Toplevel):
+    """Dynamic, intuitive tooltip for arbitrary ``tkinter Widgets``
+    """
     def __init__(self, master, delay=400, **labelKwargs):  # delay in ms
+        """ Creates a ``Tooltip`` object. Manages a single ``packed tk.Label`` inside to display text.
+
+        :param master: Parent Widget
+        :param delay: Time delay in milliseconds until the Tooltip appears after entering the parent widget with the cursor.
+        :param labelKwargs: Keyword arguments passed to the initialization call of the tk.Label inside.
+        """
         self.delay = delay
         super().__init__(master)
         self.withdraw()
@@ -36,6 +44,12 @@ class ToolTip(tk.Toplevel):
 
 
 def main():
+    try:
+        from myFuncs import print_default_kwargs
+        print_default_kwargs(ToolTip)
+    except Exception:
+        pass
+
     root = tk.Tk()
     for i in range(5):
         label = tk.Label(root, text=f"Label {i}", bg="#" + 6 * str(i+5), width=i+7)

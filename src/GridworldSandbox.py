@@ -1,5 +1,4 @@
-﻿import inspect
-import tkinter as tk
+﻿import tkinter as tk
 from tkinter import messagebox
 from collections import OrderedDict
 from pathlib import Path
@@ -23,18 +22,22 @@ from RadiomenuButtonFrame import RadiomenuButtonFrame
 
 class GridworldSandbox:
     """A reinforcement learner interacts with a gridworld environment
-    by passing actions to it and receives rewards and successor states from it.
-    It is able to apply a variety of tabular temporal difference control algorithms
-    introduced in the book "Reinforcement Learning - An Introduction by Sutton & Barto",
-    as well as combinations between those algorithms. Detailed information about
-    the environment, the agents actions, decision making and value tables
-    is visualized by a GUI.
-    This is the main class that holds the Agent, the Environment and the GUI
-    and manages most interactions between them."""
+    by passing actions to it and in return receives rewards and successor states
+    from the environment.\n
+    Detailed information about the environment, the agents actions,
+    decision making and value tables is visualized by a GUI.\n
+    Dynamically customizable visualization rules that allow users to pause
+    the whole process, viewing it step by step or skip rendering unimportant
+    steps completely enable an efficient view and analysis of the underlying processes.\n
+    The user can build custom gridwordls in the GUI,
+    which may be saved and loaded in/from files.\n
+    This is the main class that holds the Agent, the Environment
+    and the GUI and manages most interactions between them."""
 
     LABELFRAME_ENABLED_COLOR = "blue"
     LABELFRAME_DISABLED_COLOR = "grey"
     WARNING_COLOR = "red"
+    WEAK_WARNING_COLOR = "orange"
     VALUE_TILEMAPS_RELIEF_DEFAULT = tk.FLAT
     VALUE_TILEMAPS_RELIEF_TARGET_ACTION = tk.GROOVE
     GUI_FRAMES_RELIEF_DEFAULT = tk.GROOVE
@@ -46,8 +49,7 @@ class GridworldSandbox:
     SETTINGS_PATH = ROOT_PATH / "settings"
 
     def __init__(self, guiProcess):
-        """
-        Declares RL- and flow control variables ans builds the GUI.
+        """Declares RL- and flow control variables ans builds the GUI.
 
         :param tk.Tk guiProcess: tk root object
         """
@@ -123,15 +125,17 @@ class GridworldSandbox:
 
         # The following scheme is an attempt to visually align the structure of the GUI source code with the GUI itself,
         # with the goal of making it as intuitively understandable and extensible as possible.
-        # The key idea is to manage nested containers/frames in a tree structure where each node is a frame and
-        # the children of almost every node are arranged EITHER exclusively side-by-side OR exclusively on top of each other inside their parent.
+        # The key idea is to manage nested containers/frames in a tree structure where each frame is a node
+        # and the children of almost every frame are graphically arranged EITHER exclusively side-by-side
+        # OR exclusively on top of each other inside their parent frames.
         # The root of the tree is a tk.Toplevel object, the leaves may also be tk objects without container property.
         # The depth of each node in the tree respectively the nesting depth of the associated frame is represented by
         # the indentation depth of its constructor call, where the indentation is artificially realized by "If True:" lines,
         # each representing one node respectively one frame.
         # After all children of a frame are defined, they are arranged using the arrange_children function,
         # which takes the desired alignment as an argument and hides all geometry-related tk function calls.
-        # The sorting of the children-frames inside their parent-frame automatically corresponds to the order of their constructor calls.
+        # The sorting of the children-frames inside their parent-frame automatically corresponds to the order
+        # of their constructor calls.
 
         # Initial values can be arbitrary, since the default config is loaded anyway right after the GUI was built.
 
@@ -172,7 +176,7 @@ class GridworldSandbox:
                     self.greedyPolicyTilemap = Tilemap(self.valueVisualizationFrame, H=self.H, W=self.W, interactionAllowed=False, font=fontQvalues,
                                                        tileWidth=self.QVALUES_WIDTH, bd=sizesDict["targetmarker width"], tileHeight=sizesDict["qvalues height"], tileBd=sizesDict["qvalues borderwidth"], relief=self.VALUE_TILEMAPS_RELIEF_TARGET_ACTION)
                     self.greedyPolicyTilemap.grid(row=1, column=1)
-                    self.guiProcess.bind_all("<space>", lambda _: self.toggle_idleActionValues())
+                    self.guiProcess.bind_all("<space>", lambda _: self._toggle_idleActionValues())
                     self.idleActionValues_visible = False
 
                     # no arrange_children call here since a more complex alignment is needed
@@ -193,7 +197,7 @@ class GridworldSandbox:
                     self.hTorusFrame = CheckbuttonFrame(self.worldSettingsFrame, nameLabel="H-Torus", font=fontMiddle)
                     self.wTorusFrame = CheckbuttonFrame(self.worldSettingsFrame, nameLabel="W-Torus", font=fontMiddle)
                     self.rewardFrames = OrderedDict([(color, EntryFrame(self.worldSettingsFrame, nameLabel=f"Reward {color.capitalize()}", promptFg=color, font=fontMiddle, varTargetType=int)) for color in Tile.BORDER_COLORS])
-                    self.resetButton = tk.Button(self.worldSettingsFrame, text="Reset World", font=fontBig, bd=5, command=self.reset_gridworld)
+                    self.resetButton = tk.Button(self.worldSettingsFrame, text="Reset World", font=fontBig, bd=5, command=self._reset_gridworld)
 
                     myFuncs.arrange_children(self.worldSettingsFrame, order="row")
 
@@ -238,9 +242,9 @@ class GridworldSandbox:
 
                     if True:  # flowButtonsFrame:
                         # pause is only hidden behind go because of the order of lines below. If this somehow fails, uncomment all lines that say "use this again if Pause appears over Go! when it shouldnt" as a comment
-                        self.pauseButton = tk.Button(self.flowButtonsFrame, text="Pause", font=fontBig, bd=5, width=6, command=self.demand_pause)
-                        self.goButton = tk.Button(self.flowButtonsFrame, text="Go!", font=fontBig, bd=5, width=6, command=lambda: self.start_flow(demandPauseAtNextVisualization=False))
-                        self.nextButton = tk.Button(self.flowButtonsFrame, text="Next", font=fontBig, bd=5, width=6, command=lambda: self.start_flow(demandPauseAtNextVisualization=True))
+                        self.pauseButton = tk.Button(self.flowButtonsFrame, text="Pause", font=fontBig, bd=5, width=6, command=self._demand_pause)
+                        self.goButton = tk.Button(self.flowButtonsFrame, text="Go!", font=fontBig, bd=5, width=6, command=lambda: self._start_flow(demandPauseAtNextVisualization=False))
+                        self.nextButton = tk.Button(self.flowButtonsFrame, text="Next", font=fontBig, bd=5, width=6, command=lambda: self._start_flow(demandPauseAtNextVisualization=True))
                         self.goButton.grid(row=0, column=0)
                         self.pauseButton.grid(row=0, column=0)
                         # self.pauseButton.grid_remove()  # use this again if Pause appears over Go when it shouldnt
@@ -262,33 +266,40 @@ class GridworldSandbox:
                     self.dataButtonsFrame.grid_configure(sticky="")  # this is a correction after the arrange_children() call, since the children of dataButtonsFrame should not be sticky
 
                     if True:  # dataButtonsFrame:
-                        self.loadButton = tk.Button(self.dataButtonsFrame, text="Load", font=fontBig, bd=5, width=5, command=self.load)
-                        self.saveButton = tk.Button(self.dataButtonsFrame, text="Save", font=fontBig, bd=5, width=5, command=self.save)
+                        self.loadButton = tk.Button(self.dataButtonsFrame, text="Load", font=fontBig, bd=5, width=5, command=self._load)
+                        self.saveButton = tk.Button(self.dataButtonsFrame, text="Save", font=fontBig, bd=5, width=5, command=self._save)
 
                         myFuncs.arrange_children(self.dataButtonsFrame, order="column")
 
-        self.parameterFramesDict = self.recursiveGather_namedInteractiveParameterFrames(self.mainWindow)
-        self.load(self.SAFEFILE_PATH / initialWindowDict['default configfile'])
+        self.parameterFramesDict = self._recursiveGather_namedInteractiveParameterFrames(self.mainWindow)
+        # Following params stay constant over an Agents whole lifespan so their frames will be disabled for that time
+        self.lifetimeParameterFrames = [self.predefinedAlgorithmFrame,
+                                        self.dynamicAlphaFrame,
+                                        self.initialActionvalueMeanFrame,
+                                        self.initialActionvalueSigmaFrame]
+        self._load(self.SAFEFILE_PATH / initialWindowDict['default configfile'])
 
         # assign traces
         self.relevantOperations = set()
-        self.showEveryNoperationsFrame.set_and_call_trace(self.reset_agentOperationCounts)
+        self.showEveryNoperationsFrame.set_and_call_trace(self._reset_agentOperationCounts)
         for operation, frame in (self.operationFrames.items()):
-            frame.set_and_call_trace(lambda operation=operation: self.toggle_operation_relevance(operation))
-        self.dynamicAlphaFrame.set_and_call_trace(self.toggle_alpha_freeze)
-        self.onPolicyFrame.set_and_call_trace(self.toggle_targetPolicyFrame)
-        self.onPolicyFrame.set_and_call_trace(self.toggle_offPolicy_nStep_warning)
-        self.nStepFrame.set_and_call_trace(self.toggle_offPolicy_nStep_warning)
+            frame.set_and_call_trace(lambda operation=operation: self._toggle_operation_relevance(operation))
+        self.dynamicAlphaFrame.set_and_call_trace(self._toggle_alpha_freeze)
+        self.onPolicyFrame.set_and_call_trace(self._toggle_targetPolicyFrame)
+        self.onPolicyFrame.set_and_call_trace(self._toggle_offPolicy_nStep_warning)
+        self.nStepFrame.set_and_call_trace(self._toggle_offPolicy_nStep_warning)
         for frame in self.hWindFrames + self.wWindFrames:
-            frame.set_and_call_trace(self.toggle_ice_and_crosswind_warning)
-        self.iceFloorFrame.set_and_call_trace(self.toggle_ice_and_crosswind_warning)
-        self.predefinedAlgorithmFrame.set_and_call_trace(self.toggle_algorithm)
+            frame.set_and_call_trace(self._toggle_ice_and_crosswind_warning)
+        self.iceFloorFrame.set_and_call_trace(self._toggle_ice_and_crosswind_warning)
+        self.predefinedAlgorithmFrame.set_and_call_trace(self._toggle_algorithm)
 
         myFuncs.center(self.mainWindow)
         if self.allow_idleActions and initialWindowDict["show idle action warning"]:
             messagebox.showinfo("Idle Action Available", "You have chosen to include (0,0) in the agents actionspace.\nPress space to toggle the view between the Q-values of that action and the agents greedy choices.")
 
-    def reset_gridworld(self):
+    def _reset_gridworld(self):
+        """Resets the whole gridworld environment to its initial state.
+        """
         self.gridworldTilemap.reset()
         self.iceFloorFrame.set_value(False)
         self.hTorusFrame.set_value(False)
@@ -296,7 +307,11 @@ class GridworldSandbox:
         for frame in self.hWindFrames + self.wWindFrames:
             frame.set_value(0)
 
-    def toggle_idleActionValues(self):
+    def _toggle_idleActionValues(self):
+        """Triggered by user input. If idle actions are part of the chosen actionspace,
+        switches the center ``Tilemap`` of the value visualization frame between
+        showing greedy actions and showing the value of the idle action.
+        """
         if self.allow_idleActions:
             if self.idleActionValues_visible:
                 self.greedyPolicyTilemap.grid()
@@ -307,16 +322,28 @@ class GridworldSandbox:
                 self.qValueTilemaps[Agent.IDLE].grid()
                 self.idleActionValues_visible = True
 
-    def recursiveGather_namedInteractiveParameterFrames(self, frame):
+    def _recursiveGather_namedInteractiveParameterFrames(self, frame):
+        """Recursive helper method to create a mapping of all (arbitrarily deep nested)
+        ``ParameterFrames`` inside a given root container to their names. Makes some
+        things much easier.
+        :param frame:
+        :return:
+        """
         collection = dict()
         for child in frame.winfo_children():
             if isinstance(child, ParameterFrame) and child.isInteractive and child.get_text():
                 collection[child.get_text()] = child
             else:
-                collection |= self.recursiveGather_namedInteractiveParameterFrames(child)
+                collection |= self._recursiveGather_namedInteractiveParameterFrames(child)
         return collection
 
-    def load(self, filename=None):
+    def _load(self, filename=None):
+        """Triggered by user input or at initialization.
+        Loads a predefined environment along with agents algorithm settings from a yaml file.
+        Triggers a popup if the word- or wind shape doesnt match.
+
+        :param str filename: Name of the file. ".yaml" suffix optional. If None, opens a dialog for user input.
+        """
         yamlDict = myFuncs.get_dict_from_yaml_file(filename, initialdir=self.SAFEFILE_PATH)
         if yamlDict:  # get_dict_from_yaml_file could have returned an empty Dict if dialog was canceled
             throwWorldShapeError = False
@@ -348,16 +375,21 @@ class GridworldSandbox:
             for name, frame in self.parameterFramesDict.items():  # must be executed only after world and wind was popped
                 frame.set_value(yamlDict[name])
 
-    def save(self, filepath=None):
+    def _save(self, filepath=None):
+        """Triggered by user input. Saves the current state of the environment
+        and the agents current algorithm settings to a yaml file.
+        Agents actionvalues are **not** included.
+
+        :param filepath:  Name of the file. ".yaml" suffix optional. If None, opens a dialog for user input.
+        """
         valueDict = {name: frame.get_value() for name, frame in self.parameterFramesDict.items()}
         valueDict["world"] = self.gridworldTilemap.get_yaml_list()
         valueDict["hWind"] = [frame.get_value() for frame in self.hWindFrames]
         valueDict["wWind"] = [frame.get_value() for frame in self.wWindFrames]
         myFuncs.create_yaml_file_from_dict(valueDict, filepath, nameEmbedding=f"{{}}_{self.H}x{self.W}", initialdir=self.SAFEFILE_PATH)
 
-    def initialize_environment_and_agent(self):
-        self.environment = Environment(H=self.H,
-                                       W=self.W,
+    def _initialize_environment_and_agent(self):
+        self.environment = Environment(H=self.H, W=self.W,
                                        hasIceFloorVar=self.iceFloorFrame.get_variable(),
                                        isHtorusVar=self.hTorusFrame.get_variable(),
                                        isWtorusVar=self.wTorusFrame.get_variable(),
@@ -385,7 +417,7 @@ class GridworldSandbox:
                            initialActionvalueMean=self.initialActionvalueMeanFrame.get_value(),
                            initialActionvalueSigma=self.initialActionvalueSigmaFrame.get_value())
 
-    def update_environment(self):
+    def _update_environment(self):
         tileData = matrix(self.H, self.W)
         valueVisualizationTilemaps = self.valueVisualizationFrame.winfo_children()
         for h in range(self.H):
@@ -419,34 +451,34 @@ class GridworldSandbox:
         self.environment.update(tileData)
         # TODO: Everytime a Tile is changed to an episode terminator, change its Qvalues to 0 explicitly. NO! Agent cant know this beforehand, thats the point!
 
-    #def start_flow(self, demandPauseAtNextVisualization):
+    #def _start_flow(self, demandPauseAtNextVisualization):
     #    profile = cProfile.Profile()
-    #    profile.runcall(lambda arg=demandPauseAtNextVisualization: self.start_flow_real(arg))
+    #    profile.runcall(lambda arg=demandPauseAtNextVisualization: self._start_flow_real(arg))
     #    ps = pstats.Stats(profile)
     #    ps.print_stats()
 
-    def start_flow(self, demandPauseAtNextVisualization):
+    def _start_flow(self, demandPauseAtNextVisualization):
         self.pauseDemanded = False
         self.demandPauseAtNextVisualization = demandPauseAtNextVisualization
         #self.pauseButton.grid()  # use this again if Pause appears over Go when it shouldnt
         self.goButton.grid_remove()
         self.nextButton.config(state=tk.DISABLED)
         if self.agent is None:
-            self.initialize_environment_and_agent()
-            self.freeze_lifetime_parameters()
+            self._initialize_environment_and_agent()
+            self._freeze_lifetime_parameters()
         if self.gridworldTilemap.interactionAllowed:  # new episode is going to start
             self.gridworldTilemap.set_interactionAllowed(False)
-            self.freeze_episodetime_parameters()
-            self.update_environment()
-        self.iterate_flow()
+            self._freeze_episodetime_parameters()
+            self._update_environment()
+        self._iterate_flow()
 
-    def iterate_flow(self):
+    def _iterate_flow(self):
         if self.operationsLeftFrame.get_value() <= 0:
-            self.apply_pause(end=True)
+            self._apply_pause(end=True)
             return
         if self.pauseDemanded:
             if self.latestAgentOperation in self.relevantOperations:
-                self.apply_pause()
+                self._apply_pause()
                 return
             else:  # User clicked too late! Refresh time was over and iterate flow was already running again in the background. Now wait for the next relevant operation and visualization to enter the block above.
                 self.pauseDemanded = False
@@ -461,30 +493,30 @@ class GridworldSandbox:
                 totalRelevantCount += self.agentOperationCounts[operation]
             if totalRelevantCount % self.showEveryNoperationsFrame.get_value() == 0:
                 self.pauseDemanded = self.demandPauseAtNextVisualization
-                self.visualize()
+                self._visualize()
                 next_msDelay = self.minDelayFrame.get_value()
-        self.guiProcess.after(next_msDelay, self.iterate_flow)
+        self.guiProcess.after(next_msDelay, self._iterate_flow)
 
-    def demand_pause(self):
+    def _demand_pause(self):
         self.pauseDemanded = True
 
-    def apply_pause(self, end=False):
+    def _apply_pause(self, end=False):
         self.pauseDemanded = False
         self.demandPauseAtNextVisualization = False
         self.goButton.grid()
         #self.pauseButton.grid_remove()  # use this again if Pause appears over Go! when it shouldnt
         self.nextButton.config(state=tk.NORMAL)
         if end:
-            self.unfreeze_lifetime_parameters()
-            self.visualize()
-            self.plot()
+            self._unfreeze_lifetime_parameters()
+            self._visualize()
+            self._plot()
             del self.agent
             self.agent = None
         if self.agent is None or self.latestAgentOperation == Agent.FINISHED_EPISODE:
-            self.unfreeze_episodetime_parameters()
+            self._unfreeze_episodetime_parameters()
             self.gridworldTilemap.set_interactionAllowed(True)
 
-    def visualize(self):
+    def _visualize(self):
         # TODO: Qlearning doesnt update some tiles after a while. THATS THE POINT! Because its off-policy. This shows that it works! Great for presentation! Example with no walls and Start/Goal in the edges.
         if self.visualizeMemoryFrame.get_value():
             agentcolorDefaultHue, agentcolorDefaultSaturation, agentcolorValue = myFuncs.rgbHexString_to_hsv(myFuncs.get_light_color(Tile.AGENTCOLOR_DEFAULT, self.agentLightnessQvalueFrames))
@@ -519,6 +551,9 @@ class GridworldSandbox:
                 elif (h,w) == self.environment.get_teleportJustUsed():
                     gridworldFrame_Color = Tile.TELEPORT_JUST_USED_COLOR
                     valueVisualizationFrame_Color = myFuncs.get_light_color(Tile.TELEPORT_JUST_USED_COLOR, self.agentLightnessQvalueFrames)
+                elif (h,w) == self.environment.get_windJustUsed():
+                    gridworldFrame_Color = Tile.WIND_JUST_USED_COLOR
+                    valueVisualizationFrame_Color = myFuncs.get_light_color(Tile.WIND_JUST_USED_COLOR, self.agentLightnessQvalueFrames)
                 self.gridworldTilemap.update_tile_appearance(h, w, bg=gridworldFrame_Color)
                 for action, Qvalue in self.agent.get_Qvalues()[h][w].items():
                     self.qValueTilemaps[action].update_tile_appearance(h, w, text=f"{Qvalue:< 3.2f}"[:self.QVALUES_WIDTH + 1], bg=valueVisualizationFrame_Color)
@@ -536,42 +571,38 @@ class GridworldSandbox:
 
         self.guiProcess.update_idletasks()
 
-    def toggle_operation_relevance(self, operation):
+    def _toggle_operation_relevance(self, operation):
         #  This could also be implemented in check_flow_status in a similar way, but this way the stuff which must be computed at every check_flow_status call is minimized, since this function is only called after a checkbutton flip
         if self.operationFrames[operation].get_value():
             self.relevantOperations.add(operation)
         elif operation in self.relevantOperations:  # in-check prevents from error if frames will be set simultaneously by load() when some where unchecked before
             self.relevantOperations.remove(operation)
-        self.reset_agentOperationCounts()
+        self._reset_agentOperationCounts()
 
-    def reset_agentOperationCounts(self):
+    def _reset_agentOperationCounts(self):
         self.agentOperationCounts = {operation: 0 for operation in Agent.OPERATIONS}
 
-    def freeze_lifetime_parameters(self):
-        self.predefinedAlgorithmFrame.freeze()
-        self.dynamicAlphaFrame.freeze()
-        self.initialActionvalueMeanFrame.freeze()
-        self.initialActionvalueSigmaFrame.freeze()
+    def _freeze_lifetime_parameters(self):
+        for frame in self.lifetimeParameterFrames:
+            frame.freeze()
 
-    def unfreeze_lifetime_parameters(self):
-        self.predefinedAlgorithmFrame.unfreeze()
-        self.dynamicAlphaFrame.unfreeze()
-        self.initialActionvalueMeanFrame.unfreeze()
-        self.initialActionvalueSigmaFrame.unfreeze()
+    def _unfreeze_lifetime_parameters(self):
+        for frame in self.lifetimeParameterFrames:
+            frame.unfreeze()
 
-    def freeze_episodetime_parameters(self):
+    def _freeze_episodetime_parameters(self):
         self.discountFrame.freeze()
         self.loadButton.config(state=tk.DISABLED)
         self.saveButton.config(state=tk.DISABLED)
         self.resetButton.config(state=tk.DISABLED)
 
-    def unfreeze_episodetime_parameters(self):
+    def _unfreeze_episodetime_parameters(self):
         self.discountFrame.unfreeze()
         self.loadButton.config(state=tk.NORMAL)
         self.saveButton.config(state=tk.NORMAL)
         self.resetButton.config(state=tk.NORMAL)
 
-    def toggle_algorithm(self):
+    def _toggle_algorithm(self):
         for frame in self.parameterFramesDict.values():
             frame.unfreeze()
         # All parameter frames locked by previous algorithm settings are now unlocked. The freeze-status of all frames as a whole might not be well defined anymore!
@@ -587,13 +618,13 @@ class GridworldSandbox:
         for frame in toFreeze:
             frame.freeze()  # Now safely applying restrictions for the new algorithm after every value was handled
 
-    def toggle_alpha_freeze(self):
+    def _toggle_alpha_freeze(self):
         if self.dynamicAlphaFrame.get_value():
             self.learningRateFrame.freeze()
         else:
             self.learningRateFrame.unfreeze()
 
-    def toggle_targetPolicyFrame(self):
+    def _toggle_targetPolicyFrame(self):
         if self.onPolicyFrame.get_value():
             self.targetPolicyFrame.config(fg=self.LABELFRAME_DISABLED_COLOR)
             self.targetEpsilonFrame.freeze()
@@ -603,22 +634,25 @@ class GridworldSandbox:
             self.targetEpsilonFrame.unfreeze()
             self.targetEpsilonDecayRateFrame.unfreeze()
 
-    def toggle_offPolicy_nStep_warning(self):
+    def _warn_and_pause(self, color, *frames):
+        for frame in frames:
+            frame.highlight(color)
+        self._demand_pause()
+
+    def _toggle_offPolicy_nStep_warning(self):
         if self.nStepFrame.get_value() != 1 and not self.onPolicyFrame.get_value():  # covers true nStep algorithm and MC (nStep == 0)
-            self.onPolicyFrame.highlight(self.WARNING_COLOR)
-            self.nStepFrame.highlight(self.WARNING_COLOR)
+            self._warn_and_pause(self.WARNING_COLOR, self.onPolicyFrame, self.nStepFrame)
         else:
             self.onPolicyFrame.normalize()
             self.nStepFrame.normalize()
 
-    def toggle_ice_and_crosswind_warning(self):
+    def _toggle_ice_and_crosswind_warning(self):
         windLabelColor = "black"
-        windWarningColor = "orange"
         iceFloorValid = True
         if self.iceFloorFrame.get_value():
             for frame in self.hWindFrames + self.wWindFrames:
                 if frame.get_value():
-                    frame.highlight(self.WARNING_COLOR)
+                    self._warn_and_pause(self.WARNING_COLOR, frame)
                     windLabelColor = self.WARNING_COLOR
                     iceFloorValid = False
                 else:
@@ -630,23 +664,23 @@ class GridworldSandbox:
                 if not hValue or wWindAbsNonzeroValues in [set(), {abs(hValue)}]:
                     hWindFrame.normalize()
                 else:
-                    hWindFrame.highlight(windWarningColor)
-                    windLabelColor = windWarningColor
+                    self._warn_and_pause(self.WEAK_WARNING_COLOR, hWindFrame)
+                    windLabelColor = self.WEAK_WARNING_COLOR
             hWindAbsNonzeroValues = {abs(frame.get_value()) for frame in self.hWindFrames if frame.get_value()}
             for wWindFrame in self.wWindFrames:  # use indices
                 wValue = wWindFrame.get_value()
                 if not wValue or hWindAbsNonzeroValues in [set(), {abs(wValue)}]:
                     wWindFrame.normalize()
                 else:
-                    wWindFrame.highlight(windWarningColor)
-                    windLabelColor = windWarningColor
+                    self._warn_and_pause(self.WEAK_WARNING_COLOR, wWindFrame)
+                    windLabelColor = self.WEAK_WARNING_COLOR
         self.gridworldTilemap.set_windLabel_color(windLabelColor)
         if iceFloorValid:
             self.iceFloorFrame.normalize()
         else:
-            self.iceFloorFrame.highlight(self.WARNING_COLOR)
+            self._warn_and_pause(self.WARNING_COLOR, self.iceFloorFrame)
 
-    def plot(self):
+    def _plot(self):
         _, axes = plt.subplots(2, figsize=(7, 9))
         axes[0].plot(self.agent.get_episodeReturns())
         axes[0].set(xlabel="Episode", ylabel="Return")

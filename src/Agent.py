@@ -8,7 +8,14 @@ from myFuncs import cached_power, matrix_like, hRange, wRange, evaluate, assign
 
 
 class Agent:
-    """Reinforcement learner interacting with an Environment object and passing information to a GUI."""
+    """Reinforcement learner interacting with an Environment object and passing
+    information to a GUI.\n
+     ..
+    The learners actionspace may be customized and it is able to apply a variety
+    of tabular temporal difference control algorithms introduced in the book
+    "Reinforcement Learning - An Introduction" by Sutton & Barto,
+    as well as combinations between those algorithms.
+    """
     # RL variables:
     UP = (-1,0)  # actions and states are defined as tuples (not as lists), so they can be used as dict keys
     DOWN = (1,0)

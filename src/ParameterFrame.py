@@ -6,7 +6,7 @@ from ToolTip import ToolTip
 
 class ParameterFrame(tk.Frame):
     """Base class for a custom Frame that holds two widgets side by side.
-    The left widget should provide information, the right widget is an
+    The left widget should provide descriptive information, the right widget is an
     interactive widget ("prompt") connected to a variable. Its behaviour
     will be defined by daughter classes inheriting from this class.
     """
@@ -57,33 +57,56 @@ class ParameterFrame(tk.Frame):
         if value is not None:
             self.set_value(value)
 
-    def set_and_call_trace(self, input_Func):
-        self.variable.trace_add(mode="write", callback=lambda *traceArgs: input_Func())
-        input_Func()
+    def set_and_call_trace(self, input_func):
+        """Sets a function to be called if the variable connected to this ``ParameterFrame`` changes its value.
+        Also calls that function once.
+
+        :param function input_func: Function to be called
+        """
+        self.variable.trace_add(mode="write", callback=lambda *traceArgs: input_func())
+        input_func()
 
     def freeze(self, includeText=True):
+        """Disables user interaction with this ``ParameterFrame``.
+
+        :param bool includeText: If True, additionally grey out the descriptive widget
+        """
         if includeText and self.nameLabel:
             self.nameLabel.config(state=tk.DISABLED)
         self.dataPrompt.config(state=tk.DISABLED)
 
     def unfreeze(self):
+        """Enables user interaction with this ``ParameterFrame``.
+        """
         if self.nameLabel:
             self.nameLabel.config(state=tk.NORMAL)
         self.dataPrompt.config(state=tk.NORMAL)
 
     def highlight(self, color):
+        """Changes the appearance of this ``ParameterFrame`` to a given color.
+
+        :param str color: tkinter color
+        """
         if self.nameLabel:
             self.nameLabel.config(fg=color)
         for attribute in self.highlightAttributes:
             self.dataPrompt[attribute] = color
 
     def normalize(self):
+        """Changes the appearance of this ``ParameterFrame`` to its default colors.
+        """
         if self.nameLabel:
             self.nameLabel.config(fg="black")
         for attribute in self.highlightAttributes:
             self.dataPrompt[attribute] = self.defaultFrameBg
 
     def get_text(self, raw=False):
+        """Returns the descriptive information placed in the left widget of this ``ParameterFrame``.
+        If it isn`t present, return an empty string.
+
+        :param bool raw: If True, includes trailing blanks
+        :return str: Descriptive information
+        """
         if self.nameLabel:
             if raw:
                 return self.nameLabel.cget("text")
@@ -93,15 +116,31 @@ class ParameterFrame(tk.Frame):
             return ""
 
     def get_variable(self):
+        """Return the variable container connected to this ``ParameterFrame``.
+
+        :return tk.Variable: Variable container
+        """
         return self.variable
 
     def get_value(self):
+        """Return the current value stored in the variable container connected to this ``ParameterFrame``.
+
+        :return Any: Value
+        """
         return self.get_variable().get()
 
     def get_font(self):
+        """Return the font used in the descriptive widget of to this ``ParameterFrame``.
+
+        :return str: tkinter font
+        """
         return self.font
 
     def set_value(self, value):
+        """Set the value stored in the variable container connected to this ``ParameterFrame``.
+
+        :param Any value: Value to be set
+        """
         return self.get_variable().set(value)
 
     def _make_var(self):
@@ -114,7 +153,7 @@ class ParameterFrame(tk.Frame):
         """
         pass
 
-    def get_prompt_kwargs(self):
+    def _get_prompt_kwargs(self):
         prefix = "prompt"
         l = len(prefix)
         return {key[l].lower() + key[l+1:]: value for key, value in self.__dict__.items() if key.startswith(prefix)}

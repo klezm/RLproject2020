@@ -13,16 +13,16 @@ class EntryFrame(SafeVarFrame):
 
         :param args: Additional arguments passed to the SafeVarFrame constructor.
         :param int promptHighlightthickness: When highlighting a tk.Entry, only the border of it changes color. This value defines the width of that border.
-        :param promptJustify:
-        :param kwargs:
+        :param str promptJustify: Alignment of the value displayed in the tk.Entry.
+        :param kwargs: Additional keyword arguments passed to the SafeVarFrame constructor.
         """
         self.promptHighlightthickness = promptHighlightthickness
         self.promptJustify = promptJustify
         super().__init__(*args, **kwargs)
 
     def _make_prompt(self):
-        self.dataPrompt = tk.Entry(self, **self.get_prompt_kwargs())
-        self.connect()
+        self.dataPrompt = tk.Entry(self, **self._get_prompt_kwargs())
+        self._connect()
 
 
 if __name__ == "__main__":

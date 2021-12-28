@@ -3,13 +3,11 @@
 # Now:
 
 # Finalize:
-
-# TODO: underscore to all private members for frame classes and tooltip class
-# TODO: Docstrings
-# TODO: Move to my Git
-# TODO: Tutorials
-# TODO: check for dead imports
 # TODO: Check inline TODOs
+# TODO: Check for dead imports
+# TODO: Move to my Git
+# TODO: Video Tutorials + Readme
+# TODO: Finish docs for private methods
 
 # Potential future features
 # TODO  Does Inverse y-Wind feel better?

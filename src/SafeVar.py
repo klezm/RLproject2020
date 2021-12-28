@@ -57,7 +57,7 @@ class SafeVar(tk.Variable):
         :param value: Initial Value. An error is thrown if it does not pass the check.
         :param args: Additional arguments passed to the super().__init__ (tk.Variable).
         :param widgets: Object inheriting from tk.Widget or iterable of those. They will be connected to the SafeVar object, which in turn will be set as textvariable.
-        :param str validityInstructions: Description of the properties of a stable value. They will be shown in each warning/error.
+        :param str validityInstructions: Description of the properties of a stable value. They will be shown in each warning/error and in the Tooltips of connected widgets.
         :param str tooltipFont: tk font that may be used to display information about this variable in a different widget
         :param bool trustSet: If True, every value assigned by SafeVar.set will automatically be treated as valid and stable. Use with caution.
         :param function check_func: Signature: Any -> bool. Defines the condition a value has to fulfil to be valid.
@@ -129,7 +129,7 @@ class SafeVar(tk.Variable):
         self._reset_to_stable()
 
     def trace_add(self, callback, callFunc=False, passSelf=False, mode="write"):  # last arg is just to match the signature of super().trace_add
-        """Overrides tk.trace_add. Registers a function that will automatically be called after a stable value was set.
+        """Overrides tk.trace_add. Assigns a function that will automatically be called after a stable value was set.
 
         :param function callback: Function to be registered.
         :param callFunc: If True, calls the registered function once at the end of this method.
@@ -236,6 +236,7 @@ def main():
         print_default_kwargs(SafeVar)
     except Exception:
         pass
+
     tk.Tk()  # Needs to be called at least once to create instances of SafeVar.
     restrictedInt = SafeVar.basic_type(3, int, check_func=lambda x: 0 <= x <= 10, validityInstructions="Value must be an int between 0 and 10.")
     print(f"{restrictedInt.get() = }")
