@@ -3,10 +3,8 @@
 # Now:
 
 # Finalize:
-# TODO: Check inline TODOs
-# TODO: Check for dead imports
 # TODO: Move to my Git
-# TODO: Video Tutorials + Readme
+# TODO: Video Tutorial + Readme
 # TODO: Finish docs for private methods
 
 # Potential future features
