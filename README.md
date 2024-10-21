@@ -2,13 +2,26 @@
 
 # Gridworld Sandbox
 
+## DevContainer
+
+You can run this project using a devcontainer.
+Just run the following command:
+
+```shell
+python src/main.py
+```
+
+and open http://127.0.0.1:6080/ to see the GUI
+
+## Without DevContainer
+
 ### Requirements
 
 You need python 3.9 to run at the moment. Using Conda you can create an environment with Python 3.9 by running.
 
 ```shell
 conda create -n py39 python=3.9
-conda activate py39
+conda activate py39 # or: source activate py39
 pip install -r requirements.txt
 ```
 
@@ -24,14 +37,14 @@ cd RLproject2020
 Run:
 
 ```bash
-python main.py --grid-shape 9 --steps 1000000 --refresh-rate 1 --show-rate 100 --off-policy --grid-world-template 15
+cd src
+python main.py
 ```
 
 which will result in:
+![](GUI.png)
 
-![](assets/Example1.png)
-
-### Flow control explanation:
+## Flow control explanation:
 
 In the upper right, you see an entry named “Show Every…”, followed by five checkboxes, one for each possible operation the agent can perform (“...Experience Update”, “...Action Taken”, “...Episode Finished”, etc). They define which operations will be visualized and which not as follows:
 Each time any of the marked operations is performed, an internal counter is incremented. If this counter reaches the number set in the “Show Every…”-entry, a visualization happens, then the counter is reset to zero.
@@ -50,7 +63,7 @@ At any time when the flow is frozen as the Agent just finished an Episode, meani
 Once the number set in “Operations Left” has reached zero, the flow will immediately end, produce plots and kill the agent. You can then optionally modify the environment and start a new run with a new agent by just setting “Operations Left” to a number greater than zero and restarting the flow.
 
 
-### Known bugs:
+## Known bugs:
 - If you change any entry to be empty during a non-frozen flow, the program will most likely crash or at least result in undefined behavior. This is not going to be fixed, just watch out that you only empty any entry while the flow is paused.
 - A very small epsilon will be displayed in scientific notation with tons of decimal places, so once the value falls below 0.0001 = 1e-4, it will appear like an arbitrary number randomly changing between 1 and 10, since the e-term doesn’t fit inside the entry anymore. Due to the nature of the used library and the own code architecture, I don’t think there exists a clean fix for this.
 

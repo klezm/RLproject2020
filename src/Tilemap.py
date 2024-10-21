@@ -113,8 +113,9 @@ class Tilemap(tk.Frame):
     def reset(self):
         """Restore the initial representation of all ``Tiles``.
         """
-        for tile in self.tiles.flatten():
-            tile.reset()
+        for row in self.tiles:
+            for tile in row:
+                tile.reset()
 
     def set_interactionAllowed(self, value):
         """Toggles if the user may change the appearance of the ``Tiles``

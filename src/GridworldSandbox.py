@@ -42,7 +42,7 @@ class GridworldSandbox:
     VALUE_TILEMAPS_RELIEF_TARGET_ACTION = tk.GROOVE
     GUI_FRAMES_RELIEF_DEFAULT = tk.GROOVE
 
-    ROOT_PATH = Path("..")
+    ROOT_PATH = Path(__file__).parent.parent
     SAFEFILE_PATH = ROOT_PATH / "worlds"
     ALGORITHMS_PATH = ROOT_PATH / "algorithms"
     PLOTS_PATH = ROOT_PATH / "plots"
@@ -91,7 +91,8 @@ class GridworldSandbox:
         if not initialWindowDict["skip config window"]:
             configWindow = tk.Toplevel(self.guiProcess, pady=5, padx=5)
             configWindow.title("")
-            configWindow.iconbitmap(self.SETTINGS_PATH / icon)
+            if sys.platform == "win32":
+                configWindow.iconbitmap(self.SETTINGS_PATH.resolve() / icon)
 
             quitFlag = tk.BooleanVar(False)
             scaleVar = tk.DoubleVar(value=guiScale)
@@ -141,7 +142,8 @@ class GridworldSandbox:
 
         self.mainWindow = tk.Toplevel(self.guiProcess)
         self.mainWindow.title("Gridworld Sandbox")
-        self.mainWindow.iconbitmap(self.SETTINGS_PATH / icon)
+        if sys.platform == "win32":
+            self.mainWindow.iconbitmap(self.SETTINGS_PATH / icon)
         self.mainWindow.protocol("WM_DELETE_WINDOW", self.guiProcess.quit)
 
         if True:  # mainWindow:
